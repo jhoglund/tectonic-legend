@@ -6,6 +6,7 @@ interface CellProps {
   isClue: boolean;
   isSelected: boolean;
   isError: boolean;
+  isHinted: boolean;
   notes: Set<number>;
   groupSize: number;
   colorIndex: number;
@@ -26,6 +27,7 @@ export function Cell({
   isClue,
   isSelected,
   isError,
+  isHinted,
   notes,
   groupSize,
   colorIndex,
@@ -41,11 +43,13 @@ export function Cell({
 
   const groupBg = GROUP_COLORS[colorIndex % GROUP_COLORS.length];
 
-  const bgClass = isSelected
-    ? 'bg-blue-300'
-    : isError
-      ? 'bg-red-200'
-      : groupBg;
+  const bgClass = isHinted
+    ? 'bg-amber-300'
+    : isSelected
+      ? 'bg-blue-300'
+      : isError
+        ? 'bg-red-200'
+        : groupBg;
 
   const textClass = isClue
     ? 'text-slate-800 font-bold'
@@ -77,10 +81,6 @@ export function Cell({
   );
 }
 
-/**
- * Compute which borders of a cell are group boundaries.
- * A thick border means the neighbor in that direction belongs to a different group.
- */
 export function computeBorders(
   row: number,
   col: number,

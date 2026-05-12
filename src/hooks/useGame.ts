@@ -1,7 +1,9 @@
-import { useState, useCallback, useEffect, useRef } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import type { GameState, Difficulty, Puzzle } from '../engine/types';
 import { findErrors, isSolved } from '../engine/validator';
-import GeneratorWorker from '../engine/generator.worker?worker';
+import { generatePuzzle } from '../engine/generator';
+import { findHint } from '../engine/hints';
+import type { Hint } from '../engine/hints';
 
 function createGameState(puzzle: Puzzle): GameState {
   const { layout, clues } = puzzle;
@@ -32,49 +34,26 @@ export function useGame() {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [notesMode, setNotesMode] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
-  const workerRef = useRef<Worker | null>(null);
+  const [hint, setHint] = useState<Hint | null>(null);
 
   const startNewGame = useCallback((diff: Difficulty) => {
     setIsGenerating(true);
     setDifficulty(diff);
     setSelectedCell(null);
     setNotesMode(false);
+    setHint(null);
 
-    // Terminate any existing worker
-    if (workerRef.current) {
-      workerRef.current.terminate();
-    }
-
-    const worker = new GeneratorWorker();
-    workerRef.current = worker;
-
-    worker.onmessage = (e: MessageEvent) => {
-      const data = e.data;
-      // Deserialize the Map
-      const puzzle: Puzzle = {
-        layout: {
-          ...data.layout,
-          cellToGroup: new Map(data.layout.cellToGroup),
-        },
-        clues: data.clues,
-      };
+    // Use setTimeout to let UI update with "Generating..." before blocking
+    setTimeout(() => {
+      const puzzle = generatePuzzle(5, 5, diff);
       setGameState(createGameState(puzzle));
       setIsGenerating(false);
-      worker.terminate();
-      workerRef.current = null;
-    };
-
-    worker.postMessage({ rows: 5, cols: 5, difficulty: diff });
+    }, 50);
   }, []);
 
   // Auto-start a game on mount
   useEffect(() => {
     startNewGame('easy');
-    return () => {
-      if (workerRef.current) {
-        workerRef.current.terminate();
-      }
-    };
   }, [startNewGame]);
 
   const handleCellClick = useCallback(
@@ -90,6 +69,7 @@ export function useGame() {
       if (!gameState || !selectedCell) return;
       const [r, c] = selectedCell;
       if (gameState.isClue[r][c]) return;
+      setHint(null);
 
       setGameState((prev) => {
         if (!prev) return prev;
@@ -99,15 +79,17 @@ export function useGame() {
         );
 
         if (notesMode) {
+          // Toggle note
           if (newNotes[r][c].has(num)) {
             newNotes[r][c].delete(num);
           } else {
             newNotes[r][c].add(num);
           }
-          newGrid[r][c] = 0;
+          newGrid[r][c] = 0; // Clear value when adding notes
         } else {
+          // Set value (toggle off if same number)
           newGrid[r][c] = newGrid[r][c] === num ? 0 : num;
-          newNotes[r][c].clear();
+          newNotes[r][c].clear(); // Clear notes when setting value
         }
 
         const newErrors = findErrors(newGrid, prev.puzzle.layout);
@@ -150,6 +132,15 @@ export function useGame() {
     });
   }, [gameState, selectedCell]);
 
+  const handleHint = useCallback(() => {
+    if (!gameState) return;
+    const h = findHint(gameState.grid, gameState.puzzle.layout);
+    setHint(h);
+    if (h) {
+      setSelectedCell([h.row, h.col]);
+    }
+  }, [gameState]);
+
   const toggleNotes = useCallback(() => {
     setNotesMode((prev) => !prev);
   }, []);
@@ -160,10 +151,12 @@ export function useGame() {
     selectedCell,
     notesMode,
     isGenerating,
+    hint,
     startNewGame,
     handleCellClick,
     handleNumberInput,
     handleClear,
+    handleHint,
     toggleNotes,
   };
 }
