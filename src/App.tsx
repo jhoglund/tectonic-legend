@@ -8,12 +8,14 @@ function App() {
     gameState,
     difficulty,
     selectedCell,
+    hint,
     notesMode,
     isGenerating,
     startNewGame,
     handleCellClick,
     handleNumberInput,
     handleClear,
+    handleHint,
     toggleNotes,
   } = useGame();
 
@@ -38,6 +40,11 @@ function App() {
         return;
       }
 
+      if (e.key === 'h' || e.key === 'H') {
+        handleHint();
+        return;
+      }
+
       // Arrow key navigation
       const [r, c] = selectedCell;
       const { rows, cols } = gameState.puzzle.layout;
@@ -57,7 +64,7 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, selectedCell, handleNumberInput, handleClear, toggleNotes, handleCellClick]);
+  }, [gameState, selectedCell, handleNumberInput, handleClear, toggleNotes, handleHint, handleCellClick]);
 
   // Find max group size for number buttons
   const maxNumber = gameState
@@ -80,14 +87,17 @@ function App() {
           <Board
             gameState={gameState}
             selectedCell={selectedCell}
+            hint={hint}
             onCellClick={handleCellClick}
           />
           <GameControls
             difficulty={difficulty}
+            hint={hint}
             onNewGame={startNewGame}
             onNumberInput={handleNumberInput}
             onClear={handleClear}
             onToggleNotes={toggleNotes}
+            onHint={handleHint}
             notesMode={notesMode}
             maxNumber={maxNumber}
             isSolved={gameState.isSolved}

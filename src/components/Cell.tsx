@@ -2,27 +2,35 @@ import type { PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 
 interface CellProps {
-  row: number;
-  col: number;
   value: number;
   isClue: boolean;
   isSelected: boolean;
   isError: boolean;
+  isHinted: boolean;
   notes: Set<number>;
   groupSize: number;
+  colorIndex: number;
   borders: { top: boolean; right: boolean; bottom: boolean; left: boolean };
   onClick: () => void;
 }
 
+const GROUP_COLORS = [
+  'bg-amber-200',
+  'bg-sky-200',
+  'bg-emerald-200',
+  'bg-violet-200',
+  'bg-rose-200',
+];
+
 export function Cell({
-  row,
-  col,
   value,
   isClue,
   isSelected,
   isError,
+  isHinted,
   notes,
   groupSize,
+  colorIndex,
   borders,
   onClick,
 }: CellProps) {
@@ -33,11 +41,15 @@ export function Cell({
     borders.left ? 'border-l-2 border-l-slate-800' : 'border-l border-l-slate-300',
   ].join(' ');
 
-  const bgClass = isSelected
-    ? 'bg-blue-100'
-    : isError
-      ? 'bg-red-100'
-      : 'bg-white';
+  const groupBg = GROUP_COLORS[colorIndex % GROUP_COLORS.length];
+
+  const bgClass = isHinted
+    ? 'bg-amber-300'
+    : isSelected
+      ? 'bg-blue-300'
+      : isError
+        ? 'bg-red-200'
+        : groupBg;
 
   const textClass = isClue
     ? 'text-slate-800 font-bold'
@@ -69,10 +81,6 @@ export function Cell({
   );
 }
 
-/**
- * Compute which borders of a cell are group boundaries.
- * A thick border means the neighbor in that direction belongs to a different group.
- */
 export function computeBorders(
   row: number,
   col: number,

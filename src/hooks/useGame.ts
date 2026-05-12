@@ -1,8 +1,9 @@
 import { useState, useCallback, useEffect } from 'react';
 import type { GameState, Difficulty, Puzzle } from '../engine/types';
-import { posKey } from '../engine/types';
 import { findErrors, isSolved } from '../engine/validator';
 import { generatePuzzle } from '../engine/generator';
+import { findHint } from '../engine/hints';
+import type { Hint } from '../engine/hints';
 
 function createGameState(puzzle: Puzzle): GameState {
   const { layout, clues } = puzzle;
@@ -33,12 +34,14 @@ export function useGame() {
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [notesMode, setNotesMode] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
+  const [hint, setHint] = useState<Hint | null>(null);
 
   const startNewGame = useCallback((diff: Difficulty) => {
     setIsGenerating(true);
     setDifficulty(diff);
     setSelectedCell(null);
     setNotesMode(false);
+    setHint(null);
 
     // Use setTimeout to let UI update with "Generating..." before blocking
     setTimeout(() => {
@@ -66,6 +69,7 @@ export function useGame() {
       if (!gameState || !selectedCell) return;
       const [r, c] = selectedCell;
       if (gameState.isClue[r][c]) return;
+      setHint(null);
 
       setGameState((prev) => {
         if (!prev) return prev;
@@ -128,6 +132,15 @@ export function useGame() {
     });
   }, [gameState, selectedCell]);
 
+  const handleHint = useCallback(() => {
+    if (!gameState) return;
+    const h = findHint(gameState.grid, gameState.puzzle.layout);
+    setHint(h);
+    if (h) {
+      setSelectedCell([h.row, h.col]);
+    }
+  }, [gameState]);
+
   const toggleNotes = useCallback(() => {
     setNotesMode((prev) => !prev);
   }, []);
@@ -138,10 +151,12 @@ export function useGame() {
     selectedCell,
     notesMode,
     isGenerating,
+    hint,
     startNewGame,
     handleCellClick,
     handleNumberInput,
     handleClear,
+    handleHint,
     toggleNotes,
   };
 }
