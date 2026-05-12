@@ -127,7 +127,8 @@ export function generatePuzzle(
   cols: number,
   difficulty: Difficulty
 ): Puzzle {
-  for (let attempt = 0; attempt < 200; attempt++) {
+  const maxAttempts = rows * cols > 50 ? 500 : 200;
+  for (let attempt = 0; attempt < maxAttempts; attempt++) {
     const layout = generateLayout(rows, cols);
 
     // Fill the grid completely using the solver with randomization
@@ -141,7 +142,7 @@ export function generatePuzzle(
     if (puzzle) return puzzle;
   }
 
-  throw new Error('Failed to generate puzzle after 200 attempts');
+  throw new Error(`Failed to generate puzzle after ${maxAttempts} attempts`);
 }
 
 /**
@@ -205,7 +206,7 @@ function carveClues(
   const usedBacktrack = check.techniques.includes('backtrack');
   if (difficulty === 'easy' && usedBacktrack) return null;
 
-  return { layout, clues };
+  return { layout, clues, solution };
 }
 
 function getOrthogonalNeighbors(
