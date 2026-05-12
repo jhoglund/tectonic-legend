@@ -1,8 +1,8 @@
 import { useState, useCallback, useEffect } from 'react';
-import type { GameState, Difficulty, Puzzle } from '../engine/types';
+import type { GameState, Difficulty, Puzzle, GridSize, HintMode } from '../engine/types';
 import { findErrors, isSolved } from '../engine/validator';
 import { generatePuzzle } from '../engine/generator';
-import { findHint } from '../engine/hints';
+import { findHint, findCandidatesHint, findRevealHint, findCheckHint } from '../engine/hints';
 import type { Hint } from '../engine/hints';
 
 function createGameState(puzzle: Puzzle): GameState {
@@ -28,33 +28,40 @@ function createGameState(puzzle: Puzzle): GameState {
   };
 }
 
+function gridSizeDimensions(size: GridSize): [number, number] {
+  return size === '10x10' ? [10, 10] : [5, 5];
+}
+
 export function useGame() {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
+  const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [gameState, setGameState] = useState<GameState | null>(null);
   const [selectedCell, setSelectedCell] = useState<[number, number] | null>(null);
   const [notesMode, setNotesMode] = useState(false);
   const [isGenerating, setIsGenerating] = useState(false);
   const [hint, setHint] = useState<Hint | null>(null);
+  const [hintMode, setHintMode] = useState<HintMode>('logic');
 
-  const startNewGame = useCallback((diff: Difficulty) => {
+  const startNewGame = useCallback((diff: Difficulty, size?: GridSize) => {
+    const actualSize = size ?? gridSize;
     setIsGenerating(true);
     setDifficulty(diff);
+    if (size) setGridSize(size);
     setSelectedCell(null);
     setNotesMode(false);
     setHint(null);
 
-    // Use setTimeout to let UI update with "Generating..." before blocking
     setTimeout(() => {
-      const puzzle = generatePuzzle(5, 5, diff);
+      const [rows, cols] = gridSizeDimensions(actualSize);
+      const puzzle = generatePuzzle(rows, cols, diff);
       setGameState(createGameState(puzzle));
       setIsGenerating(false);
     }, 50);
-  }, []);
+  }, [gridSize]);
 
-  // Auto-start a game on mount
   useEffect(() => {
-    startNewGame('easy');
-  }, [startNewGame]);
+    startNewGame('easy', '5x5');
+  }, []);
 
   const handleCellClick = useCallback(
     (row: number, col: number) => {
@@ -79,17 +86,15 @@ export function useGame() {
         );
 
         if (notesMode) {
-          // Toggle note
           if (newNotes[r][c].has(num)) {
             newNotes[r][c].delete(num);
           } else {
             newNotes[r][c].add(num);
           }
-          newGrid[r][c] = 0; // Clear value when adding notes
+          newGrid[r][c] = 0;
         } else {
-          // Set value (toggle off if same number)
           newGrid[r][c] = newGrid[r][c] === num ? 0 : num;
-          newNotes[r][c].clear(); // Clear notes when setting value
+          newNotes[r][c].clear();
         }
 
         const newErrors = findErrors(newGrid, prev.puzzle.layout);
@@ -132,14 +137,47 @@ export function useGame() {
     });
   }, [gameState, selectedCell]);
 
-  const handleHint = useCallback(() => {
+  const handleHint = useCallback((mode?: HintMode) => {
     if (!gameState) return;
-    const h = findHint(gameState.grid, gameState.puzzle.layout);
-    setHint(h);
-    if (h) {
-      setSelectedCell([h.row, h.col]);
+    const activeMode = mode ?? hintMode;
+
+    if (activeMode === 'logic') {
+      const h = findHint(gameState.grid, gameState.puzzle.layout);
+      setHint(h);
+      if (h) setSelectedCell([h.row, h.col]);
+    } else if (activeMode === 'candidates') {
+      if (!selectedCell) {
+        setHint({ row: -1, col: -1, value: 0, reason: 'Select a cell first to see its candidates.', type: 'candidates' });
+        return;
+      }
+      const [r, c] = selectedCell;
+      const h = findCandidatesHint(gameState.grid, gameState.puzzle.layout, r, c);
+      setHint(h);
+    } else if (activeMode === 'reveal') {
+      if (!selectedCell) {
+        setHint({ row: -1, col: -1, value: 0, reason: 'Select a cell first to reveal its answer.', type: 'reveal' });
+        return;
+      }
+      const [r, c] = selectedCell;
+      const h = findRevealHint(gameState.puzzle.solution, gameState.grid, r, c);
+      setHint(h);
+      if (h.value && gameState.grid[r][c] !== h.value && !gameState.isClue[r][c]) {
+        setGameState((prev) => {
+          if (!prev) return prev;
+          const newGrid = prev.grid.map((row) => [...row]);
+          const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
+          newGrid[r][c] = h.value;
+          newNotes[r][c].clear();
+          const newErrors = findErrors(newGrid, prev.puzzle.layout);
+          const solved = isSolved(newGrid, prev.puzzle.layout);
+          return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
+        });
+      }
+    } else if (activeMode === 'check') {
+      const h = findCheckHint(gameState.grid, gameState.puzzle.layout);
+      setHint(h);
     }
-  }, [gameState]);
+  }, [gameState, selectedCell, hintMode]);
 
   const toggleNotes = useCallback(() => {
     setNotesMode((prev) => !prev);
@@ -148,15 +186,18 @@ export function useGame() {
   return {
     gameState,
     difficulty,
+    gridSize,
     selectedCell,
     notesMode,
     isGenerating,
     hint,
+    hintMode,
     startNewGame,
     handleCellClick,
     handleNumberInput,
     handleClear,
     handleHint,
+    setHintMode,
     toggleNotes,
   };
 }

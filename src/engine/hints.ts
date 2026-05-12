@@ -1,13 +1,15 @@
-import type { PuzzleLayout } from './types';
+import type { PuzzleLayout, HintMode } from './types';
 import { posKey } from './types';
-import { getNeighbors } from './validator';
+import { getNeighbors, findErrors } from './validator';
 
 export interface Hint {
   row: number;
   col: number;
   value: number;
   reason: string;
-  type: 'naked_single' | 'hidden_single' | 'neighbor_elimination' | 'group_elimination';
+  type: 'naked_single' | 'hidden_single' | 'candidates' | 'reveal' | 'check';
+  candidates?: number[];
+  errorCount?: number;
 }
 
 /**
@@ -179,4 +181,58 @@ function buildHiddenSingleReason(
     return `${value} must go here — it's the only cell in this ${groupCellCount}-cell group where ${value} can fit. ${reasons.join('. ')}.`;
   }
   return `${value} must go here — every other cell in this ${groupCellCount}-cell group is blocked from being ${value} by adjacent cells.`;
+}
+
+export function findCandidatesHint(
+  grid: number[][],
+  layout: PuzzleLayout,
+  row: number,
+  col: number
+): Hint | null {
+  if (grid[row][col] !== 0) {
+    return { row, col, value: 0, reason: 'This cell already has a value.', type: 'candidates' };
+  }
+  const candidates = computeCandidates(grid, layout);
+  const vals = [...candidates[row][col]].sort();
+  if (vals.length === 0) {
+    return { row, col, value: 0, reason: 'No valid candidates — there may be an error on the board.', type: 'candidates', candidates: [] };
+  }
+  return {
+    row,
+    col,
+    value: 0,
+    reason: `Possible values: ${vals.join(', ')}`,
+    type: 'candidates',
+    candidates: vals,
+  };
+}
+
+export function findRevealHint(
+  solution: number[][],
+  grid: number[][],
+  row: number,
+  col: number
+): Hint {
+  const value = solution[row][col];
+  if (grid[row][col] === value) {
+    return { row, col, value, reason: 'This cell already has the correct value.', type: 'reveal' };
+  }
+  return { row, col, value, reason: `The answer for this cell is ${value}.`, type: 'reveal' };
+}
+
+export function findCheckHint(
+  grid: number[][],
+  layout: PuzzleLayout
+): Hint | null {
+  const errors = findErrors(grid, layout);
+  let errorCount = 0;
+  for (let r = 0; r < errors.length; r++) {
+    for (let c = 0; c < errors[r].length; c++) {
+      if (errors[r][c]) errorCount++;
+    }
+  }
+  if (errorCount === 0) {
+    return { row: -1, col: -1, value: 0, reason: 'No errors found — looking good!', type: 'check', errorCount: 0 };
+  }
+  return { row: -1, col: -1, value: 0, reason: `Found ${errorCount} cell${errorCount > 1 ? 's' : ''} with errors.`, type: 'check', errorCount };
 }

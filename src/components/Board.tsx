@@ -49,6 +49,7 @@ export function Board({ gameState, selectedCell, hint, onCellClick }: BoardProps
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
+  const compact = rows > 5 || cols > 5;
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
 
@@ -83,6 +84,7 @@ export function Board({ gameState, selectedCell, hint, onCellClick }: BoardProps
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}
+              compact={compact}
               onClick={() => onCellClick(r, c)}
             />
           );
