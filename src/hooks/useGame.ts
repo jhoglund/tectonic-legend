@@ -97,7 +97,7 @@ export function useGame() {
           newNotes[r][c].clear();
         }
 
-        const newErrors = findErrors(newGrid, prev.puzzle.layout);
+        const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
         const solved = isSolved(newGrid, prev.puzzle.layout);
 
         return {
@@ -125,7 +125,7 @@ export function useGame() {
       );
       newGrid[r][c] = 0;
       newNotes[r][c].clear();
-      const newErrors = findErrors(newGrid, prev.puzzle.layout);
+      const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
 
       return {
         ...prev,
@@ -173,7 +173,7 @@ export function useGame() {
             const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
             newGrid[targetR][targetC] = val;
             newNotes[targetR][targetC].clear();
-            const newErrors = findErrors(newGrid, prev.puzzle.layout);
+            const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
             const solved = isSolved(newGrid, prev.puzzle.layout);
             return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
           });
@@ -202,13 +202,13 @@ export function useGame() {
           const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
           newGrid[r][c] = h.value;
           newNotes[r][c].clear();
-          const newErrors = findErrors(newGrid, prev.puzzle.layout);
+          const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
           const solved = isSolved(newGrid, prev.puzzle.layout);
           return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
         });
       }
     } else if (activeMode === 'check') {
-      const h = findCheckHint(gameState.grid, gameState.puzzle.layout);
+      const h = findCheckHint(gameState.grid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
       setHint(h);
     }
   }, [gameState, selectedCell, hintMode]);
