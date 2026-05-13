@@ -1,17 +1,12 @@
 import { useMemo } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
+import type { Hint } from '../engine/hints';
 import { Cell, computeBorders } from './Cell';
 
-/**
- * Greedy graph coloring: assign colors to groups so that
- * no two orthogonally adjacent groups share the same color.
- */
 function colorGroups(layout: PuzzleLayout): number[] {
   const { rows, cols, groups, cellToGroup } = layout;
 
-  // Build adjacency: two groups are neighbors if any of their cells
-  // are orthogonally adjacent
   const adj = new Map<number, Set<number>>();
   for (const group of groups) {
     adj.set(group.id, new Set());
@@ -30,7 +25,6 @@ function colorGroups(layout: PuzzleLayout): number[] {
     }
   }
 
-  // Greedy coloring
   const colors = new Array(groups.length).fill(-1);
   for (const group of groups) {
     const usedByNeighbors = new Set<number>();
@@ -47,13 +41,15 @@ function colorGroups(layout: PuzzleLayout): number[] {
 interface BoardProps {
   gameState: GameState;
   selectedCell: [number, number] | null;
+  hint: Hint | null;
   onCellClick: (row: number, col: number) => void;
 }
 
-export function Board({ gameState, selectedCell, onCellClick }: BoardProps) {
+export function Board({ gameState, selectedCell, hint, onCellClick }: BoardProps) {
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
+  const compact = rows > 5 || cols > 5;
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
 
@@ -73,6 +69,8 @@ export function Board({ gameState, selectedCell, onCellClick }: BoardProps) {
             selectedCell !== null &&
             selectedCell[0] === r &&
             selectedCell[1] === c;
+          const isHinted =
+            hint !== null && hint.row === r && hint.col === c;
 
           return (
             <Cell
@@ -81,10 +79,12 @@ export function Board({ gameState, selectedCell, onCellClick }: BoardProps) {
               isClue={isClue[r][c]}
               isSelected={isSelected}
               isError={errors[r][c]}
+              isHinted={isHinted}
               notes={notes[r][c]}
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}
+              compact={compact}
               onClick={() => onCellClick(r, c)}
             />
           );
