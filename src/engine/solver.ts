@@ -1,5 +1,4 @@
 import type { PuzzleLayout } from './types';
-import { getNeighbors } from './validator';
 
 export interface SolveResult {
   solved: boolean;
@@ -9,6 +8,8 @@ export interface SolveResult {
 
 export type SolveTechnique = 'naked_single' | 'hidden_single' | 'backtrack';
 
+type UndoEntry = { r: number; c: number; prevVal: number; prevCands: Set<number>; removed: [number, number, number][] };
+
 /**
  * Solve a Tectonic puzzle using constraint propagation + backtracking.
  */
@@ -17,27 +18,12 @@ export function solve(
   clues: number[][],
   options: { randomize?: boolean } = {}
 ): SolveResult {
-  const { rows, cols, groups } = layout;
+  const { rows, cols, groups, neighbors, cellGroup } = layout;
   const techniques = new Set<SolveTechnique>();
 
   const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => new Set<number>())
   );
-
-  const neighborCache: [number, number][][][] = Array.from(
-    { length: rows },
-    (_, r) =>
-      Array.from({ length: cols }, (_, c) => getNeighbors(r, c, rows, cols))
-  );
-
-  const cellGroup: number[][] = Array.from({ length: rows }, () =>
-    Array(cols).fill(-1)
-  );
-  for (const group of groups) {
-    for (const { row, col } of group.cells) {
-      cellGroup[row][col] = group.id;
-    }
-  }
 
   const grid: number[][] = Array.from({ length: rows }, () =>
     Array(cols).fill(0)
@@ -45,12 +31,97 @@ export function solve(
 
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
-      const groupId = cellGroup[r][c];
-      const groupSize = groups[groupId].cells.length;
+      const groupSize = groups[cellGroup[r][c]].cells.length;
       for (let v = 1; v <= groupSize; v++) {
         candidates[r][c].add(v);
       }
     }
+  }
+
+  const undoStack: UndoEntry[] = [];
+
+  function assign(r: number, c: number, val: number): boolean {
+    const entry: UndoEntry = { r, c, prevVal: grid[r][c], prevCands: new Set(candidates[r][c]), removed: [] };
+    undoStack.push(entry);
+
+    grid[r][c] = val;
+    candidates[r][c].clear();
+
+    for (const [nr, nc] of neighbors[r][c]) {
+      if (candidates[nr][nc].has(val)) {
+        candidates[nr][nc].delete(val);
+        entry.removed.push([nr, nc, val]);
+        if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+      }
+    }
+
+    for (const cell of groups[cellGroup[r][c]].cells) {
+      if (cell.row === r && cell.col === c) continue;
+      if (candidates[cell.row][cell.col].has(val)) {
+        candidates[cell.row][cell.col].delete(val);
+        entry.removed.push([cell.row, cell.col, val]);
+        if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      }
+    }
+
+    return true;
+  }
+
+  function undoTo(mark: number): void {
+    while (undoStack.length > mark) {
+      const entry = undoStack.pop()!;
+      grid[entry.r][entry.c] = entry.prevVal;
+      candidates[entry.r][entry.c] = entry.prevCands;
+      for (const [nr, nc, val] of entry.removed) {
+        candidates[nr][nc].add(val);
+      }
+    }
+  }
+
+  function propagate(): boolean {
+    let changed = true;
+    while (changed) {
+      changed = false;
+
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (grid[r][c] !== 0) continue;
+          if (candidates[r][c].size === 0) return false;
+          if (candidates[r][c].size === 1) {
+            const val = candidates[r][c].values().next().value!;
+            techniques.add('naked_single');
+            if (!assign(r, c, val)) return false;
+            changed = true;
+          }
+        }
+      }
+
+      for (const group of groups) {
+        const size = group.cells.length;
+        for (let v = 1; v <= size; v++) {
+          let count = 0;
+          let lastR = -1;
+          let lastC = -1;
+          let placed = false;
+          for (const { row, col } of group.cells) {
+            if (grid[row][col] === v) { placed = true; break; }
+            if (grid[row][col] === 0 && candidates[row][col].has(v)) {
+              count++;
+              lastR = row;
+              lastC = col;
+            }
+          }
+          if (placed) continue;
+          if (count === 0) return false;
+          if (count === 1) {
+            techniques.add('hidden_single');
+            if (!assign(lastR, lastC, v)) return false;
+            changed = true;
+          }
+        }
+      }
+    }
+    return true;
   }
 
   for (let r = 0; r < rows; r++) {
@@ -74,70 +145,6 @@ export function solve(
   techniques.add('backtrack');
   const result = backtrack();
   return { solved: result, grid, techniques: [...techniques] };
-
-  function assign(r: number, c: number, val: number): boolean {
-    grid[r][c] = val;
-    candidates[r][c].clear();
-
-    for (const [nr, nc] of neighborCache[r][c]) {
-      candidates[nr][nc].delete(val);
-      if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
-    }
-
-    const groupId = cellGroup[r][c];
-    for (const cell of groups[groupId].cells) {
-      if (cell.row === r && cell.col === c) continue;
-      candidates[cell.row][cell.col].delete(val);
-      if (
-        grid[cell.row][cell.col] === 0 &&
-        candidates[cell.row][cell.col].size === 0
-      )
-        return false;
-    }
-
-    return true;
-  }
-
-  function propagate(): boolean {
-    let changed = true;
-    while (changed) {
-      changed = false;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if (grid[r][c] !== 0) continue;
-          if (candidates[r][c].size === 0) return false;
-          if (candidates[r][c].size === 1) {
-            const val = [...candidates[r][c]][0];
-            techniques.add('naked_single');
-            if (!assign(r, c, val)) return false;
-            changed = true;
-          }
-        }
-      }
-
-      for (const group of groups) {
-        const size = group.cells.length;
-        for (let v = 1; v <= size; v++) {
-          const possible = group.cells.filter(
-            ({ row, col }) =>
-              grid[row][col] === v ||
-              (grid[row][col] === 0 && candidates[row][col].has(v))
-          );
-          if (possible.length === 0) return false;
-          if (
-            possible.length === 1 &&
-            grid[possible[0].row][possible[0].col] === 0
-          ) {
-            techniques.add('hidden_single');
-            if (!assign(possible[0].row, possible[0].col, v)) return false;
-            changed = true;
-          }
-        }
-      }
-    }
-    return true;
-  }
 
   function isComplete(): boolean {
     for (let r = 0; r < rows; r++) {
@@ -165,11 +172,6 @@ export function solve(
     if (bestR === -1) return true;
     if (minSize === 0) return false;
 
-    const savedGrid = grid.map((row) => [...row]);
-    const savedCandidates = candidates.map((row) =>
-      row.map((s) => new Set(s))
-    );
-
     let vals = [...candidates[bestR][bestC]];
     if (options.randomize) {
       for (let i = vals.length - 1; i > 0; i--) {
@@ -179,23 +181,11 @@ export function solve(
     }
 
     for (const val of vals) {
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          grid[r][c] = savedGrid[r][c];
-          candidates[r][c] = new Set(savedCandidates[r][c]);
-        }
-      }
-
+      const mark = undoStack.length;
       if (assign(bestR, bestC, val) && propagate() && backtrack()) {
         return true;
       }
-    }
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        grid[r][c] = savedGrid[r][c];
-        candidates[r][c] = new Set(savedCandidates[r][c]);
-      }
+      undoTo(mark);
     }
 
     return false;
@@ -210,25 +200,10 @@ export function countSolutions(
   clues: number[][],
   limit: number = 2
 ): number {
-  const { rows, cols, groups } = layout;
+  const { rows, cols, groups, neighbors, cellGroup } = layout;
   let count = 0;
   let backtracks = 0;
   const maxBacktracks = rows * cols * 200;
-
-  const neighborCache: [number, number][][][] = Array.from(
-    { length: rows },
-    (_, r) =>
-      Array.from({ length: cols }, (_, c) => getNeighbors(r, c, rows, cols))
-  );
-
-  const cellGroup: number[][] = Array.from({ length: rows }, () =>
-    Array(cols).fill(-1)
-  );
-  for (const group of groups) {
-    for (const { row, col } of group.cells) {
-      cellGroup[row][col] = group.id;
-    }
-  }
 
   const grid: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
   const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
@@ -244,19 +219,42 @@ export function countSolutions(
     }
   }
 
+  const undoStack: UndoEntry[] = [];
+
   function assign(r: number, c: number, val: number): boolean {
+    const entry: UndoEntry = { r, c, prevVal: grid[r][c], prevCands: new Set(candidates[r][c]), removed: [] };
+    undoStack.push(entry);
+
     grid[r][c] = val;
     candidates[r][c].clear();
-    for (const [nr, nc] of neighborCache[r][c]) {
-      candidates[nr][nc].delete(val);
-      if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+
+    for (const [nr, nc] of neighbors[r][c]) {
+      if (candidates[nr][nc].has(val)) {
+        candidates[nr][nc].delete(val);
+        entry.removed.push([nr, nc, val]);
+        if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+      }
     }
     for (const cell of groups[cellGroup[r][c]].cells) {
       if (cell.row === r && cell.col === c) continue;
-      candidates[cell.row][cell.col].delete(val);
-      if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      if (candidates[cell.row][cell.col].has(val)) {
+        candidates[cell.row][cell.col].delete(val);
+        entry.removed.push([cell.row, cell.col, val]);
+        if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      }
     }
     return true;
+  }
+
+  function undoTo(mark: number): void {
+    while (undoStack.length > mark) {
+      const entry = undoStack.pop()!;
+      grid[entry.r][entry.c] = entry.prevVal;
+      candidates[entry.r][entry.c] = entry.prevCands;
+      for (const [nr, nc, val] of entry.removed) {
+        candidates[nr][nc].add(val);
+      }
+    }
   }
 
   function propagate(): boolean {
@@ -268,19 +266,29 @@ export function countSolutions(
           if (grid[r][c] !== 0) continue;
           if (candidates[r][c].size === 0) return false;
           if (candidates[r][c].size === 1) {
-            if (!assign(r, c, [...candidates[r][c]][0])) return false;
+            if (!assign(r, c, candidates[r][c].values().next().value!)) return false;
             changed = true;
           }
         }
       }
       for (const group of groups) {
         for (let v = 1; v <= group.cells.length; v++) {
-          const possible = group.cells.filter(
-            ({ row, col }) => grid[row][col] === v || (grid[row][col] === 0 && candidates[row][col].has(v))
-          );
-          if (possible.length === 0) return false;
-          if (possible.length === 1 && grid[possible[0].row][possible[0].col] === 0) {
-            if (!assign(possible[0].row, possible[0].col, v)) return false;
+          let cnt = 0;
+          let lastR = -1;
+          let lastC = -1;
+          let placed = false;
+          for (const { row, col } of group.cells) {
+            if (grid[row][col] === v) { placed = true; break; }
+            if (grid[row][col] === 0 && candidates[row][col].has(v)) {
+              cnt++;
+              lastR = row;
+              lastC = col;
+            }
+          }
+          if (placed) continue;
+          if (cnt === 0) return false;
+          if (cnt === 1) {
+            if (!assign(lastR, lastC, v)) return false;
             changed = true;
           }
         }
@@ -289,7 +297,6 @@ export function countSolutions(
     return true;
   }
 
-  // Initialize with clues
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (clues[r][c] !== 0) {
@@ -329,19 +336,10 @@ export function countSolutions(
     if (bestR === -1) { count++; return; }
     if (minSize === 0) return;
 
-    const savedGrid = grid.map((row) => [...row]);
-    const savedCandidates = candidates.map((row) => row.map((s) => new Set(s)));
-
     for (const val of [...candidates[bestR][bestC]]) {
       if (count >= limit || backtracks >= maxBacktracks) return;
 
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          grid[r][c] = savedGrid[r][c];
-          candidates[r][c] = new Set(savedCandidates[r][c]);
-        }
-      }
-
+      const mark = undoStack.length;
       if (assign(bestR, bestC, val) && propagate()) {
         if (isComplete()) {
           count++;
@@ -349,14 +347,8 @@ export function countSolutions(
           search();
         }
       }
+      undoTo(mark);
       backtracks++;
-    }
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        grid[r][c] = savedGrid[r][c];
-        candidates[r][c] = new Set(savedCandidates[r][c]);
-      }
     }
   }
 

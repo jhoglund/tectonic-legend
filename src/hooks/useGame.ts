@@ -98,7 +98,7 @@ export function useGame() {
         }
 
         const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
-        const solved = isSolved(newGrid, prev.puzzle.layout);
+        const solved = isSolved(newGrid, prev.puzzle.layout, newErrors);
 
         return {
           ...prev,
