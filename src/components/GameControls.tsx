@@ -14,6 +14,8 @@ interface GameControlsProps {
   gridSize: GridSize;
   hint: Hint | null;
   hintMode: HintMode;
+  chainStepIndex: number;
+  chainLength: number;
   onNewGame: (difficulty: Difficulty, size?: GridSize) => void;
   onNumberInput: (num: number) => void;
   onClear: () => void;
@@ -21,6 +23,7 @@ interface GameControlsProps {
   onHint: (mode?: HintMode) => void;
   onHintModeChange: (mode: HintMode) => void;
   onShare: () => void;
+  onChainStep: (delta: number) => void;
   notesMode: boolean;
   maxNumber: number;
   isSolved: boolean;
@@ -31,6 +34,8 @@ export function GameControls({
   gridSize,
   hint,
   hintMode,
+  chainStepIndex,
+  chainLength,
   onNewGame,
   onNumberInput,
   onClear,
@@ -38,6 +43,7 @@ export function GameControls({
   onHint,
   onHintModeChange,
   onShare,
+  onChainStep,
   notesMode,
   maxNumber,
   isSolved,
@@ -65,31 +71,66 @@ export function GameControls({
       )}
 
       {hint && (
-        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full max-h-64 overflow-y-auto">
-          <span className="font-semibold">Hint:</span>
-          {hint.steps ? (
-            <div className="mt-1 space-y-0.5">
-              {hint.steps.map((step, i) => (
-                <div
-                  key={i}
-                  className={
-                    step.startsWith('→')
-                      ? 'pl-3 text-amber-700'
-                      : step.startsWith('Assume')
-                        ? 'font-medium mt-2'
-                        : step.startsWith('So ')
-                          ? 'text-red-700 font-medium'
-                          : step.startsWith('Therefore')
-                            ? 'text-green-700 font-semibold mt-2'
-                            : ''
-                  }
-                >
-                  {step}
+        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full">
+          {hint.chain && chainLength > 0 ? (
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-semibold text-xs text-amber-600 uppercase tracking-wide">
+                  Step {chainStepIndex + 1} of {chainLength}
+                </span>
+                <div className="flex gap-1">
+                  <button
+                    onClick={() => onChainStep(-1)}
+                    disabled={chainStepIndex <= 0}
+                    className="px-2 py-0.5 rounded text-xs font-medium border transition-colors
+                      disabled:opacity-30 disabled:cursor-not-allowed
+                      bg-white text-amber-700 border-amber-300 hover:bg-amber-100"
+                  >
+                    Prev
+                  </button>
+                  <button
+                    onClick={() => onChainStep(1)}
+                    disabled={chainStepIndex >= chainLength - 1}
+                    className="px-2 py-0.5 rounded text-xs font-medium border transition-colors
+                      disabled:opacity-30 disabled:cursor-not-allowed
+                      bg-white text-amber-700 border-amber-300 hover:bg-amber-100"
+                  >
+                    Next
+                  </button>
                 </div>
-              ))}
+              </div>
+              <div className={`text-sm font-medium ${
+                hint.chain[chainStepIndex]?.role === 'contradiction'
+                  ? 'text-red-700'
+                  : hint.chain[chainStepIndex]?.role === 'conclusion'
+                    ? 'text-green-700'
+                    : hint.chain[chainStepIndex]?.role === 'assumption'
+                      ? 'text-amber-800'
+                      : 'text-slate-700'
+              }`}>
+                {hint.chain[chainStepIndex]?.text}
+              </div>
+              <div className="mt-2 flex gap-1 flex-wrap">
+                {hint.chain.map((_, i) => (
+                  <button
+                    key={i}
+                    onClick={() => onChainStep(i - chainStepIndex)}
+                    className={`w-2 h-2 rounded-full transition-colors ${
+                      i === chainStepIndex
+                        ? 'bg-amber-600'
+                        : i < chainStepIndex
+                          ? 'bg-amber-300'
+                          : 'bg-amber-200'
+                    }`}
+                  />
+                ))}
+              </div>
             </div>
           ) : (
-            <span> {hint.reason}</span>
+            <div>
+              <span className="font-semibold">Hint:</span>
+              <span> {hint.reason}</span>
+            </div>
           )}
         </div>
       )}

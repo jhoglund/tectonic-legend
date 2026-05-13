@@ -1,7 +1,9 @@
-import { useCallback, useEffect } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { Board } from './components/Board';
+import type { CellOverlay } from './components/Board';
 import { GameControls } from './components/GameControls';
 import { useGame } from './hooks/useGame';
+import { posKey } from './engine/types';
 
 function App() {
   const {
@@ -22,6 +24,43 @@ function App() {
     toggleNotes,
     getShareUrl,
   } = useGame();
+
+  const [chainStepIndex, setChainStepIndex] = useState(0);
+
+  const chain = hint?.chain ?? null;
+  const chainLength = chain?.length ?? 0;
+
+  useEffect(() => {
+    setChainStepIndex(0);
+  }, [hint]);
+
+  const handleChainStep = useCallback((delta: number) => {
+    setChainStepIndex((prev) => {
+      const next = prev + delta;
+      return Math.max(0, Math.min(next, chainLength - 1));
+    });
+  }, [chainLength]);
+
+  const cellOverlays = useMemo((): Map<string, CellOverlay> | null => {
+    if (!chain || chainLength === 0) return null;
+
+    const overlays = new Map<string, CellOverlay>();
+
+    for (let i = 0; i <= chainStepIndex; i++) {
+      const entry = chain[i];
+      const key = posKey(entry.row, entry.col);
+      const highlight = i === chainStepIndex
+        ? (entry.role === 'info' ? 'conclusion' : entry.role === 'target' ? 'assumption' : entry.role)
+        : null;
+      const prev = overlays.get(key);
+      overlays.set(key, {
+        highlight: highlight ?? prev?.highlight ?? null,
+        ghostValue: entry.value > 0 && entry.role !== 'target' ? entry.value : prev?.ghostValue ?? 0,
+      });
+    }
+
+    return overlays;
+  }, [chain, chainStepIndex, chainLength]);
 
   const handleShare = useCallback(() => {
     const url = getShareUrl();
@@ -96,6 +135,7 @@ function App() {
             gameState={gameState}
             selectedCell={selectedCell}
             hint={hint}
+            cellOverlays={cellOverlays}
             onCellClick={handleCellClick}
           />
           <GameControls
@@ -103,6 +143,8 @@ function App() {
             gridSize={gridSize}
             hint={hint}
             hintMode={hintMode}
+            chainStepIndex={chainStepIndex}
+            chainLength={chainLength}
             onNewGame={startNewGame}
             onNumberInput={handleNumberInput}
             onClear={handleClear}
@@ -110,6 +152,7 @@ function App() {
             onHint={handleHint}
             onHintModeChange={setHintMode}
             onShare={handleShare}
+            onChainStep={handleChainStep}
             notesMode={notesMode}
             maxNumber={maxNumber}
             isSolved={gameState.isSolved}

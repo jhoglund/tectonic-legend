@@ -1,12 +1,17 @@
 import type { PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 
+export type CellHighlight = 'assumption' | 'deduction' | 'contradiction' | 'conclusion' | null;
+
 interface CellProps {
   value: number;
   isClue: boolean;
   isSelected: boolean;
   isError: boolean;
   isHinted: boolean;
+  isDimmed: boolean;
+  cellHighlight: CellHighlight;
+  ghostValue: number;
   notes: Set<number>;
   groupSize: number;
   colorIndex: number;
@@ -23,12 +28,22 @@ const GROUP_COLORS = [
   'bg-rose-200',
 ];
 
+const HIGHLIGHT_RINGS: Record<string, string> = {
+  assumption: 'ring-2 ring-amber-500 ring-inset',
+  deduction: 'ring-2 ring-blue-400 ring-inset',
+  contradiction: 'ring-2 ring-red-500 ring-inset',
+  conclusion: 'ring-2 ring-green-500 ring-inset',
+};
+
 export function Cell({
   value,
   isClue,
   isSelected,
   isError,
   isHinted,
+  isDimmed,
+  cellHighlight,
+  ghostValue,
   notes,
   groupSize,
   colorIndex,
@@ -53,6 +68,8 @@ export function Cell({
         ? 'bg-red-200'
         : groupBg;
 
+  const ringClass = cellHighlight ? HIGHLIGHT_RINGS[cellHighlight] : '';
+
   const textClass = isClue
     ? 'text-slate-800 font-bold'
     : isError
@@ -66,13 +83,17 @@ export function Cell({
   const textSize = compact ? 'text-sm' : 'text-xl';
   const noteTextSize = compact ? 'text-[6px]' : 'text-[9px]';
 
+  const dimClass = isDimmed ? 'opacity-30' : '';
+
   return (
     <div
-      className={`flex items-center justify-center cursor-pointer select-none
-        ${sizeClass} ${borderClasses} ${bgClass} transition-colors`}
+      className={`flex items-center justify-center cursor-pointer select-none relative
+        ${sizeClass} ${borderClasses} ${bgClass} ${ringClass} ${dimClass} transition-all duration-200`}
       onClick={onClick}
     >
-      {value !== 0 ? (
+      {ghostValue !== 0 && value === 0 ? (
+        <span className={`${textSize} text-amber-500 font-semibold opacity-70`}>{ghostValue}</span>
+      ) : value !== 0 ? (
         <span className={`${textSize} ${textClass}`}>{value}</span>
       ) : notes.size > 0 ? (
         <div className="grid grid-cols-3 gap-0 w-full h-full p-0.5">

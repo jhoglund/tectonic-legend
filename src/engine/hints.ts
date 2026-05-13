@@ -1,6 +1,14 @@
 import type { PuzzleLayout } from './types';
 import { findErrors } from './validator';
 
+export interface HintChainEntry {
+  row: number;
+  col: number;
+  value: number;
+  role: 'target' | 'assumption' | 'deduction' | 'contradiction' | 'conclusion' | 'info';
+  text: string;
+}
+
 export interface Hint {
   row: number;
   col: number;
@@ -10,6 +18,7 @@ export interface Hint {
   candidates?: number[];
   errorCount?: number;
   steps?: string[];
+  chain?: HintChainEntry[];
 }
 
 function computeCandidates(
@@ -208,29 +217,60 @@ function simulateTrial(
   return { contradiction: false, steps };
 }
 
+interface TrialExplanation {
+  texts: string[];
+  chainEntries: HintChainEntry[];
+}
+
 function formatTrialExplanation(
   trialRow: number,
   trialCol: number,
   trialValue: number,
   result: TrialResult
-): string[] {
-  const explanation: string[] = [];
-  explanation.push(`Assume (${trialRow + 1},${trialCol + 1}) = ${trialValue}`);
+): TrialExplanation {
+  const texts: string[] = [];
+  const chainEntries: HintChainEntry[] = [];
+
+  texts.push(`Assume (${trialRow + 1},${trialCol + 1}) = ${trialValue}`);
+  chainEntries.push({
+    row: trialRow, col: trialCol, value: trialValue,
+    role: 'assumption',
+    text: `Assume this cell is ${trialValue}`,
+  });
 
   const stepsToShow = result.steps.slice(0, 4);
   for (const step of stepsToShow) {
-    if (step.technique === 'naked_single') {
-      explanation.push(`→ (${step.row + 1},${step.col + 1}) is forced to ${step.value} (only candidate)`);
-    } else {
-      explanation.push(`→ (${step.row + 1},${step.col + 1}) must be ${step.value} (only spot in group)`);
-    }
+    const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+    texts.push(`→ (${step.row + 1},${step.col + 1}) is forced to ${step.value} (${reason})`);
+    chainEntries.push({
+      row: step.row, col: step.col, value: step.value,
+      role: 'deduction',
+      text: `This cell is forced to ${step.value} (${reason})`,
+    });
   }
   if (result.steps.length > 4) {
-    explanation.push(`→ ...${result.steps.length - 4} more forced moves...`);
+    const extra = result.steps.slice(4);
+    texts.push(`→ ...${extra.length} more forced moves...`);
+    for (const step of extra) {
+      const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+      chainEntries.push({
+        row: step.row, col: step.col, value: step.value,
+        role: 'deduction',
+        text: `This cell is forced to ${step.value} (${reason})`,
+      });
+    }
   }
-  explanation.push(`→ Contradiction: ${result.contradictionReason!}`);
-  explanation.push(`So (${trialRow + 1},${trialCol + 1}) cannot be ${trialValue}.`);
-  return explanation;
+
+  texts.push(`→ Contradiction: ${result.contradictionReason!}`);
+  chainEntries.push({
+    row: trialRow, col: trialCol, value: trialValue,
+    role: 'contradiction',
+    text: `Contradiction! ${result.contradictionReason!}`,
+  });
+
+  texts.push(`So (${trialRow + 1},${trialCol + 1}) cannot be ${trialValue}.`);
+
+  return { texts, chainEntries };
 }
 
 function tryEliminationsForCell(
@@ -240,10 +280,10 @@ function tryEliminationsForCell(
   cellR: number,
   cellC: number,
   maxDepth: number
-): { eliminated: number[]; explanations: Map<number, string[]> } {
+): { eliminated: number[]; explanations: Map<number, TrialExplanation> } {
   const vals = [...candidates[cellR][cellC]];
   const eliminated: number[] = [];
-  const explanations: Map<number, string[]> = new Map();
+  const explanations: Map<number, TrialExplanation> = new Map();
 
   for (const v of vals) {
     const result = simulateTrial(grid, layout, candidates, cellR, cellC, v);
@@ -296,14 +336,29 @@ function tryEliminationsForCell(
 
       if (!propagated) {
         eliminated.push(v);
-        const exp = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+        const texts = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+        const chainEntries: HintChainEntry[] = [{
+          row: cellR, col: cellC, value: v, role: 'assumption',
+          text: `Assume this cell is ${v}`,
+        }];
         if (result.steps.length > 0) {
-          exp.push(`→ ...after ${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
+          texts.push(`→ ...after ${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
+          for (const step of result.steps) {
+            const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+            chainEntries.push({
+              row: step.row, col: step.col, value: step.value, role: 'deduction',
+              text: `This cell is forced to ${step.value} (${reason})`,
+            });
+          }
         } else {
-          exp.push(`→ After further analysis, this leads to a contradiction`);
+          texts.push(`→ After further analysis, this leads to a contradiction`);
         }
-        exp.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
-        explanations.set(v, exp);
+        chainEntries.push({
+          row: cellR, col: cellC, value: v, role: 'contradiction',
+          text: 'Contradiction! Deeper analysis shows this is impossible',
+        });
+        texts.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+        explanations.set(v, { texts, chainEntries });
         continue;
       }
 
@@ -328,13 +383,28 @@ function tryEliminationsForCell(
             });
             if (allSubContradict) {
               eliminated.push(v);
-              const exp = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+              const texts = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+              const chainEntries: HintChainEntry[] = [{
+                row: cellR, col: cellC, value: v, role: 'assumption',
+                text: `Assume this cell is ${v}`,
+              }];
               if (result.steps.length > 0) {
-                exp.push(`→ ...${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''} follow`);
+                texts.push(`→ ...${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''} follow`);
+                for (const step of result.steps) {
+                  const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+                  chainEntries.push({
+                    row: step.row, col: step.col, value: step.value, role: 'deduction',
+                    text: `This cell is forced to ${step.value} (${reason})`,
+                  });
+                }
               }
-              exp.push(`→ Then cell (${sr + 1},${sc + 1}) has candidates ${[...simCands[sr][sc]].join(', ')}, but every option leads to a contradiction`);
-              exp.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
-              explanations.set(v, exp);
+              texts.push(`→ Then cell (${sr + 1},${sc + 1}) has candidates ${[...simCands[sr][sc]].join(', ')}, but every option leads to a contradiction`);
+              chainEntries.push({
+                row: sr, col: sc, value: 0, role: 'contradiction',
+                text: `Every candidate here leads to a contradiction`,
+              });
+              texts.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+              explanations.set(v, { texts, chainEntries });
               foundDeep = true;
               break;
             }
@@ -370,31 +440,49 @@ function findContradictionHint(
     cellR: number,
     cellC: number,
     eliminated: number[],
-    explanations: Map<number, string[]>
+    explanations: Map<number, TrialExplanation>
   ): Hint {
     const vals = [...candidates[cellR][cellC]];
     const remaining = vals.filter((v) => !eliminated.includes(v));
 
     const hintSteps: string[] = [];
+    const chain: HintChainEntry[] = [];
+
     hintSteps.push(`Cell (${cellR + 1},${cellC + 1}) could be ${vals.join(', ')}.`);
+    chain.push({
+      row: cellR, col: cellC, value: 0, role: 'target',
+      text: `This cell could be ${vals.join(', ')}`,
+    });
 
     for (const v of eliminated) {
-      hintSteps.push(...explanations.get(v)!);
+      const exp = explanations.get(v)!;
+      hintSteps.push(...exp.texts);
+      chain.push(...exp.chainEntries);
     }
 
     if (remaining.length === 1) {
       const answer = remaining[0];
       hintSteps.push(`Therefore (${cellR + 1},${cellC + 1}) must be ${answer}.`);
+      chain.push({
+        row: cellR, col: cellC, value: answer, role: 'conclusion',
+        text: `Therefore this cell must be ${answer}`,
+      });
       return {
         row: cellR, col: cellC, value: answer,
-        reason: hintSteps.join('\n'), type: 'contradiction', steps: hintSteps,
+        reason: hintSteps.join('\n'), type: 'contradiction',
+        steps: hintSteps, chain,
       };
     }
 
     hintSteps.push(`This eliminates ${eliminated.join(', ')}, leaving ${remaining.join(', ')} as possibilities.`);
+    chain.push({
+      row: cellR, col: cellC, value: 0, role: 'info',
+      text: `Eliminates ${eliminated.join(', ')}, leaving ${remaining.join(', ')}`,
+    });
     return {
       row: cellR, col: cellC, value: 0,
-      reason: hintSteps.join('\n'), type: 'contradiction', steps: hintSteps,
+      reason: hintSteps.join('\n'), type: 'contradiction',
+      steps: hintSteps, chain,
     };
   }
 
