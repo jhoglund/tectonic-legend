@@ -20,6 +20,7 @@ interface GameControlsProps {
   onToggleNotes: () => void;
   onHint: (mode?: HintMode) => void;
   onHintModeChange: (mode: HintMode) => void;
+  onShare: () => void;
   notesMode: boolean;
   maxNumber: number;
   isSolved: boolean;
@@ -36,11 +37,13 @@ export function GameControls({
   onToggleNotes,
   onHint,
   onHintModeChange,
+  onShare,
   notesMode,
   maxNumber,
   isSolved,
 }: GameControlsProps) {
   const [hintDropdownOpen, setHintDropdownOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -204,6 +207,17 @@ export function GameControls({
             </button>
           ))}
         </div>
+        <button
+          onClick={() => {
+            onShare();
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors border
+            bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+        >
+          {copied ? 'Link Copied!' : 'Share Puzzle'}
+        </button>
       </div>
     </div>
   );
