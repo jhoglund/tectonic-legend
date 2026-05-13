@@ -7,31 +7,23 @@ function App() {
   const {
     gameState,
     difficulty,
-    gridSize,
     selectedCell,
-    hint,
-    hintMode,
     notesMode,
     isGenerating,
     startNewGame,
     handleCellClick,
     handleNumberInput,
     handleClear,
-    handleHint,
-    setHintMode,
     toggleNotes,
   } = useGame();
 
-  const maxNumber = gameState
-    ? Math.max(...gameState.puzzle.layout.groups.map((g) => g.cells.length))
-    : 5;
-
+  // Keyboard support
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
       if (!gameState || !selectedCell) return;
 
       const num = parseInt(e.key);
-      if (num >= 1 && num <= maxNumber) {
+      if (num >= 1 && num <= 5) {
         handleNumberInput(num);
         return;
       }
@@ -46,11 +38,7 @@ function App() {
         return;
       }
 
-      if (e.key === 'h' || e.key === 'H') {
-        handleHint();
-        return;
-      }
-
+      // Arrow key navigation
       const [r, c] = selectedCell;
       const { rows, cols } = gameState.puzzle.layout;
       let newR = r;
@@ -69,7 +57,12 @@ function App() {
 
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, selectedCell, maxNumber, handleNumberInput, handleClear, toggleNotes, handleHint, handleCellClick]);
+  }, [gameState, selectedCell, handleNumberInput, handleClear, toggleNotes, handleCellClick]);
+
+  // Find max group size for number buttons
+  const maxNumber = gameState
+    ? Math.max(...gameState.puzzle.layout.groups.map((g) => g.cells.length))
+    : 5;
 
   return (
     <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4">
@@ -87,20 +80,14 @@ function App() {
           <Board
             gameState={gameState}
             selectedCell={selectedCell}
-            hint={hint}
             onCellClick={handleCellClick}
           />
           <GameControls
             difficulty={difficulty}
-            gridSize={gridSize}
-            hint={hint}
-            hintMode={hintMode}
             onNewGame={startNewGame}
             onNumberInput={handleNumberInput}
             onClear={handleClear}
             onToggleNotes={toggleNotes}
-            onHint={handleHint}
-            onHintModeChange={setHintMode}
             notesMode={notesMode}
             maxNumber={maxNumber}
             isSolved={gameState.isSolved}
@@ -109,7 +96,7 @@ function App() {
       ) : null}
 
       <p className="text-slate-400 text-xs mt-8">
-        Arrow keys to navigate. Press N for notes, H for hint.
+        Arrow keys to navigate. Press N for notes mode.
       </p>
     </div>
   );

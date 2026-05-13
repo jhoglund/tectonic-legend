@@ -1,7 +1,6 @@
 import type { PuzzleLayout, Puzzle, Group, Position, Difficulty } from './types';
 import { posKey } from './types';
-import { solve, countSolutions } from './solver';
-import { getNeighbors } from './validator';
+import { solve } from './solver';
 
 /**
  * Generate a random group/cage layout for a grid using region-growing.
@@ -10,9 +9,9 @@ import { getNeighbors } from './validator';
 export function generateLayout(
   rows: number,
   cols: number,
-  maxGroupSize: number = 5,
-  minGroupSize: number = 2
+  maxGroupSize: number = 5
 ): PuzzleLayout {
+  const minGroupSize = 2;
   const assigned: number[][] = Array.from({ length: rows }, () =>
     Array(cols).fill(-1)
   );
@@ -67,34 +66,29 @@ export function generateLayout(
     groupId++;
   }
 
-  // Merge undersized groups into adjacent groups
-  let mergeNeeded = true;
-  while (mergeNeeded) {
-    mergeNeeded = false;
-    for (let gid = 0; gid < groupCells.length; gid++) {
-      if (groupCells[gid].length === 0 || groupCells[gid].length >= minGroupSize) continue;
-      mergeNeeded = true;
+  // Merge any remaining single-cell groups into an adjacent group
+  for (let gid = 0; gid < groupCells.length; gid++) {
+    if (groupCells[gid].length > 1) continue;
 
-      const cell = groupCells[gid][0];
-      const orthoNeighbors = getOrthogonalNeighbors(cell.row, cell.col, rows, cols);
+    const { row, col } = groupCells[gid][0];
+    const orthoNeighbors = getOrthogonalNeighbors(row, col, rows, cols);
 
-      let bestNeighborGroup = -1;
-      let bestSize = Infinity;
-      for (const [nr, nc] of orthoNeighbors) {
-        const nGroup = assigned[nr][nc];
-        if (nGroup !== gid && groupCells[nGroup].length > 0 && groupCells[nGroup].length < bestSize) {
-          bestSize = groupCells[nGroup].length;
-          bestNeighborGroup = nGroup;
-        }
+    // Find an adjacent group to merge into (prefer smallest)
+    let bestNeighborGroup = -1;
+    let bestSize = Infinity;
+    for (const [nr, nc] of orthoNeighbors) {
+      const nGroup = assigned[nr][nc];
+      if (nGroup !== gid && groupCells[nGroup].length < bestSize) {
+        bestSize = groupCells[nGroup].length;
+        bestNeighborGroup = nGroup;
       }
+    }
 
-      if (bestNeighborGroup !== -1) {
-        for (const c of groupCells[gid]) {
-          groupCells[bestNeighborGroup].push(c);
-          assigned[c.row][c.col] = bestNeighborGroup;
-        }
-        groupCells[gid] = [];
-      }
+    if (bestNeighborGroup !== -1) {
+      // Merge into neighbor group
+      groupCells[bestNeighborGroup].push({ row, col });
+      assigned[row][col] = bestNeighborGroup;
+      groupCells[gid] = []; // Mark as empty
     }
   }
 
@@ -133,156 +127,26 @@ export function generatePuzzle(
   cols: number,
   difficulty: Difficulty
 ): Puzzle {
-  const isLarge = rows * cols > 50;
-  const maxGroupSize = isLarge ? 7 : 5;
-  const minGroupSize = isLarge ? 4 : 2;
-  const maxAttempts = isLarge ? 100 : 200;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
-    const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
+  for (let attempt = 0; attempt < 200; attempt++) {
+    const layout = generateLayout(rows, cols);
 
-    const grid = fillGrid(layout);
-    if (!grid) continue;
+    // Fill the grid completely using the solver with randomization
+    const emptyClues = Array.from({ length: rows }, () => Array(cols).fill(0));
+    const fillResult = solve(layout, emptyClues, { randomize: true });
 
-    const puzzle = carveClues(layout, grid, difficulty);
+    if (!fillResult.solved) continue;
+
+    // Remove clues to create the puzzle
+    const puzzle = carveClues(layout, fillResult.grid, difficulty);
     if (puzzle) return puzzle;
   }
 
-  throw new Error(`Failed to generate puzzle after ${maxAttempts} attempts`);
-}
-
-function fillGrid(layout: PuzzleLayout): number[][] | null {
-  const { rows, cols, groups } = layout;
-
-  const neighborCache: [number, number][][][] = Array.from(
-    { length: rows },
-    (_, r) => Array.from({ length: cols }, (_, c) => getNeighbors(r, c, rows, cols))
-  );
-
-  const cellGroup: number[][] = Array.from({ length: rows }, () => Array(cols).fill(-1));
-  for (const group of groups) {
-    for (const { row, col } of group.cells) {
-      cellGroup[row][col] = group.id;
-    }
-  }
-
-  const grid: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
-  const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => new Set<number>())
-  );
-
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const gs = groups[cellGroup[r][c]].cells.length;
-      for (let v = 1; v <= gs; v++) candidates[r][c].add(v);
-    }
-  }
-
-  let backtracks = 0;
-  const maxBacktracks = rows * cols * 100;
-
-  function assign(r: number, c: number, val: number): boolean {
-    grid[r][c] = val;
-    candidates[r][c].clear();
-    for (const [nr, nc] of neighborCache[r][c]) {
-      candidates[nr][nc].delete(val);
-      if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
-    }
-    for (const cell of groups[cellGroup[r][c]].cells) {
-      if (cell.row === r && cell.col === c) continue;
-      candidates[cell.row][cell.col].delete(val);
-      if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
-    }
-    return true;
-  }
-
-  function propagate(): boolean {
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if (grid[r][c] !== 0) continue;
-          if (candidates[r][c].size === 0) return false;
-          if (candidates[r][c].size === 1) {
-            if (!assign(r, c, [...candidates[r][c]][0])) return false;
-            changed = true;
-          }
-        }
-      }
-      for (const group of groups) {
-        for (let v = 1; v <= group.cells.length; v++) {
-          const possible = group.cells.filter(
-            ({ row, col }) => grid[row][col] === v || (grid[row][col] === 0 && candidates[row][col].has(v))
-          );
-          if (possible.length === 0) return false;
-          if (possible.length === 1 && grid[possible[0].row][possible[0].col] === 0) {
-            if (!assign(possible[0].row, possible[0].col, v)) return false;
-            changed = true;
-          }
-        }
-      }
-    }
-    return true;
-  }
-
-  if (!propagate()) return null;
-
-  function search(): boolean {
-    if (backtracks > maxBacktracks) return false;
-
-    let minSize = Infinity;
-    let bestR = -1;
-    let bestC = -1;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (grid[r][c] === 0 && candidates[r][c].size < minSize) {
-          minSize = candidates[r][c].size;
-          bestR = r;
-          bestC = c;
-        }
-      }
-    }
-
-    if (bestR === -1) return true;
-    if (minSize === 0) return false;
-
-    const savedGrid = grid.map((row) => [...row]);
-    const savedCandidates = candidates.map((row) => row.map((s) => new Set(s)));
-
-    const vals = [...candidates[bestR][bestC]];
-    shuffle(vals);
-
-    for (const val of vals) {
-      if (backtracks > maxBacktracks) return false;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          grid[r][c] = savedGrid[r][c];
-          candidates[r][c] = new Set(savedCandidates[r][c]);
-        }
-      }
-
-      if (assign(bestR, bestC, val) && propagate() && search()) {
-        return true;
-      }
-      backtracks++;
-    }
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        grid[r][c] = savedGrid[r][c];
-        candidates[r][c] = new Set(savedCandidates[r][c]);
-      }
-    }
-    return false;
-  }
-
-  return search() ? grid : null;
+  throw new Error('Failed to generate puzzle after 200 attempts');
 }
 
 /**
  * Remove values from a filled grid to create a puzzle.
- * Per-cell uniqueness via countSolutions, then final verification.
+ * Uses solve-based verification for speed.
  */
 function carveClues(
   layout: PuzzleLayout,
@@ -291,7 +155,6 @@ function carveClues(
 ): Puzzle | null {
   const { rows, cols } = layout;
   const clues = solution.map((row) => [...row]);
-  const isLarge = rows * cols > 50;
 
   const positions: [number, number][] = [];
   for (let r = 0; r < rows; r++) {
@@ -302,9 +165,11 @@ function carveClues(
   shuffle(positions);
 
   const totalCells = rows * cols;
-  const targetClues = isLarge
-    ? { easy: Math.ceil(totalCells * 0.58), medium: Math.ceil(totalCells * 0.48), hard: Math.ceil(totalCells * 0.38) }[difficulty]
-    : { easy: Math.ceil(totalCells * 0.52), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.28) }[difficulty];
+  const targetClues = {
+    easy: Math.ceil(totalCells * 0.52),
+    medium: Math.ceil(totalCells * 0.40),
+    hard: Math.ceil(totalCells * 0.28),
+  }[difficulty];
 
   let currentClueCount = totalCells;
 
@@ -315,9 +180,19 @@ function carveClues(
     const saved = clues[r][c];
     clues[r][c] = 0;
 
-    if (countSolutions(layout, clues, 2) === 1) {
-      currentClueCount--;
-      continue;
+    // Verify the puzzle still has the same unique solution
+    const result = solve(layout, clues);
+    if (result.solved) {
+      let matches = true;
+      for (let rr = 0; rr < rows && matches; rr++) {
+        for (let cc = 0; cc < cols && matches; cc++) {
+          if (result.grid[rr][cc] !== solution[rr][cc]) matches = false;
+        }
+      }
+      if (matches) {
+        currentClueCount--;
+        continue;
+      }
     }
 
     clues[r][c] = saved;
@@ -328,9 +203,9 @@ function carveClues(
   if (!check.solved) return null;
 
   const usedBacktrack = check.techniques.includes('backtrack');
-  if (difficulty === 'easy' && usedBacktrack && !isLarge) return null;
+  if (difficulty === 'easy' && usedBacktrack) return null;
 
-  return { layout, clues, solution };
+  return { layout, clues };
 }
 
 function getOrthogonalNeighbors(

@@ -211,7 +211,6 @@ export function countSolutions(
   limit: number = 2
 ): number {
   const { rows, cols, groups } = layout;
-  let count = 0;
 
   const neighborCache: [number, number][][][] = Array.from(
     { length: rows },
@@ -228,131 +227,64 @@ export function countSolutions(
     }
   }
 
-  const grid: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
-  const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => new Set<number>())
+  const grid: number[][] = Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => clues[r][c])
   );
 
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      const groupSize = groups[cellGroup[r][c]].cells.length;
-      for (let v = 1; v <= groupSize; v++) {
-        candidates[r][c].add(v);
-      }
-    }
-  }
+  let count = 0;
 
-  function assign(r: number, c: number, val: number): boolean {
-    grid[r][c] = val;
-    candidates[r][c].clear();
+  function isValid(r: number, c: number, val: number): boolean {
     for (const [nr, nc] of neighborCache[r][c]) {
-      candidates[nr][nc].delete(val);
-      if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+      if (grid[nr][nc] === val) return false;
     }
-    for (const cell of groups[cellGroup[r][c]].cells) {
+    const groupId = cellGroup[r][c];
+    for (const cell of groups[groupId].cells) {
       if (cell.row === r && cell.col === c) continue;
-      candidates[cell.row][cell.col].delete(val);
-      if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      if (grid[cell.row][cell.col] === val) return false;
     }
     return true;
   }
 
-  function propagate(): boolean {
-    let changed = true;
-    while (changed) {
-      changed = false;
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          if (grid[r][c] !== 0) continue;
-          if (candidates[r][c].size === 0) return false;
-          if (candidates[r][c].size === 1) {
-            if (!assign(r, c, [...candidates[r][c]][0])) return false;
-            changed = true;
-          }
-        }
-      }
-      for (const group of groups) {
-        for (let v = 1; v <= group.cells.length; v++) {
-          const possible = group.cells.filter(
-            ({ row, col }) => grid[row][col] === v || (grid[row][col] === 0 && candidates[row][col].has(v))
-          );
-          if (possible.length === 0) return false;
-          if (possible.length === 1 && grid[possible[0].row][possible[0].col] === 0) {
-            if (!assign(possible[0].row, possible[0].col, v)) return false;
-            changed = true;
-          }
-        }
-      }
-    }
-    return true;
-  }
-
-  // Initialize with clues
-  for (let r = 0; r < rows; r++) {
-    for (let c = 0; c < cols; c++) {
-      if (clues[r][c] !== 0) {
-        if (!assign(r, c, clues[r][c])) return 0;
-      }
-    }
-  }
-  if (!propagate()) return 0;
-
-  function isComplete(): boolean {
+  // Find empty cells with MRV ordering for speed
+  function findBestEmpty(): [number, number] | null {
+    let minOptions = Infinity;
+    let best: [number, number] | null = null;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        if (grid[r][c] === 0) return false;
+        if (grid[r][c] !== 0) continue;
+        const groupId = cellGroup[r][c];
+        const groupSize = groups[groupId].cells.length;
+        let options = 0;
+        for (let v = 1; v <= groupSize; v++) {
+          if (isValid(r, c, v)) options++;
+        }
+        if (options === 0) return [-1, -1] as unknown as [number, number]; // dead end marker
+        if (options < minOptions) {
+          minOptions = options;
+          best = [r, c];
+        }
       }
     }
-    return true;
+    return best;
   }
-
-  if (isComplete()) return 1;
 
   function search(): void {
     if (count >= limit) return;
 
-    let minSize = Infinity;
-    let bestR = -1;
-    let bestC = -1;
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        if (grid[r][c] === 0 && candidates[r][c].size < minSize) {
-          minSize = candidates[r][c].size;
-          bestR = r;
-          bestC = c;
-        }
-      }
-    }
+    const cell = findBestEmpty();
+    if (!cell) { count++; return; } // All filled
+    const [r, c] = cell;
+    if (r === -1) return; // Dead end
 
-    if (bestR === -1) { count++; return; }
-    if (minSize === 0) return;
+    const groupId = cellGroup[r][c];
+    const groupSize = groups[groupId].cells.length;
 
-    const savedGrid = grid.map((row) => [...row]);
-    const savedCandidates = candidates.map((row) => row.map((s) => new Set(s)));
-
-    for (const val of [...candidates[bestR][bestC]]) {
+    for (let v = 1; v <= groupSize; v++) {
       if (count >= limit) return;
-
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          grid[r][c] = savedGrid[r][c];
-          candidates[r][c] = new Set(savedCandidates[r][c]);
-        }
-      }
-
-      if (assign(bestR, bestC, val) && propagate()) {
-        if (isComplete()) {
-          count++;
-        } else {
-          search();
-        }
-      }
-    }
-
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        grid[r][c] = savedGrid[r][c];
-        candidates[r][c] = new Set(savedCandidates[r][c]);
+      if (isValid(r, c, v)) {
+        grid[r][c] = v;
+        search();
+        grid[r][c] = 0;
       }
     }
   }
