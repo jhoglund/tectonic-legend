@@ -47,7 +47,7 @@ export interface GameState {
   isSolved: boolean;
 }
 
-export type Difficulty = 'easy' | 'medium' | 'hard';
+export type Difficulty = 'easy' | 'medium' | 'hard' | 'expert';
 export type GridSize = '5x5' | '8x8';
 export type HintMode = 'logic' | 'candidates' | 'reveal' | 'check';
 
