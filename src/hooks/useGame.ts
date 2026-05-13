@@ -4,6 +4,7 @@ import { findErrors, isSolved } from '../engine/validator';
 import { generatePuzzle } from '../engine/generator';
 import { findHint, findCandidatesHint, findRevealHint, findCheckHint } from '../engine/hints';
 import type { Hint } from '../engine/hints';
+import { encodeState, decodeState } from '../engine/urlCodec';
 
 function createGameState(puzzle: Puzzle): GameState {
   const { layout, clues } = puzzle;
@@ -59,8 +60,31 @@ export function useGame() {
     }, 50);
   }, [gridSize]);
 
+  const loadFromUrl = useCallback(() => {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return false;
+    const decoded = decodeState(hash);
+    if (!decoded) return false;
+
+    const { puzzle, grid, difficulty: diff, gridSize: size } = decoded;
+    setDifficulty(diff);
+    setGridSize(size);
+
+    const state = createGameState(puzzle);
+    state.grid = grid;
+    state.isClue = puzzle.clues.map((row) => row.map((v) => v !== 0));
+    state.errors = findErrors(grid, puzzle.layout, puzzle.solution, state.isClue);
+    state.isSolved = isSolved(grid, puzzle.layout, state.errors);
+    setGameState(state);
+
+    window.history.replaceState(null, '', window.location.pathname);
+    return true;
+  }, []);
+
   useEffect(() => {
-    startNewGame('easy', '5x5');
+    if (!loadFromUrl()) {
+      startNewGame('easy', '5x5');
+    }
   }, []);
 
   const handleCellClick = useCallback(
@@ -217,6 +241,12 @@ export function useGame() {
     setNotesMode((prev) => !prev);
   }, []);
 
+  const getShareUrl = useCallback(() => {
+    if (!gameState) return null;
+    const encoded = encodeState(gameState.puzzle, gameState.grid, difficulty);
+    return `${window.location.origin}${window.location.pathname}#${encoded}`;
+  }, [gameState, difficulty]);
+
   return {
     gameState,
     difficulty,
@@ -233,5 +263,6 @@ export function useGame() {
     handleHint,
     setHintMode,
     toggleNotes,
+    getShareUrl,
   };
 }

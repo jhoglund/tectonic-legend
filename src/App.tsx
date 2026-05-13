@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useCallback, useEffect } from 'react';
 import { Board } from './components/Board';
 import { GameControls } from './components/GameControls';
 import { useGame } from './hooks/useGame';
@@ -20,7 +20,15 @@ function App() {
     handleHint,
     setHintMode,
     toggleNotes,
+    getShareUrl,
   } = useGame();
+
+  const handleShare = useCallback(() => {
+    const url = getShareUrl();
+    if (url) {
+      navigator.clipboard.writeText(url);
+    }
+  }, [getShareUrl]);
 
   const maxNumber = gameState
     ? Math.max(...gameState.puzzle.layout.groups.map((g) => g.cells.length))
@@ -101,6 +109,7 @@ function App() {
             onToggleNotes={toggleNotes}
             onHint={handleHint}
             onHintModeChange={setHintMode}
+            onShare={handleShare}
             notesMode={notesMode}
             maxNumber={maxNumber}
             isSolved={gameState.isSolved}

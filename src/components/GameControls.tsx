@@ -20,6 +20,7 @@ interface GameControlsProps {
   onToggleNotes: () => void;
   onHint: (mode?: HintMode) => void;
   onHintModeChange: (mode: HintMode) => void;
+  onShare: () => void;
   notesMode: boolean;
   maxNumber: number;
   isSolved: boolean;
@@ -36,11 +37,13 @@ export function GameControls({
   onToggleNotes,
   onHint,
   onHintModeChange,
+  onShare,
   notesMode,
   maxNumber,
   isSolved,
 }: GameControlsProps) {
   const [hintDropdownOpen, setHintDropdownOpen] = useState(false);
+  const [copied, setCopied] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -62,8 +65,32 @@ export function GameControls({
       )}
 
       {hint && (
-        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full">
-          <span className="font-semibold">Hint:</span> {hint.reason}
+        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full max-h-64 overflow-y-auto">
+          <span className="font-semibold">Hint:</span>
+          {hint.steps ? (
+            <div className="mt-1 space-y-0.5">
+              {hint.steps.map((step, i) => (
+                <div
+                  key={i}
+                  className={
+                    step.startsWith('→')
+                      ? 'pl-3 text-amber-700'
+                      : step.startsWith('Assume')
+                        ? 'font-medium mt-2'
+                        : step.startsWith('So ')
+                          ? 'text-red-700 font-medium'
+                          : step.startsWith('Therefore')
+                            ? 'text-green-700 font-semibold mt-2'
+                            : ''
+                  }
+                >
+                  {step}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span> {hint.reason}</span>
+          )}
         </div>
       )}
 
@@ -180,6 +207,17 @@ export function GameControls({
             </button>
           ))}
         </div>
+        <button
+          onClick={() => {
+            onShare();
+            setCopied(true);
+            setTimeout(() => setCopied(false), 2000);
+          }}
+          className="px-4 py-2 rounded-lg text-sm font-medium transition-colors border
+            bg-indigo-50 text-indigo-700 border-indigo-300 hover:bg-indigo-100"
+        >
+          {copied ? 'Link Copied!' : 'Share Puzzle'}
+        </button>
       </div>
     </div>
   );
