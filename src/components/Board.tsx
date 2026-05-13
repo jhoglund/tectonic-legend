@@ -3,6 +3,7 @@ import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 import type { Hint } from '../engine/hints';
 import { Cell, computeBorders } from './Cell';
+import type { CellHighlight } from './Cell';
 
 function colorGroups(layout: PuzzleLayout): number[] {
   const { rows, cols, groups, cellToGroup } = layout;
@@ -38,14 +39,20 @@ function colorGroups(layout: PuzzleLayout): number[] {
   return colors;
 }
 
+export interface CellOverlay {
+  highlight: CellHighlight;
+  ghostValue: number;
+}
+
 interface BoardProps {
   gameState: GameState;
   selectedCell: [number, number] | null;
   hint: Hint | null;
+  cellOverlays: Map<string, CellOverlay> | null;
   onCellClick: (row: number, col: number) => void;
 }
 
-export function Board({ gameState, selectedCell, hint, onCellClick }: BoardProps) {
+export function Board({ gameState, selectedCell, hint, cellOverlays, onCellClick }: BoardProps) {
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
@@ -71,15 +78,21 @@ export function Board({ gameState, selectedCell, hint, onCellClick }: BoardProps
             selectedCell[1] === c;
           const isHinted =
             hint !== null && hint.row === r && hint.col === c;
+          const key = posKey(r, c);
+          const overlay = cellOverlays?.get(key) ?? null;
+          const isDimmed = cellOverlays !== null && !cellOverlays.has(key);
 
           return (
             <Cell
-              key={posKey(r, c)}
+              key={key}
               value={grid[r][c]}
               isClue={isClue[r][c]}
               isSelected={isSelected}
               isError={errors[r][c]}
-              isHinted={isHinted}
+              isHinted={!cellOverlays && isHinted}
+              isDimmed={isDimmed}
+              cellHighlight={overlay?.highlight ?? null}
+              ghostValue={overlay?.ghostValue ?? 0}
               notes={notes[r][c]}
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
