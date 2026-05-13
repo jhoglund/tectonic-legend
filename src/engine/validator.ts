@@ -21,6 +21,24 @@ export function getNeighbors(
   return result;
 }
 
+/** Build the neighbor lookup table for an entire grid */
+export function buildNeighborCache(rows: number, cols: number): [number, number][][][] {
+  return Array.from({ length: rows }, (_, r) =>
+    Array.from({ length: cols }, (_, c) => getNeighbors(r, c, rows, cols))
+  );
+}
+
+/** Build the cell-to-group lookup table */
+export function buildCellGroupMap(rows: number, cols: number, groups: { id: number; cells: { row: number; col: number }[] }[]): number[][] {
+  const cellGroup: number[][] = Array.from({ length: rows }, () => Array(cols).fill(-1));
+  for (const group of groups) {
+    for (const { row, col } of group.cells) {
+      cellGroup[row][col] = group.id;
+    }
+  }
+  return cellGroup;
+}
+
 /** Check which cells have errors in the current grid */
 export function findErrors(
   grid: number[][],
@@ -28,12 +46,11 @@ export function findErrors(
   solution?: number[][],
   isClue?: boolean[][]
 ): boolean[][] {
-  const { rows, cols, groups } = layout;
+  const { rows, cols, groups, neighbors } = layout;
   const errors: boolean[][] = Array.from({ length: rows }, () =>
     Array(cols).fill(false)
   );
 
-  // Check against solution: any user-entered value that doesn't match is wrong
   if (solution && isClue) {
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
@@ -44,11 +61,10 @@ export function findErrors(
     }
   }
 
-  // Check adjacency constraint: no two adjacent cells share a value
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (grid[r][c] === 0) continue;
-      for (const [nr, nc] of getNeighbors(r, c, rows, cols)) {
+      for (const [nr, nc] of neighbors[r][c]) {
         if (grid[nr][nc] !== 0 && grid[r][c] === grid[nr][nc]) {
           errors[r][c] = true;
           errors[nr][nc] = true;
@@ -57,7 +73,6 @@ export function findErrors(
     }
   }
 
-  // Check group constraint: each value appears at most once per group
   for (const group of groups) {
     const seen = new Map<number, [number, number][]>();
     for (const { row, col } of group.cells) {
@@ -78,26 +93,23 @@ export function findErrors(
   return errors;
 }
 
-/** Check if the grid is fully and correctly solved */
-export function isSolved(grid: number[][], layout: PuzzleLayout): boolean {
+/** Check if the grid is fully and correctly solved (accepts precomputed errors) */
+export function isSolved(grid: number[][], layout: PuzzleLayout, precomputedErrors?: boolean[][]): boolean {
   const { rows, cols, groups } = layout;
 
-  // All cells must be filled
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (grid[r][c] === 0) return false;
     }
   }
 
-  // No errors
-  const errors = findErrors(grid, layout);
+  const errors = precomputedErrors ?? findErrors(grid, layout);
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (errors[r][c]) return false;
     }
   }
 
-  // Each group has all required values
   for (const group of groups) {
     const size = group.cells.length;
     const values = new Set(group.cells.map(({ row, col }) => grid[row][col]));

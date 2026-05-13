@@ -1,11 +1,10 @@
 import type { PuzzleLayout, Puzzle, Group, Position, Difficulty } from './types';
 import { posKey } from './types';
 import { solve, countSolutions } from './solver';
-import { getNeighbors } from './validator';
+import { buildNeighborCache, buildCellGroupMap } from './validator';
 
 /**
  * Generate a random group/cage layout for a grid using region-growing.
- * Ensures no single-cell groups (min size 2) to improve solvability.
  */
 export function generateLayout(
   rows: number,
@@ -19,7 +18,6 @@ export function generateLayout(
   const groupCells: Position[][] = [];
   let groupId = 0;
 
-  // Shuffle cell order for randomness
   const allCells: [number, number][] = [];
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
@@ -91,7 +89,6 @@ export function generateLayout(
         }
       }
 
-      // Fallback: merge with smallest neighbor even if it exceeds maxGroupSize
       if (bestNeighborGroup === -1) {
         for (const cell of groupCells[gid]) {
           for (const [nr, nc] of getOrthogonalNeighbors(cell.row, cell.col, rows, cols)) {
@@ -114,7 +111,6 @@ export function generateLayout(
     }
   }
 
-  // Rebuild groups array without empty entries
   const groups: Group[] = [];
   const oldToNew = new Map<number, number>();
   for (let gid = 0; gid < groupCells.length; gid++) {
@@ -124,7 +120,6 @@ export function generateLayout(
     groups.push({ id: newId, cells: groupCells[gid] });
   }
 
-  // Update assigned grid
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       assigned[r][c] = oldToNew.get(assigned[r][c])!;
@@ -138,7 +133,14 @@ export function generateLayout(
     }
   }
 
-  return { rows, cols, groups, cellToGroup };
+  return {
+    rows,
+    cols,
+    groups,
+    cellToGroup,
+    neighbors: buildNeighborCache(rows, cols),
+    cellGroup: buildCellGroupMap(rows, cols, groups),
+  };
 }
 
 /**
@@ -168,20 +170,10 @@ export function generatePuzzle(
   throw new Error('Failed to generate puzzle — please try again');
 }
 
+type UndoEntry = { r: number; c: number; prevVal: number; prevCands: Set<number>; removed: [number, number, number][] };
+
 function fillGrid(layout: PuzzleLayout): number[][] | null {
-  const { rows, cols, groups } = layout;
-
-  const neighborCache: [number, number][][][] = Array.from(
-    { length: rows },
-    (_, r) => Array.from({ length: cols }, (_, c) => getNeighbors(r, c, rows, cols))
-  );
-
-  const cellGroup: number[][] = Array.from({ length: rows }, () => Array(cols).fill(-1));
-  for (const group of groups) {
-    for (const { row, col } of group.cells) {
-      cellGroup[row][col] = group.id;
-    }
-  }
+  const { rows, cols, groups, neighbors, cellGroup } = layout;
 
   const grid: number[][] = Array.from({ length: rows }, () => Array(cols).fill(0));
   const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
@@ -197,20 +189,42 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
 
   let backtracks = 0;
   const maxBacktracks = rows * cols * 500;
+  const undoStack: UndoEntry[] = [];
 
   function assign(r: number, c: number, val: number): boolean {
+    const entry: UndoEntry = { r, c, prevVal: grid[r][c], prevCands: new Set(candidates[r][c]), removed: [] };
+    undoStack.push(entry);
+
     grid[r][c] = val;
     candidates[r][c].clear();
-    for (const [nr, nc] of neighborCache[r][c]) {
-      candidates[nr][nc].delete(val);
-      if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+
+    for (const [nr, nc] of neighbors[r][c]) {
+      if (candidates[nr][nc].has(val)) {
+        candidates[nr][nc].delete(val);
+        entry.removed.push([nr, nc, val]);
+        if (grid[nr][nc] === 0 && candidates[nr][nc].size === 0) return false;
+      }
     }
     for (const cell of groups[cellGroup[r][c]].cells) {
       if (cell.row === r && cell.col === c) continue;
-      candidates[cell.row][cell.col].delete(val);
-      if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      if (candidates[cell.row][cell.col].has(val)) {
+        candidates[cell.row][cell.col].delete(val);
+        entry.removed.push([cell.row, cell.col, val]);
+        if (grid[cell.row][cell.col] === 0 && candidates[cell.row][cell.col].size === 0) return false;
+      }
     }
     return true;
+  }
+
+  function undoTo(mark: number): void {
+    while (undoStack.length > mark) {
+      const entry = undoStack.pop()!;
+      grid[entry.r][entry.c] = entry.prevVal;
+      candidates[entry.r][entry.c] = entry.prevCands;
+      for (const [nr, nc, val] of entry.removed) {
+        candidates[nr][nc].add(val);
+      }
+    }
   }
 
   function propagate(): boolean {
@@ -222,19 +236,29 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
           if (grid[r][c] !== 0) continue;
           if (candidates[r][c].size === 0) return false;
           if (candidates[r][c].size === 1) {
-            if (!assign(r, c, [...candidates[r][c]][0])) return false;
+            if (!assign(r, c, candidates[r][c].values().next().value!)) return false;
             changed = true;
           }
         }
       }
       for (const group of groups) {
         for (let v = 1; v <= group.cells.length; v++) {
-          const possible = group.cells.filter(
-            ({ row, col }) => grid[row][col] === v || (grid[row][col] === 0 && candidates[row][col].has(v))
-          );
-          if (possible.length === 0) return false;
-          if (possible.length === 1 && grid[possible[0].row][possible[0].col] === 0) {
-            if (!assign(possible[0].row, possible[0].col, v)) return false;
+          let cnt = 0;
+          let lastR = -1;
+          let lastC = -1;
+          let placed = false;
+          for (const { row, col } of group.cells) {
+            if (grid[row][col] === v) { placed = true; break; }
+            if (grid[row][col] === 0 && candidates[row][col].has(v)) {
+              cnt++;
+              lastR = row;
+              lastC = col;
+            }
+          }
+          if (placed) continue;
+          if (cnt === 0) return false;
+          if (cnt === 1) {
+            if (!assign(lastR, lastC, v)) return false;
             changed = true;
           }
         }
@@ -264,44 +288,26 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
     if (bestR === -1) return true;
     if (minSize === 0) return false;
 
-    const savedGrid = grid.map((row) => [...row]);
-    const savedCandidates = candidates.map((row) => row.map((s) => new Set(s)));
-
     const vals = [...candidates[bestR][bestC]];
     shuffle(vals);
 
     for (const val of vals) {
       if (backtracks > maxBacktracks) return false;
 
-      for (let r = 0; r < rows; r++) {
-        for (let c = 0; c < cols; c++) {
-          grid[r][c] = savedGrid[r][c];
-          candidates[r][c] = new Set(savedCandidates[r][c]);
-        }
-      }
-
+      const mark = undoStack.length;
       if (assign(bestR, bestC, val) && propagate() && search()) {
         return true;
       }
+      undoTo(mark);
       backtracks++;
     }
 
-    for (let r = 0; r < rows; r++) {
-      for (let c = 0; c < cols; c++) {
-        grid[r][c] = savedGrid[r][c];
-        candidates[r][c] = new Set(savedCandidates[r][c]);
-      }
-    }
     return false;
   }
 
   return search() ? grid : null;
 }
 
-/**
- * Remove values from a filled grid to create a puzzle.
- * Per-cell uniqueness via countSolutions, then final verification.
- */
 function carveClues(
   layout: PuzzleLayout,
   solution: number[][],
@@ -341,7 +347,6 @@ function carveClues(
     clues[r][c] = saved;
   }
 
-  // Difficulty check
   const check = solve(layout, clues);
   if (!check.solved) return null;
 

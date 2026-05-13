@@ -17,6 +17,10 @@ export interface PuzzleLayout {
   groups: Group[];
   /** Map from "row,col" to group id for fast lookup */
   cellToGroup: Map<string, number>;
+  /** Precomputed 8-directional neighbors per cell */
+  neighbors: [number, number][][][];
+  /** Precomputed group id per cell */
+  cellGroup: number[][];
 }
 
 /** A puzzle to be solved: layout + initial clues */

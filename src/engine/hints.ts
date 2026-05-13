@@ -1,6 +1,5 @@
 import type { PuzzleLayout } from './types';
-import { posKey } from './types';
-import { getNeighbors, findErrors } from './validator';
+import { findErrors } from './validator';
 
 export interface Hint {
   row: number;
@@ -12,14 +11,11 @@ export interface Hint {
   errorCount?: number;
 }
 
-/**
- * Compute candidate values for every empty cell based on the current grid state.
- */
 function computeCandidates(
   grid: number[][],
   layout: PuzzleLayout
 ): Set<number>[][] {
-  const { rows, cols, groups, cellToGroup } = layout;
+  const { rows, cols, groups, cellGroup, neighbors } = layout;
 
   const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => new Set<number>())
@@ -29,23 +25,20 @@ function computeCandidates(
     for (let c = 0; c < cols; c++) {
       if (grid[r][c] !== 0) continue;
 
-      const groupId = cellToGroup.get(posKey(r, c))!;
+      const groupId = cellGroup[r][c];
       const groupSize = groups[groupId].cells.length;
 
-      // Start with all possible values for this group size
       for (let v = 1; v <= groupSize; v++) {
         candidates[r][c].add(v);
       }
 
-      // Remove values already in the same group
       for (const cell of groups[groupId].cells) {
         if (grid[cell.row][cell.col] !== 0) {
           candidates[r][c].delete(grid[cell.row][cell.col]);
         }
       }
 
-      // Remove values in adjacent cells (8-directional)
-      for (const [nr, nc] of getNeighbors(r, c, rows, cols)) {
+      for (const [nr, nc] of neighbors[r][c]) {
         if (grid[nr][nc] !== 0) {
           candidates[r][c].delete(grid[nr][nc]);
         }
@@ -56,10 +49,6 @@ function computeCandidates(
   return candidates;
 }
 
-/**
- * Find the next logical hint for the current board state.
- * Returns null if no logical deduction can be made.
- */
 export function findHint(
   grid: number[][],
   layout: PuzzleLayout
@@ -67,23 +56,20 @@ export function findHint(
   const { rows, cols, groups } = layout;
   const candidates = computeCandidates(grid, layout);
 
-  // 1. Look for naked singles (cell with only one candidate)
   for (let r = 0; r < rows; r++) {
     for (let c = 0; c < cols; c++) {
       if (grid[r][c] !== 0) continue;
       if (candidates[r][c].size === 1) {
-        const value = [...candidates[r][c]][0];
+        const value = candidates[r][c].values().next().value!;
         const reason = buildNakedSingleReason(r, c, value, grid, layout);
         return { row: r, col: c, value, reason, type: 'naked_single' };
       }
     }
   }
 
-  // 2. Look for hidden singles (value can only go in one cell in a group)
   for (const group of groups) {
     const size = group.cells.length;
     for (let v = 1; v <= size; v++) {
-      // Skip if value already placed in group
       const alreadyPlaced = group.cells.some(
         ({ row, col }) => grid[row][col] === v
       );
@@ -111,8 +97,8 @@ function buildNakedSingleReason(
   grid: number[][],
   layout: PuzzleLayout
 ): string {
-  const { rows, cols, groups, cellToGroup } = layout;
-  const groupId = cellToGroup.get(posKey(r, c))!;
+  const { groups, cellGroup, neighbors } = layout;
+  const groupId = cellGroup[r][c];
   const group = groups[groupId];
   const groupSize = group.cells.length;
 
@@ -121,7 +107,6 @@ function buildNakedSingleReason(
   for (let v = 1; v <= groupSize; v++) {
     if (v === value) continue;
 
-    // Check if eliminated by group
     const inGroup = group.cells.find(
       ({ row, col }) => grid[row][col] === v
     );
@@ -130,9 +115,7 @@ function buildNakedSingleReason(
       continue;
     }
 
-    // Check if eliminated by neighbor
-    const neighbors = getNeighbors(r, c, rows, cols);
-    const blockingNeighbor = neighbors.find(
+    const blockingNeighbor = neighbors[r][c].find(
       ([nr, nc]) => grid[nr][nc] === v
     );
     if (blockingNeighbor) {
@@ -156,7 +139,7 @@ function buildHiddenSingleReason(
   layout: PuzzleLayout,
   candidates: Set<number>[][]
 ): string {
-  const { rows, cols } = layout;
+  const { neighbors } = layout;
   const otherCells = group.cells.filter(
     ({ row, col }) =>
       !(row === r && col === c) && grid[row][col] === 0
@@ -165,9 +148,7 @@ function buildHiddenSingleReason(
   const reasons: string[] = [];
   for (const { row, col } of otherCells) {
     if (!candidates[row][col].has(value)) {
-      // Figure out why this cell can't have the value
-      const neighbors = getNeighbors(row, col, rows, cols);
-      const blockingNeighbor = neighbors.find(
+      const blockingNeighbor = neighbors[row][col].find(
         ([nr, nc]) => grid[nr][nc] === value
       );
       if (blockingNeighbor) {
