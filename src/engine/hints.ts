@@ -1,4 +1,4 @@
-import type { PuzzleLayout, HintMode } from './types';
+import type { PuzzleLayout } from './types';
 import { posKey } from './types';
 import { getNeighbors, findErrors } from './validator';
 

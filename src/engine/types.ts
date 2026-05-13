@@ -24,8 +24,6 @@ export interface Puzzle {
   layout: PuzzleLayout;
   /** Clue values — 0 means empty */
   clues: number[][];
-  /** The complete solution grid */
-  solution: number[][];
 }
 
 /** Full game state */
@@ -44,8 +42,6 @@ export interface GameState {
 }
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GridSize = '5x5' | '10x10';
-export type HintMode = 'logic' | 'candidates' | 'reveal' | 'check';
 
 export function posKey(row: number, col: number): string {
   return `${row},${col}`;
