@@ -212,6 +212,8 @@ export function countSolutions(
 ): number {
   const { rows, cols, groups } = layout;
   let count = 0;
+  let backtracks = 0;
+  const maxBacktracks = rows * cols * 200;
 
   const neighborCache: [number, number][][][] = Array.from(
     { length: rows },
@@ -309,7 +311,7 @@ export function countSolutions(
   if (isComplete()) return 1;
 
   function search(): void {
-    if (count >= limit) return;
+    if (count >= limit || backtracks >= maxBacktracks) return;
 
     let minSize = Infinity;
     let bestR = -1;
@@ -331,7 +333,7 @@ export function countSolutions(
     const savedCandidates = candidates.map((row) => row.map((s) => new Set(s)));
 
     for (const val of [...candidates[bestR][bestC]]) {
-      if (count >= limit) return;
+      if (count >= limit || backtracks >= maxBacktracks) return;
 
       for (let r = 0; r < rows; r++) {
         for (let c = 0; c < cols; c++) {
@@ -347,6 +349,7 @@ export function countSolutions(
           search();
         }
       }
+      backtracks++;
     }
 
     for (let r = 0; r < rows; r++) {
