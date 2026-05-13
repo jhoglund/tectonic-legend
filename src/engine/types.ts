@@ -44,7 +44,7 @@ export interface GameState {
 }
 
 export type Difficulty = 'easy' | 'medium' | 'hard';
-export type GridSize = '5x5' | '10x10';
+export type GridSize = '5x5' | '8x8';
 export type HintMode = 'logic' | 'candidates' | 'reveal' | 'check';
 
 export function posKey(row: number, col: number): string {

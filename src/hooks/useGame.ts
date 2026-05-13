@@ -29,7 +29,7 @@ function createGameState(puzzle: Puzzle): GameState {
 }
 
 function gridSizeDimensions(size: GridSize): [number, number] {
-  return size === '10x10' ? [10, 10] : [5, 5];
+  return size === '8x8' ? [8, 8] : [5, 5];
 }
 
 export function useGame() {

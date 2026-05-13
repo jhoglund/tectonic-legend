@@ -149,7 +149,7 @@ export function GameControls({
       {/* Grid size + Difficulty */}
       <div className="flex flex-col items-center gap-2 mt-2">
         <div className="flex gap-2">
-          {(['5x5', '10x10'] as GridSize[]).map((size) => (
+          {(['5x5', '8x8'] as GridSize[]).map((size) => (
             <button
               key={size}
               onClick={() => onNewGame(difficulty, size)}
