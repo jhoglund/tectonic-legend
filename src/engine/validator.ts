@@ -24,12 +24,25 @@ export function getNeighbors(
 /** Check which cells have errors in the current grid */
 export function findErrors(
   grid: number[][],
-  layout: PuzzleLayout
+  layout: PuzzleLayout,
+  solution?: number[][],
+  isClue?: boolean[][]
 ): boolean[][] {
   const { rows, cols, groups } = layout;
   const errors: boolean[][] = Array.from({ length: rows }, () =>
     Array(cols).fill(false)
   );
+
+  // Check against solution: any user-entered value that doesn't match is wrong
+  if (solution && isClue) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (grid[r][c] !== 0 && !isClue[r][c] && grid[r][c] !== solution[r][c]) {
+          errors[r][c] = true;
+        }
+      }
+    }
+  }
 
   // Check adjacency constraint: no two adjacent cells share a value
   for (let r = 0; r < rows; r++) {

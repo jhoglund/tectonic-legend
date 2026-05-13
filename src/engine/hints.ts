@@ -222,9 +222,11 @@ export function findRevealHint(
 
 export function findCheckHint(
   grid: number[][],
-  layout: PuzzleLayout
+  layout: PuzzleLayout,
+  solution?: number[][],
+  isClue?: boolean[][]
 ): Hint | null {
-  const errors = findErrors(grid, layout);
+  const errors = findErrors(grid, layout, solution, isClue);
   let errorCount = 0;
   for (let r = 0; r < errors.length; r++) {
     for (let c = 0; c < errors[r].length; c++) {
