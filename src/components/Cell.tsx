@@ -6,10 +6,12 @@ interface CellProps {
   isClue: boolean;
   isSelected: boolean;
   isError: boolean;
+  isHinted: boolean;
   notes: Set<number>;
   groupSize: number;
   colorIndex: number;
   borders: { top: boolean; right: boolean; bottom: boolean; left: boolean };
+  compact: boolean;
   onClick: () => void;
 }
 
@@ -26,10 +28,12 @@ export function Cell({
   isClue,
   isSelected,
   isError,
+  isHinted,
   notes,
   groupSize,
   colorIndex,
   borders,
+  compact,
   onClick,
 }: CellProps) {
   const borderClasses = [
@@ -41,11 +45,13 @@ export function Cell({
 
   const groupBg = GROUP_COLORS[colorIndex % GROUP_COLORS.length];
 
-  const bgClass = isSelected
-    ? 'bg-blue-300'
-    : isError
-      ? 'bg-red-200'
-      : groupBg;
+  const bgClass = isHinted
+    ? 'bg-amber-300'
+    : isSelected
+      ? 'bg-blue-300'
+      : isError
+        ? 'bg-red-200'
+        : groupBg;
 
   const textClass = isClue
     ? 'text-slate-800 font-bold'
@@ -53,20 +59,27 @@ export function Cell({
       ? 'text-red-600 font-semibold'
       : 'text-blue-600 font-semibold';
 
+  const sizeClass = compact
+    ? 'w-8 h-8 sm:w-9 sm:h-9'
+    : 'w-12 h-12 sm:w-14 sm:h-14';
+
+  const textSize = compact ? 'text-sm' : 'text-xl';
+  const noteTextSize = compact ? 'text-[6px]' : 'text-[9px]';
+
   return (
     <div
       className={`flex items-center justify-center cursor-pointer select-none
-        w-12 h-12 sm:w-14 sm:h-14 ${borderClasses} ${bgClass} transition-colors`}
+        ${sizeClass} ${borderClasses} ${bgClass} transition-colors`}
       onClick={onClick}
     >
       {value !== 0 ? (
-        <span className={`text-xl ${textClass}`}>{value}</span>
+        <span className={`${textSize} ${textClass}`}>{value}</span>
       ) : notes.size > 0 ? (
         <div className="grid grid-cols-3 gap-0 w-full h-full p-0.5">
           {Array.from({ length: groupSize }, (_, i) => i + 1).map((n) => (
             <span
               key={n}
-              className="text-[9px] text-slate-400 flex items-center justify-center leading-none"
+              className={`${noteTextSize} text-slate-400 flex items-center justify-center leading-none`}
             >
               {notes.has(n) ? n : ''}
             </span>
@@ -77,10 +90,6 @@ export function Cell({
   );
 }
 
-/**
- * Compute which borders of a cell are group boundaries.
- * A thick border means the neighbor in that direction belongs to a different group.
- */
 export function computeBorders(
   row: number,
   col: number,
