@@ -143,8 +143,42 @@ export function useGame() {
 
     if (activeMode === 'logic') {
       const h = findHint(gameState.grid, gameState.puzzle.layout);
-      setHint(h);
-      if (h) setSelectedCell([h.row, h.col]);
+      if (h) {
+        setHint(h);
+        setSelectedCell([h.row, h.col]);
+      } else {
+        // No logic deduction found — fall back to revealing a cell
+        const { rows, cols } = gameState.puzzle.layout;
+        let targetR = -1;
+        let targetC = -1;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (gameState.grid[r][c] === 0 && !gameState.isClue[r][c]) {
+              targetR = r;
+              targetC = c;
+              break;
+            }
+          }
+          if (targetR !== -1) break;
+        }
+        if (targetR === -1) {
+          setHint({ row: -1, col: -1, value: 0, reason: 'No empty cells remaining.', type: 'reveal' });
+        } else {
+          const val = gameState.puzzle.solution[targetR][targetC];
+          setHint({ row: targetR, col: targetC, value: val, reason: `No simple logic deduction found — revealing this cell. The answer is ${val}.`, type: 'reveal' });
+          setSelectedCell([targetR, targetC]);
+          setGameState((prev) => {
+            if (!prev) return prev;
+            const newGrid = prev.grid.map((row) => [...row]);
+            const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
+            newGrid[targetR][targetC] = val;
+            newNotes[targetR][targetC].clear();
+            const newErrors = findErrors(newGrid, prev.puzzle.layout);
+            const solved = isSolved(newGrid, prev.puzzle.layout);
+            return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
+          });
+        }
+      }
     } else if (activeMode === 'candidates') {
       if (!selectedCell) {
         setHint({ row: -1, col: -1, value: 0, reason: 'Select a cell first to see its candidates.', type: 'candidates' });
