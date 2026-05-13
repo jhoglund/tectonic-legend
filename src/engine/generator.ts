@@ -75,16 +75,32 @@ export function generateLayout(
       if (groupCells[gid].length === 0 || groupCells[gid].length >= minGroupSize) continue;
       mergeNeeded = true;
 
-      const cell = groupCells[gid][0];
-      const orthoNeighbors = getOrthogonalNeighbors(cell.row, cell.col, rows, cols);
-
+      const mergedSize = groupCells[gid].length;
       let bestNeighborGroup = -1;
       let bestSize = Infinity;
-      for (const [nr, nc] of orthoNeighbors) {
-        const nGroup = assigned[nr][nc];
-        if (nGroup !== gid && groupCells[nGroup].length > 0 && groupCells[nGroup].length < bestSize) {
-          bestSize = groupCells[nGroup].length;
-          bestNeighborGroup = nGroup;
+
+      for (const cell of groupCells[gid]) {
+        for (const [nr, nc] of getOrthogonalNeighbors(cell.row, cell.col, rows, cols)) {
+          const nGroup = assigned[nr][nc];
+          if (nGroup !== gid && groupCells[nGroup].length > 0
+            && groupCells[nGroup].length + mergedSize <= maxGroupSize
+            && groupCells[nGroup].length < bestSize) {
+            bestSize = groupCells[nGroup].length;
+            bestNeighborGroup = nGroup;
+          }
+        }
+      }
+
+      // Fallback: merge with smallest neighbor even if it exceeds maxGroupSize
+      if (bestNeighborGroup === -1) {
+        for (const cell of groupCells[gid]) {
+          for (const [nr, nc] of getOrthogonalNeighbors(cell.row, cell.col, rows, cols)) {
+            const nGroup = assigned[nr][nc];
+            if (nGroup !== gid && groupCells[nGroup].length > 0 && groupCells[nGroup].length < bestSize) {
+              bestSize = groupCells[nGroup].length;
+              bestNeighborGroup = nGroup;
+            }
+          }
         }
       }
 
@@ -134,11 +150,13 @@ export function generatePuzzle(
   difficulty: Difficulty
 ): Puzzle {
   const isLarge = rows * cols > 50;
-  const maxGroupSize = isLarge ? 7 : 5;
-  const minGroupSize = isLarge ? 4 : 2;
-  const maxAttempts = isLarge ? 100 : 200;
-  for (let attempt = 0; attempt < maxAttempts; attempt++) {
+  const maxGroupSize = 5;
+  const minGroupSize = isLarge ? 3 : 2;
+  const deadline = Date.now() + (isLarge ? 30000 : 5000);
+  for (let attempt = 0; Date.now() < deadline; attempt++) {
     const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
+
+    if (layout.groups.some(g => g.cells.length > maxGroupSize || g.cells.length < minGroupSize)) continue;
 
     const grid = fillGrid(layout);
     if (!grid) continue;
@@ -147,7 +165,7 @@ export function generatePuzzle(
     if (puzzle) return puzzle;
   }
 
-  throw new Error(`Failed to generate puzzle after ${maxAttempts} attempts`);
+  throw new Error('Failed to generate puzzle — please try again');
 }
 
 function fillGrid(layout: PuzzleLayout): number[][] | null {
@@ -178,7 +196,7 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
   }
 
   let backtracks = 0;
-  const maxBacktracks = rows * cols * 100;
+  const maxBacktracks = rows * cols * 500;
 
   function assign(r: number, c: number, val: number): boolean {
     grid[r][c] = val;
