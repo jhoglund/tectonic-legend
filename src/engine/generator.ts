@@ -154,7 +154,8 @@ export function generatePuzzle(
   const isLarge = rows * cols > 50;
   const maxGroupSize = 5;
   const minGroupSize = isLarge ? 3 : 2;
-  const deadline = Date.now() + (isLarge ? 30000 : 5000);
+  const timeLimit = difficulty === 'expert' ? 30000 : isLarge ? 30000 : 5000;
+  const deadline = Date.now() + timeLimit;
   for (let attempt = 0; Date.now() < deadline; attempt++) {
     const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
 
@@ -327,13 +328,13 @@ function carveClues(
 
   const totalCells = rows * cols;
   const targetClues = isLarge
-    ? { easy: Math.ceil(totalCells * 0.58), medium: Math.ceil(totalCells * 0.48), hard: Math.ceil(totalCells * 0.38) }[difficulty]
-    : { easy: Math.ceil(totalCells * 0.52), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.28) }[difficulty];
+    ? { easy: Math.ceil(totalCells * 0.58), medium: Math.ceil(totalCells * 0.48), hard: Math.ceil(totalCells * 0.35), expert: 0 }[difficulty]!
+    : { easy: Math.ceil(totalCells * 0.52), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.25), expert: 0 }[difficulty]!;
 
   let currentClueCount = totalCells;
 
   for (const [r, c] of positions) {
-    if (currentClueCount <= targetClues) break;
+    if (targetClues > 0 && currentClueCount <= targetClues) break;
     if (clues[r][c] === 0) continue;
 
     const saved = clues[r][c];
@@ -350,8 +351,20 @@ function carveClues(
   const check = solve(layout, clues);
   if (!check.solved) return null;
 
-  const usedBacktrack = check.techniques.includes('backtrack');
-  if (difficulty === 'easy' && usedBacktrack && !isLarge) return null;
+  const usesBacktrack = check.techniques.includes('backtrack');
+  const usesHiddenSingle = check.techniques.includes('hidden_single');
+
+  if (difficulty === 'easy') {
+    if (usesBacktrack) return null;
+    if (!isLarge && usesHiddenSingle) return null;
+  } else if (difficulty === 'medium') {
+    if (usesBacktrack) return null;
+    if (!isLarge && !usesHiddenSingle) return null;
+  } else if (difficulty === 'hard') {
+    if (!usesBacktrack) return null;
+  } else if (difficulty === 'expert') {
+    if (!usesBacktrack) return null;
+  }
 
   return { layout, clues, solution };
 }

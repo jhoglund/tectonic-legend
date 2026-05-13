@@ -165,7 +165,7 @@ export function GameControls({
           ))}
         </div>
         <div className="flex gap-2">
-          {(['easy', 'medium', 'hard'] as Difficulty[]).map((d) => (
+          {(['easy', 'medium', 'hard', 'expert'] as Difficulty[]).map((d) => (
             <button
               key={d}
               onClick={() => onNewGame(d)}
