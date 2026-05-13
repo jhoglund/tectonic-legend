@@ -6,9 +6,10 @@ export interface Hint {
   col: number;
   value: number;
   reason: string;
-  type: 'naked_single' | 'hidden_single' | 'candidates' | 'reveal' | 'check';
+  type: 'naked_single' | 'hidden_single' | 'contradiction' | 'candidates' | 'reveal' | 'check';
   candidates?: number[];
   errorCount?: number;
+  steps?: string[];
 }
 
 function computeCandidates(
@@ -87,7 +88,339 @@ export function findHint(
     }
   }
 
-  return null;
+  return findContradictionHint(grid, layout, candidates);
+}
+
+interface DeductionStep {
+  row: number;
+  col: number;
+  value: number;
+  technique: 'naked_single' | 'hidden_single';
+}
+
+interface TrialResult {
+  contradiction: boolean;
+  steps: DeductionStep[];
+  contradictionReason?: string;
+}
+
+function simulateTrial(
+  grid: number[][],
+  layout: PuzzleLayout,
+  baseCandidates: Set<number>[][],
+  trialRow: number,
+  trialCol: number,
+  trialValue: number
+): TrialResult {
+  const { rows, cols, groups, cellGroup, neighbors } = layout;
+  const simGrid = grid.map((row) => [...row]);
+  const simCands: Set<number>[][] = baseCandidates.map((row) =>
+    row.map((s) => new Set(s))
+  );
+  const steps: DeductionStep[] = [];
+
+  function simAssign(r: number, c: number, val: number): boolean {
+    simGrid[r][c] = val;
+    simCands[r][c].clear();
+    for (const [nr, nc] of neighbors[r][c]) {
+      simCands[nr][nc].delete(val);
+      if (simGrid[nr][nc] === 0 && simCands[nr][nc].size === 0) return false;
+    }
+    for (const cell of groups[cellGroup[r][c]].cells) {
+      if (cell.row === r && cell.col === c) continue;
+      simCands[cell.row][cell.col].delete(val);
+      if (simGrid[cell.row][cell.col] === 0 && simCands[cell.row][cell.col].size === 0) return false;
+    }
+    return true;
+  }
+
+  if (!simAssign(trialRow, trialCol, trialValue)) {
+    return { contradiction: true, steps, contradictionReason: 'a neighbor loses all candidates' };
+  }
+
+  let changed = true;
+  while (changed) {
+    changed = false;
+
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (simGrid[r][c] !== 0) continue;
+        if (simCands[r][c].size === 0) {
+          return {
+            contradiction: true,
+            steps,
+            contradictionReason: `cell (${r + 1},${c + 1}) has no valid values left`,
+          };
+        }
+        if (simCands[r][c].size === 1) {
+          const val = simCands[r][c].values().next().value!;
+          steps.push({ row: r, col: c, value: val, technique: 'naked_single' });
+          if (!simAssign(r, c, val)) {
+            return {
+              contradiction: true,
+              steps,
+              contradictionReason: `placing ${val} at (${r + 1},${c + 1}) causes a conflict`,
+            };
+          }
+          changed = true;
+        }
+      }
+    }
+
+    for (const group of groups) {
+      const size = group.cells.length;
+      for (let v = 1; v <= size; v++) {
+        let count = 0;
+        let lastR = -1;
+        let lastC = -1;
+        let placed = false;
+        for (const { row, col } of group.cells) {
+          if (simGrid[row][col] === v) { placed = true; break; }
+          if (simGrid[row][col] === 0 && simCands[row][col].has(v)) {
+            count++;
+            lastR = row;
+            lastC = col;
+          }
+        }
+        if (placed) continue;
+        if (count === 0) {
+          return {
+            contradiction: true,
+            steps,
+            contradictionReason: `${v} has nowhere to go in a ${size}-cell group`,
+          };
+        }
+        if (count === 1) {
+          steps.push({ row: lastR, col: lastC, value: v, technique: 'hidden_single' });
+          if (!simAssign(lastR, lastC, v)) {
+            return {
+              contradiction: true,
+              steps,
+              contradictionReason: `placing ${v} at (${lastR + 1},${lastC + 1}) causes a conflict`,
+            };
+          }
+          changed = true;
+        }
+      }
+    }
+  }
+
+  return { contradiction: false, steps };
+}
+
+function formatTrialExplanation(
+  trialRow: number,
+  trialCol: number,
+  trialValue: number,
+  result: TrialResult
+): string[] {
+  const explanation: string[] = [];
+  explanation.push(`Assume (${trialRow + 1},${trialCol + 1}) = ${trialValue}`);
+
+  const stepsToShow = result.steps.slice(0, 4);
+  for (const step of stepsToShow) {
+    if (step.technique === 'naked_single') {
+      explanation.push(`→ (${step.row + 1},${step.col + 1}) is forced to ${step.value} (only candidate)`);
+    } else {
+      explanation.push(`→ (${step.row + 1},${step.col + 1}) must be ${step.value} (only spot in group)`);
+    }
+  }
+  if (result.steps.length > 4) {
+    explanation.push(`→ ...${result.steps.length - 4} more forced moves...`);
+  }
+  explanation.push(`→ Contradiction: ${result.contradictionReason!}`);
+  explanation.push(`So (${trialRow + 1},${trialCol + 1}) cannot be ${trialValue}.`);
+  return explanation;
+}
+
+function tryEliminationsForCell(
+  grid: number[][],
+  layout: PuzzleLayout,
+  candidates: Set<number>[][],
+  cellR: number,
+  cellC: number,
+  maxDepth: number
+): { eliminated: number[]; explanations: Map<number, string[]> } {
+  const vals = [...candidates[cellR][cellC]];
+  const eliminated: number[] = [];
+  const explanations: Map<number, string[]> = new Map();
+
+  for (const v of vals) {
+    const result = simulateTrial(grid, layout, candidates, cellR, cellC, v);
+    if (result.contradiction) {
+      eliminated.push(v);
+      explanations.set(v, formatTrialExplanation(cellR, cellC, v, result));
+      continue;
+    }
+
+    if (maxDepth >= 2) {
+      const { rows, cols } = layout;
+      const simGrid = grid.map((row) => [...row]);
+      const simCands: Set<number>[][] = candidates.map((row) => row.map((s) => new Set(s)));
+      simGrid[cellR][cellC] = v;
+      simCands[cellR][cellC] = new Set();
+      for (const [nr, nc] of layout.neighbors[cellR][cellC]) {
+        simCands[nr][nc].delete(v);
+      }
+      for (const cell of layout.groups[layout.cellGroup[cellR][cellC]].cells) {
+        simCands[cell.row][cell.col].delete(v);
+      }
+
+      let propagated = true;
+      let propChanged = true;
+      while (propChanged) {
+        propChanged = false;
+        for (let r = 0; r < rows; r++) {
+          for (let c = 0; c < cols; c++) {
+            if (simGrid[r][c] !== 0 || simCands[r][c].size !== 1) continue;
+            const sv = simCands[r][c].values().next().value!;
+            simGrid[r][c] = sv;
+            simCands[r][c].clear();
+            for (const [nr, nc] of layout.neighbors[r][c]) {
+              simCands[nr][nc].delete(sv);
+              if (simGrid[nr][nc] === 0 && simCands[nr][nc].size === 0) { propagated = false; break; }
+            }
+            if (!propagated) break;
+            for (const cell of layout.groups[layout.cellGroup[r][c]].cells) {
+              if (cell.row === r && cell.col === c) continue;
+              simCands[cell.row][cell.col].delete(sv);
+              if (simGrid[cell.row][cell.col] === 0 && simCands[cell.row][cell.col].size === 0) { propagated = false; break; }
+            }
+            if (!propagated) break;
+            propChanged = true;
+          }
+          if (!propagated) break;
+        }
+        if (!propagated) break;
+      }
+
+      if (!propagated) {
+        eliminated.push(v);
+        const exp = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+        if (result.steps.length > 0) {
+          exp.push(`→ ...after ${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
+        } else {
+          exp.push(`→ After further analysis, this leads to a contradiction`);
+        }
+        exp.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+        explanations.set(v, exp);
+        continue;
+      }
+
+      const subCells: [number, number, number][] = [];
+      for (let r = 0; r < rows; r++) {
+        for (let c = 0; c < cols; c++) {
+          if (simGrid[r][c] === 0 && simCands[r][c].size >= 2) {
+            subCells.push([r, c, simCands[r][c].size]);
+          }
+        }
+      }
+      subCells.sort((a, b) => a[2] - b[2]);
+
+      let foundDeep = false;
+      for (const [sr, sc] of subCells.slice(0, 8)) {
+        for (const sv of simCands[sr][sc]) {
+          const subResult = simulateTrial(simGrid, layout, simCands, sr, sc, sv);
+          if (subResult.contradiction) {
+            const allSubContradict = [...simCands[sr][sc]].every((sv2) => {
+              if (sv2 === sv) return true;
+              return simulateTrial(simGrid, layout, simCands, sr, sc, sv2).contradiction;
+            });
+            if (allSubContradict) {
+              eliminated.push(v);
+              const exp = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+              if (result.steps.length > 0) {
+                exp.push(`→ ...${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''} follow`);
+              }
+              exp.push(`→ Then cell (${sr + 1},${sc + 1}) has candidates ${[...simCands[sr][sc]].join(', ')}, but every option leads to a contradiction`);
+              exp.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+              explanations.set(v, exp);
+              foundDeep = true;
+              break;
+            }
+          }
+        }
+        if (foundDeep) break;
+      }
+    }
+  }
+
+  return { eliminated, explanations };
+}
+
+function findContradictionHint(
+  grid: number[][],
+  layout: PuzzleLayout,
+  candidates: Set<number>[][]
+): Hint | null {
+  const { rows, cols } = layout;
+
+  const cells: [number, number, number][] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== 0) continue;
+      const sz = candidates[r][c].size;
+      if (sz > 1) cells.push([r, c, sz]);
+    }
+  }
+  if (cells.length === 0) return null;
+  cells.sort((a, b) => a[2] - b[2]);
+
+  function buildResult(
+    cellR: number,
+    cellC: number,
+    eliminated: number[],
+    explanations: Map<number, string[]>
+  ): Hint {
+    const vals = [...candidates[cellR][cellC]];
+    const remaining = vals.filter((v) => !eliminated.includes(v));
+
+    const hintSteps: string[] = [];
+    hintSteps.push(`Cell (${cellR + 1},${cellC + 1}) could be ${vals.join(', ')}.`);
+
+    for (const v of eliminated) {
+      hintSteps.push(...explanations.get(v)!);
+    }
+
+    if (remaining.length === 1) {
+      const answer = remaining[0];
+      hintSteps.push(`Therefore (${cellR + 1},${cellC + 1}) must be ${answer}.`);
+      return {
+        row: cellR, col: cellC, value: answer,
+        reason: hintSteps.join('\n'), type: 'contradiction', steps: hintSteps,
+      };
+    }
+
+    hintSteps.push(`This eliminates ${eliminated.join(', ')}, leaving ${remaining.join(', ')} as possibilities.`);
+    return {
+      row: cellR, col: cellC, value: 0,
+      reason: hintSteps.join('\n'), type: 'contradiction', steps: hintSteps,
+    };
+  }
+
+  let bestPartial: Hint | null = null;
+
+  for (const maxDepth of [1, 2]) {
+    for (const [cellR, cellC] of cells) {
+      const { eliminated, explanations } = tryEliminationsForCell(
+        grid, layout, candidates, cellR, cellC, maxDepth
+      );
+      if (eliminated.length === 0) continue;
+
+      const vals = [...candidates[cellR][cellC]];
+      const remaining = vals.filter((v) => !eliminated.includes(v));
+
+      if (remaining.length === 1) {
+        return buildResult(cellR, cellC, eliminated, explanations);
+      }
+
+      if (!bestPartial) {
+        bestPartial = buildResult(cellR, cellC, eliminated, explanations);
+      }
+    }
+  }
+
+  return bestPartial;
 }
 
 function buildNakedSingleReason(

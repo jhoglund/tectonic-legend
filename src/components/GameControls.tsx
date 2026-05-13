@@ -62,8 +62,32 @@ export function GameControls({
       )}
 
       {hint && (
-        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full">
-          <span className="font-semibold">Hint:</span> {hint.reason}
+        <div className="bg-amber-50 border border-amber-300 rounded-lg px-4 py-3 text-sm text-amber-800 text-left w-full max-h-64 overflow-y-auto">
+          <span className="font-semibold">Hint:</span>
+          {hint.steps ? (
+            <div className="mt-1 space-y-0.5">
+              {hint.steps.map((step, i) => (
+                <div
+                  key={i}
+                  className={
+                    step.startsWith('→')
+                      ? 'pl-3 text-amber-700'
+                      : step.startsWith('Assume')
+                        ? 'font-medium mt-2'
+                        : step.startsWith('So ')
+                          ? 'text-red-700 font-medium'
+                          : step.startsWith('Therefore')
+                            ? 'text-green-700 font-semibold mt-2'
+                            : ''
+                  }
+                >
+                  {step}
+                </div>
+              ))}
+            </div>
+          ) : (
+            <span> {hint.reason}</span>
+          )}
         </div>
       )}
 
