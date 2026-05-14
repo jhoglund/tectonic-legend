@@ -25,3 +25,6 @@ dist-ssr
 
 # Claude Code per-user state
 .claude/settings.local.json
+
+# Open Design per-project metadata (written by OD when a folder is imported)
+.od-skills/
