@@ -1,0 +1,153 @@
+# Design workflow — Claude Code × Open Design
+
+> How UX iterates between two surfaces so design and implementation stay in sync. Source: [ADR-0005](../docs/decisions/ADR-0005-open-design-for-ux-iteration.md).
+
+**Last updated:** 2026-05-14
+
+---
+
+## 1. The two surfaces
+
+| Surface | Address | Role |
+|---------|---------|------|
+| **Open Design** | `http://open-design.test` (local, puma-dev port 7575) | Explores UX. Produces real on-disk project folders containing HTML prototypes, design briefs, and screenshots. Bring-your-own-key, runs locally. |
+| **Claude Code** | This editor session | Reads design output, writes the React code that ships, audits drift between `specs/design-tokens.md` and `src/index.css`. |
+
+Open Design is *not* a design hand-off tool (like Figma → Zeplin). It is a generative tool: you give it a brief; it produces an interactive HTML prototype with the design system applied. The prototype is canonical until graduated.
+
+---
+
+## 2. The loop
+
+```
+  ┌───────────────────────────────────────────────────────────────┐
+  │                                                               │
+  │   1. Claude Code writes/updates a brief                       │
+  │      prototypes/DESIGN-BRIEF.md  ─or─  prototypes/<slug>/BRIEF.md
+  │                                                               │
+  │                              │                                │
+  │                              ▼                                │
+  │   2. Jonas opens Open Design, drops the brief in              │
+  │      Output lands at: prototypes/<slug-or-date>/<files>       │
+  │                                                               │
+  │                              │                                │
+  │                              ▼                                │
+  │   3. Jonas reviews prototypes side-by-side                    │
+  │      Picks the direction OR sends feedback for refinement     │
+  │                                                               │
+  │                              │                                │
+  │                              ▼                                │
+  │   4. Claude Code reads the chosen prototype                   │
+  │      Reproduces the visual decisions in src/                  │
+  │      Updates specs/design-tokens.md if any tokens changed     │
+  │      Marks the prototype's status in its README               │
+  │                                                               │
+  │                              │                                │
+  │                              ▼                                │
+  │   5. Prototype stays as the permanent reference               │
+  │      Not built. Not imported. Just there.                     │
+  │                                                               │
+  └───────────────────────────────────────────────────────────────┘
+```
+
+---
+
+## 3. Directory shape
+
+```
+prototypes/
+  DESIGN-BRIEF.md              ← the always-current brief (context pack)
+  <slug-or-date>/              ← one folder per Open Design session
+    BRIEF.md                   ← the brief used for that session (snapshot)
+    index.html                 ← side-by-side index when there's more than one variant
+    01-stage-up-quiet/
+      index.html
+      screenshot.png
+    02-stage-up-spotlight/
+      index.html
+      screenshot.png
+    STATUS.md                  ← captured, refined, graduated, or rejected
+```
+
+The `slug-or-date` convention: use a date when exploring broad (e.g., `2026-05-20-onboarding-shapes`); use a slug when iterating tightly (e.g., `paywall-trigger-hard-tap`).
+
+---
+
+## 4. The brief
+
+`prototypes/DESIGN-BRIEF.md` is the always-current context pack. Every Open Design session starts by reading it. Its structure mirrors the diet-app pattern:
+
+1. **Who we are** — brand, voice, one-paragraph product thesis.
+2. **The journey** — the player stages from `specs/progression.md` §1, plus a sentence per stage on what's *different* about the UX in that stage.
+3. **Design principles** — the constraints (P1–P5; see brief).
+4. **Design tokens** — pasted from `specs/design-tokens.md` so Open Design produces token-faithful prototypes.
+5. **Locked-in decisions** — what's already settled (board layout, hint chain colors, navigation shape).
+6. **What's staying / changing / adding** — for this specific session.
+7. **Current screen references** — screenshots from the running app, attached.
+8. **Open questions for design to explore** — the actual brief for this round.
+9. **Things design should avoid** — the anti-patterns.
+
+When a session needs a different brief (e.g., "design the paywall, don't worry about the rest"), copy the always-current brief into `prototypes/<slug>/BRIEF.md` and edit *that* — keep the always-current one in shape for the next general session.
+
+---
+
+## 5. Graduation
+
+A prototype "graduates" into shipping code when:
+- Jonas accepts the direction in writing (a `STATUS.md` note, a slack/chat ack relayed into a commit message, or an inline approval in a PR).
+- Claude Code reproduces the visual decisions in `src/`.
+- Any new design tokens have been added to both `src/index.css` and `specs/design-tokens.md`.
+- The prototype's `STATUS.md` is updated to `graduated → commit <sha>`.
+
+A graduated prototype is **never deleted**. It is the visual record of why the UI looks the way it does.
+
+---
+
+## 6. Rejection and refinement
+
+If a prototype is rejected, its `STATUS.md` notes:
+- What didn't work (one sentence).
+- What the next session should explore differently.
+
+If a prototype needs refinement, do it as a new session (`prototypes/<original-slug>-v2/`). Don't overwrite — keep iteration legible.
+
+---
+
+## 7. Token drift guard
+
+Tokens are dual-sourced (`src/index.css` and `specs/design-tokens.md`). A planned `scripts/token-audit.mjs` (modeled on diet-app's `scripts/token-audit.mjs`) checks that:
+- Every token in `specs/design-tokens.md` has a corresponding CSS custom property.
+- No `src/` file uses an arbitrary hex code or pixel size for properties covered by the token system.
+
+The audit runs in CI once CI exists. Until then, it's a manual `npm run token-audit` before any merge that touches UI.
+
+---
+
+## 8. When to skip the loop
+
+Small things don't need a prototype. Examples that go straight to `src/`:
+- Bug fixes that don't change visual semantics.
+- Copy edits.
+- A new icon that maps to an existing pattern.
+- Internal refactors invisible to the player.
+
+Anything that introduces a *new visual pattern* (new component shape, new color usage, new motion behavior) goes through the loop.
+
+---
+
+## 9. Surfaces queued for Open Design
+
+These are the surfaces that need Open Design iteration before code, per the backlog:
+
+| Surface | Why it needs design first |
+|---------|---------------------------|
+| Onboarding flow (Newcomer tutorials) | First impression; pace and warmth matter more than layout |
+| Stage-up moments (4 stages × 1 card each) | The celebration tone is the brand voice in pure form |
+| Mastery chip | Tiny, surfaces often, easy to over-design |
+| Stats surface | Three sections; ordering and density need iteration |
+| Paywall (post-mastery, pre-Hard) | Highest-conversion surface; needs the right "you've earned this" tone |
+| Daily puzzle home-screen anchor | Anchor of daily habit; needs the right level of presence |
+| Share artifact (colored mini-grid + time) | Tier-0 viral; visual identity matters |
+| App icon + App Store screenshots | Soft launch blocker |
+
+The seed brief at [`prototypes/DESIGN-BRIEF.md`](../prototypes/DESIGN-BRIEF.md) is ready to use for the first session.
