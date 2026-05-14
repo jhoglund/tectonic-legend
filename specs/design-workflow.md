@@ -27,25 +27,32 @@ Open Design is *not* a design hand-off tool (like Figma → Zeplin). It is a gen
   │                                                               │
   │                              │                                │
   │                              ▼                                │
-  │   2. Jonas opens Open Design, drops the brief in              │
-  │      Output lands at: prototypes/<slug-or-date>/<files>       │
+  │   2. Jonas creates the session folder + imports it into OD    │
+  │      mkdir prototypes/<slug>/                                 │
+  │      OD: New Project → Import folder → paste absolute path    │
   │                                                               │
   │                              │                                │
   │                              ▼                                │
-  │   3. Jonas reviews prototypes side-by-side                    │
-  │      Picks the direction OR sends feedback for refinement     │
+  │   3. Jonas works in Open Design at open-design.test           │
+  │      Pastes the brief, picks skill + direction                │
+  │      OD writes artifacts directly into prototypes/<slug>/     │
   │                                                               │
   │                              │                                │
   │                              ▼                                │
-  │   4. Claude Code reads the chosen prototype                   │
+  │   4. Jonas reviews variants, picks a direction (or refines)   │
+  │      git add prototypes/<slug>/ && commit                     │
+  │                                                               │
+  │                              │                                │
+  │                              ▼                                │
+  │   5. Claude Code reads the chosen prototype                   │
   │      Reproduces the visual decisions in src/                  │
   │      Updates specs/design-tokens.md if any tokens changed     │
-  │      Marks the prototype's status in its README               │
+  │      Marks the prototype's STATUS.md → graduated → <sha>      │
   │                                                               │
   │                              │                                │
   │                              ▼                                │
-  │   5. Prototype stays as the permanent reference               │
-  │      Not built. Not imported. Just there.                     │
+  │   6. Prototype stays as the permanent reference               │
+  │      Not built. Not imported by the app. Just there.          │
   │                                                               │
   └───────────────────────────────────────────────────────────────┘
 ```
@@ -70,6 +77,41 @@ prototypes/
 ```
 
 The `slug-or-date` convention: use a date when exploring broad (e.g., `2026-05-20-onboarding-shapes`); use a slug when iterating tightly (e.g., `paywall-trigger-hard-tap`).
+
+The folder for a session is created *before* the Open Design session and imported into Open Design as the project root — see §3a.
+
+---
+
+## 3a. Importing a session folder into Open Design
+
+Open Design supports a "git-linked project" model: import an existing local folder as a project and every artifact OD generates lands directly in that folder. No copy, no shadow tree, no export step.
+
+**Recipe for starting a session:**
+
+```bash
+mkdir -p prototypes/<slug>
+# optional: copy + trim the always-current brief
+cp prototypes/DESIGN-BRIEF.md prototypes/<slug>/BRIEF.md
+$EDITOR prototypes/<slug>/BRIEF.md   # narrow §7 to this session's surfaces
+```
+
+Then in Open Design at `http://open-design.test`:
+
+1. **New Project** → **Import folder** (the manual `baseDir` input on the web; the file picker on the desktop app).
+2. Paste the absolute path: `/Users/jonashoglund/dev/tectonic-for-the-win/prototypes/<slug>`.
+3. Pick a **skill** matching the surface:
+   - `mobile-app` — in-app surfaces (onboarding, stage-up, paywall, stats)
+   - `web-prototype` — share artifact, web app landing
+   - `magazine-poster` — App Store screenshots
+   - `gamified-app` — for moments that should feel celebratory (stage-ups, mastery)
+4. Pick a **design direction** — Modern Minimal or Editorial Monocle match the brand voice. Skip Brutalist Experimental.
+5. Paste the contents of `BRIEF.md` into the prompt.
+
+OD writes its output directly into `prototypes/<slug>/`. When the session is done, `git add prototypes/<slug>/ && git commit`.
+
+**Under the hood** (for debugging): the import is `POST /api/import/folder` with `{ baseDir, name?, skillId?, designSystemId? }`. The daemon stores `metadata.baseDir = <your absolute path>` on the project record; from then on, every `writeProjectFile` resolves against that baseDir instead of `.od/projects/<id>/`. Once set, `baseDir` is immutable for the project — to point at a different folder, create a new project.
+
+**Gotcha:** if the daemon was started with `OD_REQUIRE_DESKTOP_AUTH=1`, the web-only import path is blocked and you need the desktop app. Your current puma-dev setup at `http://open-design.test` does NOT set that env var, so the web flow works.
 
 ---
 

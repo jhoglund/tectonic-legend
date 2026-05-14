@@ -168,11 +168,38 @@ Screenshots of the running app will be attached separately.
 
 For each session, produce:
 - 2–4 variants of the requested surface (different directions, not minor tweaks).
-- Each as an HTML file (`<slug>/index.html`) that uses the tokens above.
-- A side-by-side index at `prototypes/<session-folder>/index.html` if there are multiple variants.
+- Each as an HTML file (`<variant-slug>/index.html`) that uses the tokens above.
+- A side-by-side index at `<session-folder>/index.html` if there are multiple variants.
 - A short `STATUS.md` capturing the brief and the variants produced.
 
 Once Jonas picks a direction, Claude Code reads it and reproduces it in `src/`. The prototype stays as the permanent reference. See [`specs/design-workflow.md`](../specs/design-workflow.md) for the full loop.
+
+---
+
+## 10. How to run the session (concrete recipe)
+
+The session folder for this round is created *before* opening Open Design and imported into it as a project, so OD writes its artifacts directly into the repo:
+
+```bash
+# 1. Make the session folder (slug = topic, or date for broad exploration)
+mkdir -p prototypes/<slug>
+
+# 2. Optionally snapshot this brief so the session has a frozen copy
+cp prototypes/DESIGN-BRIEF.md prototypes/<slug>/BRIEF.md
+# Trim §7 down to the surface(s) for this session
+```
+
+Then in Open Design at `http://open-design.test`:
+
+1. **New Project → Import folder** (web: paste absolute path; desktop: file picker).
+2. Path: `/Users/jonashoglund/dev/tectonic-for-the-win/prototypes/<slug>`.
+3. Skill: `mobile-app` for in-app surfaces, `web-prototype` for share artifact, `magazine-poster` for App Store screenshots.
+4. Direction: Modern Minimal or Editorial Monocle. Avoid Brutalist Experimental — wrong voice.
+5. Paste this brief (or the trimmed `BRIEF.md`) into the prompt.
+
+Everything OD generates lands directly under `prototypes/<slug>/`. When the round is done, `git add prototypes/<slug>/ && git commit`, then ping Claude Code with the slug + chosen variant — e.g. *"`prototypes/stage-up-moments-v1/`, variant 02 is the direction"*. Claude Code then reads it, ports the visual decisions into `src/`, and updates `STATUS.md` → `graduated → <sha>`.
+
+Full workflow contract: [`specs/design-workflow.md`](../specs/design-workflow.md).
 
 ---
 
