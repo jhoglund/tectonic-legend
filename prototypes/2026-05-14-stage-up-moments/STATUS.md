@@ -1,8 +1,6 @@
 # Status — 2026-05-14-stage-up-moments
 
-**State:** paused — superseded as starting point by [`../swarm-2026-05-14/`](../swarm-2026-05-14/)
-
-> The swarm covers stage-up as one of 8 screens across 8 interaction-model variants. Once a swarm direction is chosen, this focused session can resume as a *refinement* of just the stage-up moments under the chosen interaction model.
+**State:** prepared, awaiting Open Design run
 **Brief:** [BRIEF.md](BRIEF.md)
 **Surface:** the 4 full-screen stage-up cards (Beginner / Confident / Advanced / Master)
 **Skill:** `mobile-app`
