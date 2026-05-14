@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "kind": "html",
+  "title": "Stage-Up Moments — Variant Comparison",
+  "entry": "stage-up-moments-comparison.html",
+  "renderer": "html",
+  "status": "complete",
+  "exports": [
+    "html",
+    "pdf",
+    "zip"
+  ],
+  "createdAt": "2026-05-14T10:44:22.236Z",
+  "updatedAt": "2026-05-14T10:44:22.252Z",
+  "metadata": {
+    "identifier": "stage-up-moments-comparison",
+    "artifactType": "text/html",
+    "inferred": false
+  }
+}

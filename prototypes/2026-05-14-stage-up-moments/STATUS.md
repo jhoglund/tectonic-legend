@@ -1,33 +1,27 @@
 # Status — 2026-05-14-stage-up-moments
 
-**State:** paused — superseded as starting point by [`../swarm-2026-05-14/`](../swarm-2026-05-14/)
+**State:** first round produced — not graduated. Superseded as the *starting point* by [`../swarm-2026-05-14/`](../swarm-2026-05-14/), but the variants here remain useful input as we evaluate the swarm.
 
-> The swarm covers stage-up as one of 8 screens across 8 interaction-model variants. Once a swarm direction is chosen, this focused session can resume as a *refinement* of just the stage-up moments under the chosen interaction model.
-**Brief:** [BRIEF.md](BRIEF.md)
-**Surface:** the 4 full-screen stage-up cards (Beginner / Confident / Advanced / Master)
-**Skill:** `mobile-app`
-**Direction:** Modern Minimal or Editorial Monocle (designer's pick)
+## What ran
 
-## How this session was set up
+Open Design ran this session before the swarm pivot. Three variants produced.
 
-Folder created via the recipe in [`../../specs/design-workflow.md`](../../specs/design-workflow.md) §3a. The brief is a snapshot of `../DESIGN-BRIEF.md` with §7 narrowed to just stage-up moments and §10 reduced to the concrete Open Design steps for this session.
+| Variant | Folder | Direction |
+|---------|--------|-----------|
+| A | [`variant-a-minimal-type/`](variant-a-minimal-type/) | Type-led minimalism |
+| B | [`variant-b-minimal-grid/`](variant-b-minimal-grid/) | Minimal with grid hint |
+| C | [`variant-c-editorial/`](variant-c-editorial/) | Editorial-paced |
 
-## Variants expected
+Side-by-side comparisons:
+- [`index.html`](index.html) — comparison view
+- [`stage-up-moments-comparison.html`](stage-up-moments-comparison.html) — alt comparison
 
-2–4 design directions, each showing **all four cards** so tonal consistency across transitions is evaluable. See `BRIEF.md` §7 for the questions design should answer.
+The two `mp5c*-BRIEF.md` files are Open Design's auto-snapshots of the brief at session time; kept for provenance.
 
-## After the run
+## Relationship to the swarm
 
-When Open Design has produced variants, update this file:
+The swarm at `../swarm-2026-05-14/` covers stage-up as one of 8 screens across 8 interaction-model variants. After a swarm interaction model is chosen, this focused session's three stage-up variants can be:
+- **revisited** if the swarm winner aligns with one of them (variant C "Editorial" might inform variant 06 in the swarm), OR
+- **archived** if a swarm variant resolves the stage-up surface end-to-end.
 
-- `State:` → `awaiting review`
-- Add a `Variants produced` list with one bullet per variant
-- Push the prototype files
-
-When Jonas picks a direction:
-
-- `State:` → `graduated`
-- `Graduated commit:` → `<sha>` (the commit on `main` that ports the chosen variant into `src/`)
-- Add a `Rejected variants` note if useful for future sessions
-
-If the session needs another round of refinement, create `prototypes/2026-05-14-stage-up-moments-v2/` rather than overwriting.
+No graduation decision yet. Update this file when the swarm review completes.
