@@ -1,0 +1,404 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<title>Tectonic · Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#fff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:#111;color:var(--text-primary);min-height:100vh;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+  .device{width:390px;height:844px;background:var(--surface);border-radius:40px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .status-os{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .screen{flex:1;display:flex;flex-direction:column;padding:4px 16px 0;overflow-y:auto}
+  .screen::-webkit-scrollbar{display:none}
+  .home-bar{height:34px;display:flex;align-items:center;justify-content:center}
+  .home-bar::after{content:"";width:134px;height:5px;background:var(--text-primary);opacity:.85;border-radius:3px}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .kbd{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;line-height:1;color:var(--text-secondary);background:var(--surface-elevated);border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;font-variant-numeric:tabular-nums}
+  .statusbar{border-top:1px solid var(--border);padding:8px 16px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-tertiary);background:var(--surface)}
+  .statusbar .left,.statusbar .right{display:flex;align-items:center;gap:6px}
+  .statusbar .dot{width:3px;height:3px;border-radius:50%;background:var(--text-tertiary)}
+  .statusbar .sb-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+  .statusbar .ok{color:var(--success)}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:38px}
+  .crumbs{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-tertiary)}
+  .crumbs .mono{font-size:11px}
+  .crumbs .sep{color:var(--text-tertiary)}
+  .crumbs .here{color:var(--text-primary);font-weight:500}
+  .scope{display:flex;align-items:center;gap:4px}
+  .seg{display:flex;border:1px solid var(--border);border-radius:6px;overflow:hidden;background:var(--surface-elevated)}
+  .seg button{
+    border:0;background:transparent;
+    padding:4px 8px;font:inherit;font-size:11px;
+    color:var(--text-secondary);cursor:pointer;
+    font-family:'JetBrains Mono',monospace;
+    border-right:1px solid var(--border);
+  }
+  .seg button:last-child{border-right:0}
+  .seg button.on{background:var(--surface);color:var(--text-primary);box-shadow:inset 0 0 0 1px var(--text-primary)}
+
+  /* widget grid */
+  .grid{
+    display:grid;
+    grid-template-columns:1fr 1fr;
+    gap:8px;
+    margin-top:8px;
+  }
+  .w{
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    padding:8px 10px;
+    display:flex;flex-direction:column;gap:4px;
+    min-height:88px;
+  }
+  .w .label{
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-tertiary);
+    display:flex;align-items:center;justify-content:space-between;
+  }
+  .w .label .delta{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--success);text-transform:none;letter-spacing:0;
+  }
+  .w .label .delta.down{color:var(--warning)}
+  .w .num{
+    font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
+    font-size:22px;line-height:1;font-weight:500;letter-spacing:-.01em;
+    color:var(--text-primary);
+  }
+  .w .sub{font-size:10.5px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace;margin-top:auto}
+  .w .sub b{color:var(--text-secondary);font-weight:500}
+
+  .w.wide{grid-column:span 2;min-height:auto}
+
+  /* mini histogram */
+  .hist{
+    display:flex;align-items:flex-end;gap:2px;height:30px;margin-top:2px;
+  }
+  .hist .b{
+    flex:1;background:var(--brand-100);border-radius:1px;
+  }
+  .hist .b.me{background:var(--brand-600)}
+  .hist-x{
+    display:flex;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9px;color:var(--text-tertiary);
+    margin-top:2px;
+  }
+
+  /* mastery bars list */
+  .mlist{
+    display:flex;flex-direction:column;gap:6px;
+    margin-top:4px;
+  }
+  .m{
+    display:grid;
+    grid-template-columns:1fr 44px;
+    gap:6px;align-items:center;
+    font-size:11px;
+  }
+  .m .top{display:flex;align-items:center;justify-content:space-between;gap:6px}
+  .m .top .name{color:var(--text-primary)}
+  .m .top .ratio{font-family:'JetBrains Mono',monospace;color:var(--text-secondary);font-size:10.5px}
+  .m .top .ratio b{color:var(--text-primary);font-weight:500}
+  .m .bar{
+    grid-column:1;
+    height:4px;border-radius:99px;
+    background:var(--surface);border:1px solid var(--border);
+    position:relative;
+  }
+  .m .bar i{
+    position:absolute;inset:0;border-radius:99px;background:var(--text-secondary);
+  }
+  .m.done .bar i{background:var(--success)}
+  .m.active .bar i{background:var(--brand-600)}
+  .m .pct{
+    grid-row:span 2;grid-column:2;
+    font-family:'JetBrains Mono',monospace;text-align:right;
+    color:var(--text-secondary);font-size:10.5px;
+    align-self:center;
+  }
+
+  /* streak heatmap */
+  .heat{
+    display:grid;
+    grid-template-columns:repeat(15,1fr);
+    grid-template-rows:repeat(4,1fr);
+    gap:2px;
+    margin-top:2px;
+  }
+  .heat span{
+    aspect-ratio:1/1;
+    border-radius:2px;
+    background:var(--surface);
+    border:1px solid var(--border);
+  }
+  .heat span.l1{background:var(--brand-50);border-color:transparent}
+  .heat span.l2{background:var(--brand-100);border-color:transparent}
+  .heat span.l3{background:var(--brand-500);border-color:transparent}
+  .heat span.l4{background:var(--brand-600);border-color:transparent}
+  .heat-foot{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:10px;color:var(--text-tertiary);
+    margin-top:4px;font-family:'JetBrains Mono',monospace;
+  }
+  .heat-foot .legend{display:flex;align-items:center;gap:2px}
+  .heat-foot .legend span{width:8px;height:8px;border-radius:1px;display:inline-block}
+
+  /* recent table */
+  .recent{
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+    margin-top:8px;margin-bottom:12px;
+  }
+  .rrow{
+    display:grid;
+    grid-template-columns:60px 50px 1fr 56px 30px;
+    align-items:center;
+    gap:6px;
+    padding:7px 10px;
+    border-bottom:1px solid var(--border);
+    font-size:11.5px;
+    font-family:'JetBrains Mono',monospace;
+  }
+  .rrow:last-child{border-bottom:0}
+  .rrow.h{
+    background:var(--surface);
+    font-size:9.5px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-tertiary);font-family:'Inter',sans-serif;
+    padding:5px 10px;
+  }
+  .rrow .date{color:var(--text-tertiary)}
+  .rrow .diff{display:flex;align-items:center;gap:4px;font-family:'Inter',sans-serif;font-size:11px;color:var(--text-secondary)}
+  .rrow .diff .dot{width:6px;height:6px;border-radius:2px;background:var(--text-tertiary)}
+  .rrow .diff.e .dot{background:var(--success)}
+  .rrow .diff.m .dot{background:var(--brand-600)}
+  .rrow .diff.h .dot{background:var(--warning)}
+  .rrow .tech{
+    color:var(--text-secondary);font-family:'JetBrains Mono',monospace;font-size:10px;
+    overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  }
+  .rrow .time{color:var(--text-primary);text-align:right}
+  .rrow .res{
+    text-align:right;color:var(--success);font-size:10px;
+  }
+  .rrow .res.fail{color:var(--text-tertiary)}
+
+  .sect-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin:12px 0 4px;
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-tertiary);
+  }
+  .sect-head .r{display:flex;align-items:center;gap:4px;font-family:'JetBrains Mono',monospace;text-transform:none;letter-spacing:0}
+  .sect-head .count{font-family:'JetBrains Mono',monospace;color:var(--text-secondary)}
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-os"><span>9:41</span><span class="right mono">5G · 100%</span></div>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="crumbs">
+          <span class="mono">tectonic</span><span class="sep">/</span>
+          <span class="here">stats</span>
+        </div>
+        <div class="scope">
+          <div class="seg">
+            <button>7d</button>
+            <button class="on">30d</button>
+            <button>all</button>
+          </div>
+          <span class="kbd" style="font-size:9.5px">⌥T</span>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="w">
+          <div class="label"><span>Solves · 30d</span><span class="delta">+8</span></div>
+          <div class="num">34</div>
+          <div class="sub"><b>28</b> daily · <b>6</b> practice</div>
+        </div>
+        <div class="w">
+          <div class="label"><span>Best · Hard</span><span class="delta">−12s</span></div>
+          <div class="num">03:24</div>
+          <div class="sub">p<b>91</b> · top <b>9%</b></div>
+        </div>
+
+        <div class="w">
+          <div class="label"><span>Streak</span><span class="delta">live</span></div>
+          <div class="num">12<span style="font-size:13px;color:var(--text-tertiary)">d</span></div>
+          <div class="sub">longest <b>21d</b> · <b>97%</b> retention</div>
+        </div>
+        <div class="w">
+          <div class="label"><span>Mastery</span><span class="delta">+2</span></div>
+          <div class="num">5<span style="font-size:13px;color:var(--text-tertiary)">/8</span></div>
+          <div class="sub">3 to <b>Advanced</b></div>
+        </div>
+
+        <div class="w wide">
+          <div class="label"><span>Solve time · Hard · 5×5</span><span class="delta">μ 04:42 · σ 00:48</span></div>
+          <div class="hist" aria-label="Histogram">
+            <div class="b" style="height:18%"></div>
+            <div class="b" style="height:30%"></div>
+            <div class="b" style="height:55%"></div>
+            <div class="b" style="height:78%"></div>
+            <div class="b me" style="height:92%"></div>
+            <div class="b" style="height:84%"></div>
+            <div class="b" style="height:62%"></div>
+            <div class="b" style="height:48%"></div>
+            <div class="b" style="height:32%"></div>
+            <div class="b" style="height:24%"></div>
+            <div class="b" style="height:14%"></div>
+            <div class="b" style="height:8%"></div>
+          </div>
+          <div class="hist-x">
+            <span>02:30</span><span>04:00</span><span>05:30</span><span>07:00</span><span>08:30</span>
+          </div>
+        </div>
+
+        <div class="w wide">
+          <div class="label"><span>Technique mastery · self/threshold</span><span class="delta">5/8 ✓</span></div>
+          <div class="mlist">
+            <div class="m done">
+              <div class="top"><span class="name">naked single</span><span class="ratio"><b>14</b>/8</span></div>
+              <div class="bar"><i style="width:100%"></i></div>
+              <span class="pct">100%</span>
+            </div>
+            <div class="m done">
+              <div class="top"><span class="name">hidden single</span><span class="ratio"><b>11</b>/8</span></div>
+              <div class="bar"><i style="width:100%"></i></div>
+              <span class="pct">100%</span>
+            </div>
+            <div class="m active">
+              <div class="top"><span class="name">forced move (pair)</span><span class="ratio"><b>7</b>/8</span></div>
+              <div class="bar"><i style="width:87%"></i></div>
+              <span class="pct">87%</span>
+            </div>
+            <div class="m">
+              <div class="top"><span class="name">forced move (triple)</span><span class="ratio"><b>3</b>/8</span></div>
+              <div class="bar"><i style="width:37%"></i></div>
+              <span class="pct">37%</span>
+            </div>
+            <div class="m">
+              <div class="top"><span class="name">contradiction · d2</span><span class="ratio"><b>1</b>/8</span></div>
+              <div class="bar"><i style="width:12%"></i></div>
+              <span class="pct">12%</span>
+            </div>
+          </div>
+        </div>
+
+        <div class="w wide">
+          <div class="label"><span>Activity · 60 days</span><span class="delta">90% days played</span></div>
+          <div class="heat" aria-label="Activity heatmap">
+            <!-- 60 cells -->
+            <span class="l1"></span><span class="l2"></span><span></span><span class="l3"></span><span class="l2"></span><span class="l1"></span><span class="l4"></span><span class="l3"></span><span class="l2"></span><span class="l1"></span><span class="l3"></span><span class="l2"></span><span class="l4"></span><span class="l2"></span><span class="l1"></span>
+            <span class="l2"></span><span class="l3"></span><span class="l2"></span><span class="l1"></span><span></span><span class="l2"></span><span class="l3"></span><span class="l4"></span><span class="l2"></span><span class="l1"></span><span class="l3"></span><span class="l2"></span><span class="l3"></span><span class="l1"></span><span class="l2"></span>
+            <span class="l3"></span><span class="l2"></span><span class="l4"></span><span class="l3"></span><span class="l2"></span><span class="l1"></span><span class="l2"></span><span class="l3"></span><span class="l4"></span><span class="l2"></span><span class="l3"></span><span class="l1"></span><span class="l2"></span><span class="l3"></span><span class="l2"></span>
+            <span class="l2"></span><span class="l3"></span><span class="l1"></span><span class="l2"></span><span class="l3"></span><span class="l4"></span><span class="l2"></span><span class="l3"></span><span class="l2"></span><span class="l3"></span><span class="l4"></span><span class="l3"></span><span class="l2"></span><span class="l3"></span><span class="l4"></span>
+          </div>
+          <div class="heat-foot">
+            <span>2026-03-15 → 2026-05-14</span>
+            <span class="legend">less <span style="background:var(--surface);border:1px solid var(--border)"></span><span class="l1" style="background:var(--brand-50)"></span><span class="l2" style="background:var(--brand-100)"></span><span class="l3" style="background:var(--brand-500)"></span><span class="l4" style="background:var(--brand-600)"></span> more</span>
+          </div>
+        </div>
+      </div>
+
+      <div class="sect-head">
+        <span>Recent solves · 30d</span>
+        <div class="r"><span>filter</span><span class="kbd" style="font-size:9.5px">/</span></div>
+      </div>
+
+      <div class="recent" role="table">
+        <div class="rrow h">
+          <span>date</span>
+          <span>diff</span>
+          <span>technique mix</span>
+          <span style="text-align:right">time</span>
+          <span></span>
+        </div>
+        <div class="rrow">
+          <span class="date">05-14</span>
+          <span class="diff h"><span class="dot"></span>H</span>
+          <span class="tech">N9·H4·F2·C1</span>
+          <span class="time">04:18</span>
+          <span class="res">✓</span>
+        </div>
+        <div class="rrow">
+          <span class="date">05-13</span>
+          <span class="diff h"><span class="dot"></span>H</span>
+          <span class="tech">N8·H5·F3</span>
+          <span class="time">05:02</span>
+          <span class="res">✓</span>
+        </div>
+        <div class="rrow">
+          <span class="date">05-12</span>
+          <span class="diff m"><span class="dot"></span>M</span>
+          <span class="tech">N10·H3</span>
+          <span class="time">02:54</span>
+          <span class="res">✓</span>
+        </div>
+        <div class="rrow">
+          <span class="date">05-11</span>
+          <span class="diff h"><span class="dot"></span>H</span>
+          <span class="tech">N7·H4·F2·C2</span>
+          <span class="time">06:31</span>
+          <span class="res fail">−</span>
+        </div>
+        <div class="rrow">
+          <span class="date">05-10</span>
+          <span class="diff m"><span class="dot"></span>M</span>
+          <span class="tech">N9·H4·F1</span>
+          <span class="time">03:24</span>
+          <span class="res">✓</span>
+        </div>
+      </div>
+    </div>
+
+    <footer class="statusbar">
+      <div class="left">
+        <span class="sb-mono">stats</span>
+        <span class="dot"></span>
+        <span>Stage: <b style="color:var(--text-primary);font-weight:500">Confident</b></span>
+        <span class="dot"></span>
+        <span>Streak: <span class="sb-mono">12</span></span>
+      </div>
+      <div class="right">
+        <span class="sb-mono">30d window</span>
+        <span class="dot"></span>
+        <span class="kbd" style="font-size:9.5px">⌘K</span>
+      </div>
+    </footer>
+
+    <div class="home-bar"></div>
+  </div>
+</body>
+</html>

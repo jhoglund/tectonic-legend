@@ -1,0 +1,321 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Solving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+    --cell-assumption:#f59e0b;
+    --cell-deduction:#3b82f6;
+    --cell-contradiction:#dc2626;
+    --cell-conclusion:#10b981;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.4);
+    display:flex;flex-direction:column;
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:44px;flex-shrink:0}
+  .safe-bottom{height:24px;flex-shrink:0}
+
+  .top{
+    padding:12px 24px 14px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--border);
+  }
+  .top .back{
+    font-size:13px;color:var(--text-secondary);text-decoration:none;
+  }
+  .top .back::before{content:"← "}
+  .top .ctx{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .top .timer{
+    font-family:'JetBrains Mono',monospace;
+    font-size:14px;color:var(--text-primary);
+    font-variant-numeric:tabular-nums;font-weight:500;
+  }
+
+  .heading-row{
+    padding:18px 24px 6px;
+    display:flex;justify-content:space-between;align-items:baseline;
+  }
+  .heading-row .h{
+    font-size:18px;font-weight:600;letter-spacing:-0.02em;
+  }
+  .heading-row .meta{
+    font-size:12px;color:var(--text-tertiary);
+  }
+
+  /* Board: hero */
+  .board-wrap{
+    padding:18px 24px 12px;
+  }
+  .board{
+    width:100%;
+    aspect-ratio:1;
+    background:var(--surface-board);
+    border:2px solid var(--text-primary);
+    border-radius:12px;
+    overflow:hidden;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(5,1fr);
+    position:relative;
+  }
+  .cell{
+    position:relative;
+    background:var(--surface-cell);
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:24px;line-height:1;font-weight:500;
+    color:var(--text-primary);
+    font-variant-numeric:tabular-nums;
+  }
+  .cell.c-col5{border-right:0}
+  .cell.r-row5{border-bottom:0}
+  /* Cage borders (heavier) */
+  .cell.cb-r{border-right:1.5px solid var(--border-cage)}
+  .cell.cb-b{border-bottom:1.5px solid var(--border-cage)}
+  .cell.given{color:var(--text-primary)}
+  .cell.player{color:var(--brand-600)}
+  .cell.selected{background:var(--surface-cell-selected)}
+  .cell.peer{background:rgba(8,145,178,0.04)}
+
+  /* Hint chain rings */
+  .cell.ring::after{
+    content:"";position:absolute;inset:4px;
+    border-radius:6px;border:2px solid transparent;
+    pointer-events:none;
+  }
+  .cell.assumption::after{border-color:var(--cell-assumption)}
+  .cell.deduction::after{border-color:var(--cell-deduction)}
+  .cell.contradiction::after{border-color:var(--cell-contradiction)}
+  .cell.conclusion::after{border-color:var(--cell-conclusion)}
+
+  .notes{
+    position:absolute;inset:4px;
+    display:grid;grid-template-columns:repeat(3,1fr);
+    grid-template-rows:repeat(2,1fr);
+    font-size:10px;line-height:1;color:var(--text-tertiary);
+    font-family:'JetBrains Mono',monospace;
+  }
+  .notes span{display:flex;align-items:center;justify-content:center}
+
+  /* Editorial toolbar — text-link style */
+  .toolbar{
+    padding:14px 24px 18px;
+    display:flex;gap:24px;
+    border-bottom:1px solid var(--border);
+  }
+  .toolbar a{
+    font-size:14px;color:var(--text-secondary);
+    text-decoration:none;
+    border-bottom:1px solid transparent;
+    padding-bottom:2px;
+  }
+  .toolbar a.active{
+    color:var(--text-primary);
+    border-bottom-color:var(--text-primary);
+  }
+  .toolbar .right{margin-left:auto;display:flex;gap:20px}
+  .toolbar .right a{color:var(--text-tertiary)}
+
+  /* Number rail */
+  .numrail{
+    padding:14px 24px 4px;
+    display:flex;gap:6px;justify-content:space-between;
+  }
+  .numrail button{
+    flex:1;
+    background:transparent;border:1px solid var(--border);
+    border-radius:8px;
+    padding:10px 0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:18px;font-weight:500;
+    color:var(--text-primary);
+    font-variant-numeric:tabular-nums;cursor:pointer;
+  }
+  .numrail button.done{
+    color:var(--text-tertiary);
+    background:var(--surface);
+  }
+
+  /* Stepper as prose list */
+  .stepper{
+    margin:18px 24px 16px;
+    padding:18px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .stepper .label{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--cell-contradiction);font-weight:500;margin-bottom:10px;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .stepper .label .chip{
+    font-family:'Inter';font-size:10px;letter-spacing:0.14em;
+    color:var(--text-tertiary);
+  }
+  .stepper ol{
+    list-style:none;counter-reset:step;
+    font-size:14px;line-height:1.6;color:var(--text-secondary);
+  }
+  .stepper li{
+    counter-increment:step;
+    padding-left:28px;position:relative;
+    margin-bottom:8px;
+  }
+  .stepper li::before{
+    content:counter(step);
+    position:absolute;left:0;top:0;
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--text-tertiary);
+    font-variant-numeric:tabular-nums;
+    line-height:1.6;
+  }
+  .stepper li b{color:var(--text-primary);font-weight:500}
+  .stepper li.k-a b{color:var(--cell-assumption)}
+  .stepper li.k-d b{color:var(--cell-deduction)}
+  .stepper li.k-c b{color:var(--cell-contradiction)}
+  .stepper li.k-n b{color:var(--cell-conclusion)}
+  .stepper .controls{
+    margin-top:12px;padding-top:12px;
+    border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:13px;
+  }
+  .stepper .controls a{
+    color:var(--brand-600);text-decoration:none;font-weight:500;
+  }
+  .stepper .controls .step-of{
+    font-family:'JetBrains Mono',monospace;
+    font-size:11px;color:var(--text-tertiary);
+    font-variant-numeric:tabular-nums;letter-spacing:0.06em;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+    <div class="top">
+      <a href="#" class="back">Pause</a>
+      <span class="ctx">Medium · 5×5</span>
+      <span class="timer">03:14</span>
+    </div>
+
+    <div class="heading-row">
+      <span class="h">Today's Daily</span>
+      <span class="meta">14 / 25 placed</span>
+    </div>
+
+    <div class="board-wrap">
+      <div class="board" role="grid" aria-label="Tectonic 5x5 board">
+        <!-- Row 1 -->
+        <div class="cell given cb-r cb-b">3</div>
+        <div class="cell given cb-b">1</div>
+        <div class="cell cb-r">·</div>
+        <div class="cell cb-r cb-b ring assumption">
+          <div class="notes"><span>2</span><span>3</span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="cell c-col5 cb-b">·</div>
+        <!-- Row 2 -->
+        <div class="cell given cb-r">2</div>
+        <div class="cell cb-r cb-b">·</div>
+        <div class="cell player cb-b">4</div>
+        <div class="cell cb-b ring deduction">
+          <div class="notes"><span>1</span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="cell c-col5 given cb-b">5</div>
+        <!-- Row 3 -->
+        <div class="cell cb-r cb-b">·</div>
+        <div class="cell given cb-r cb-b">5</div>
+        <div class="cell peer selected cb-r cb-b">
+          <div class="notes"><span>1</span><span>2</span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <div class="cell given cb-b">3</div>
+        <div class="cell c-col5 cb-b ring contradiction">
+          <div class="notes"><span>1</span><span></span><span></span><span></span><span></span><span></span></div>
+        </div>
+        <!-- Row 4 -->
+        <div class="cell given cb-r">1</div>
+        <div class="cell cb-r ring conclusion">2</div>
+        <div class="cell cb-r cb-b">·</div>
+        <div class="cell cb-b">·</div>
+        <div class="cell c-col5 given cb-b">4</div>
+        <!-- Row 5 -->
+        <div class="cell r-row5 cb-r">·</div>
+        <div class="cell r-row5 player cb-r">4</div>
+        <div class="cell r-row5 given cb-r">5</div>
+        <div class="cell r-row5 cb-r">·</div>
+        <div class="cell r-row5 c-col5 given">2</div>
+      </div>
+    </div>
+
+    <nav class="toolbar">
+      <a href="#" class="active">Notes</a>
+      <a href="#">Hint</a>
+      <a href="#">Clear</a>
+      <div class="right">
+        <a href="#">Undo</a>
+      </div>
+    </nav>
+
+    <div class="numrail">
+      <button>1</button>
+      <button>2</button>
+      <button>3</button>
+      <button class="done">4</button>
+      <button>5</button>
+    </div>
+
+    <aside class="stepper" aria-label="Contradiction chain">
+      <div class="label">A contradiction chain<span class="chip">technique · hint</span></div>
+      <ol>
+        <li class="k-a"><b>Suppose</b> the cell at R1·C4 holds a <b>2</b>.</li>
+        <li class="k-d">Then R2·C4 must hold <b>1</b>, since no neighbour leaves another option.</li>
+        <li class="k-c">But R3·C5 already needs <b>1</b> — two ones touch, which the rule forbids.</li>
+        <li class="k-n">So R1·C4 cannot be 2. It must be <b>3</b>. That places R4·C2 as a <b>2</b>.</li>
+      </ol>
+      <div class="controls">
+        <span class="step-of">Step 4 of 4</span>
+        <a href="#">Apply →</a>
+      </div>
+    </aside>
+
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

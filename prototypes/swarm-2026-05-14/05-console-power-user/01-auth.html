@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<title>Tectonic · Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#fff;
+    --cell-assumption:#f59e0b; --cell-deduction:#3b82f6; --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+    --shadow-card:0 2px 8px rgba(0,0,0,.06);
+    --shadow-modal:0 12px 40px rgba(0,0,0,.18);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,-apple-system,sans-serif;
+    font-feature-settings:'cv11','ss01';
+    background:#111;
+    color:var(--text-primary);
+    min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+  }
+  .device{
+    width:390px;height:844px;
+    background:var(--surface);
+    border-radius:40px;
+    overflow:hidden;
+    position:relative;
+    display:flex;flex-direction:column;
+    box-shadow:0 30px 80px rgba(0,0,0,.45);
+  }
+  .status-os{
+    height:54px;
+    display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 24px 8px;
+    font-size:14px;font-weight:600;
+    font-variant-numeric:tabular-nums;
+    color:var(--text-primary);
+  }
+  .status-os .right{display:flex;gap:6px;align-items:center;color:var(--text-primary)}
+  .screen{flex:1;display:flex;flex-direction:column;padding:8px 24px 0;overflow:hidden}
+  .home-bar{height:34px;display:flex;align-items:center;justify-content:center}
+  .home-bar::after{content:"";width:134px;height:5px;background:var(--text-primary);opacity:.85;border-radius:3px}
+
+  /* Common bits */
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:18px;height:18px;padding:0 5px;
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:10.5px;font-weight:500;line-height:1;
+    color:var(--text-secondary);
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-bottom-width:2px;
+    border-radius:4px;
+    font-variant-numeric:tabular-nums;
+    letter-spacing:.02em;
+  }
+  .kbd.kbd-sm{height:16px;font-size:10px;min-width:16px}
+  .statusbar{
+    border-top:1px solid var(--border);
+    padding:8px 24px 12px;
+    display:flex;align-items:center;justify-content:space-between;
+    gap:8px;
+    font-size:11px;
+    color:var(--text-tertiary);
+    background:var(--surface);
+  }
+  .statusbar .left,.statusbar .right{display:flex;align-items:center;gap:6px}
+  .statusbar .dot{width:3px;height:3px;border-radius:50%;background:var(--text-tertiary)}
+  .statusbar .sb-mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+  .statusbar .ok{color:var(--success)}
+
+  /* ===== Auth-specific ===== */
+  .wordmark{
+    margin-top:18px;
+    display:flex;align-items:center;gap:10px;
+  }
+  .mark{
+    width:28px;height:28px;
+    border:1.5px solid var(--text-primary);
+    border-radius:6px;
+    position:relative;
+    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  }
+  .mark span{border-right:1px solid var(--text-primary);border-bottom:1px solid var(--text-primary)}
+  .mark span:nth-child(2),.mark span:nth-child(4){border-right:none}
+  .mark span:nth-child(3),.mark span:nth-child(4){border-bottom:none}
+  .mark span:nth-child(1){background:var(--brand-100)}
+  .wordmark-text{display:flex;flex-direction:column;line-height:1}
+  .wordmark-text .name{font-weight:600;font-size:16px;letter-spacing:.01em}
+  .wordmark-text .ver{font-size:10px;color:var(--text-tertiary);margin-top:3px;font-family:'JetBrains Mono',monospace}
+
+  h1.title{
+    margin:48px 0 6px;
+    font-size:24px;line-height:30px;
+    font-weight:600;letter-spacing:-.01em;
+  }
+  p.sub{
+    margin:0 0 28px;
+    font-size:14px;line-height:20px;
+    color:var(--text-secondary);
+    max-width:300px;
+  }
+
+  .auth-list{display:flex;flex-direction:column;gap:8px}
+  .auth-btn{
+    display:flex;align-items:center;
+    height:48px;
+    padding:0 14px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:8px;
+    color:var(--text-primary);
+    font-size:14px;font-weight:500;
+    cursor:pointer;
+    text-align:left;
+  }
+  .auth-btn .icon{width:18px;height:18px;display:flex;align-items:center;justify-content:center;margin-right:12px;color:var(--text-primary)}
+  .auth-btn .label{flex:1}
+  .auth-btn .kbd{margin-left:8px}
+
+  .divider{
+    display:flex;align-items:center;gap:10px;
+    margin:18px 0;
+    font-size:11px;color:var(--text-tertiary);
+    text-transform:uppercase;letter-spacing:.08em;
+  }
+  .divider::before,.divider::after{
+    content:"";flex:1;height:1px;background:var(--border)
+  }
+
+  .email-form{display:flex;flex-direction:column;gap:8px}
+  .input-row{
+    display:flex;align-items:center;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:8px;
+    height:42px;
+    padding:0 12px;
+    font-size:13px;
+  }
+  .input-row .prefix{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--text-tertiary);
+    margin-right:8px;font-size:12px;
+  }
+  .input-row input{
+    flex:1;border:0;background:transparent;outline:none;
+    font:inherit;color:var(--text-primary);
+    font-family:'JetBrains Mono',ui-monospace,monospace;
+    font-size:13px;
+  }
+  .input-row .caret{
+    width:7px;height:14px;background:var(--brand-600);
+    margin-left:1px;animation:blink 1s steps(2) infinite;
+  }
+  @keyframes blink{50%{opacity:0}}
+  .input-row .kbd{margin-left:8px}
+
+  .submit{
+    margin-top:12px;
+    height:44px;
+    background:var(--text-primary);color:var(--text-on-brand);
+    border:0;border-radius:8px;
+    font:inherit;font-weight:500;font-size:14px;
+    display:flex;align-items:center;justify-content:center;gap:10px;
+    cursor:pointer;
+  }
+  .submit .kbd{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+  @media (prefers-color-scheme: dark){
+    .submit .kbd{background:rgba(0,0,0,.18);border-color:rgba(0,0,0,.3);color:#0a0a0a}
+  }
+
+  .palette-hint{
+    margin-top:auto;
+    margin-bottom:12px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:11px;color:var(--text-tertiary);
+  }
+  .palette-hint .kbd{font-size:10px}
+  .legal{
+    margin:0 auto 4px;
+    font-size:10.5px;color:var(--text-tertiary);
+    text-align:center;max-width:280px;line-height:16px;
+  }
+  .legal a{color:var(--text-secondary);text-decoration:none;border-bottom:1px dotted var(--border)}
+</style>
+</head>
+<body>
+  <div class="device" role="application" aria-label="Tectonic auth screen">
+    <div class="status-os">
+      <span>9:41</span>
+      <span class="right mono">5G · 100%</span>
+    </div>
+
+    <div class="screen">
+      <header class="wordmark">
+        <div class="mark" aria-hidden="true"><span></span><span></span><span></span><span></span></div>
+        <div class="wordmark-text">
+          <span class="name">Tectonic</span>
+          <span class="ver">v0.9.4 · build 412</span>
+        </div>
+      </header>
+
+      <h1 class="title">Sign in to continue</h1>
+      <p class="sub">A quiet, guided Tectonic puzzle environment. Pick a method.</p>
+
+      <div class="auth-list">
+        <button class="auth-btn" type="button" aria-label="Sign in with Apple">
+          <span class="icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="currentColor"><path d="M11.6 8.5c0-2.1 1.7-3 1.8-3.1-1-1.4-2.5-1.6-3-1.6-1.3-.1-2.5.8-3.1.8-.7 0-1.6-.7-2.7-.7-1.4 0-2.7.8-3.4 2.1-1.5 2.5-.4 6.3 1 8.4.7 1 1.5 2.2 2.6 2.1 1.1 0 1.5-.7 2.8-.7 1.3 0 1.7.7 2.8.6 1.2 0 1.9-1 2.6-2.1.8-1.2 1.2-2.4 1.2-2.5-.1 0-2.3-.9-2.3-3.3zM9.6 2.6c.6-.7 1-1.7.9-2.6-.8 0-1.9.5-2.5 1.2-.5.6-1 1.6-.9 2.5.9.1 1.9-.4 2.5-1.1z"/></svg>
+          </span>
+          <span class="label">Continue with Apple</span>
+          <span class="kbd">⌘1</span>
+        </button>
+        <button class="auth-btn" type="button" aria-label="Sign in with Google">
+          <span class="icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 16 16"><path fill="#4285F4" d="M15.5 8.2c0-.6 0-1.1-.1-1.6H8v3.1h4.2c-.2 1-.7 1.8-1.6 2.4v2h2.6c1.5-1.4 2.3-3.5 2.3-5.9z"/><path fill="#34A853" d="M8 16c2.2 0 4-.7 5.3-2l-2.6-2c-.7.5-1.6.8-2.7.8-2.1 0-3.8-1.4-4.5-3.3H1v2.1C2.3 14.2 5 16 8 16z"/><path fill="#FBBC05" d="M3.5 9.5c-.2-.5-.3-1-.3-1.5s.1-1 .3-1.5V4.4H1c-.5 1-.8 2.2-.8 3.6s.3 2.5.8 3.6l2.5-2.1z"/><path fill="#EA4335" d="M8 3.2c1.2 0 2.3.4 3.1 1.2L13.4 2C12 .7 10.2 0 8 0 5 0 2.3 1.8 1 4.4l2.5 2.1C4.2 4.6 5.9 3.2 8 3.2z"/></svg>
+          </span>
+          <span class="label">Continue with Google</span>
+          <span class="kbd">⌘2</span>
+        </button>
+        <button class="auth-btn" type="button" aria-label="Sign in with email">
+          <span class="icon" aria-hidden="true">
+            <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.4"><rect x="1.5" y="3" width="13" height="10" rx="1.5"/><path d="M2 4l6 4.5L14 4"/></svg>
+          </span>
+          <span class="label">Continue with email</span>
+          <span class="kbd">⌘3</span>
+        </button>
+      </div>
+
+      <div class="divider"><span>or paste a magic link</span></div>
+
+      <form class="email-form" onsubmit="event.preventDefault()">
+        <div class="input-row" role="textbox" aria-label="Email">
+          <span class="prefix">→</span>
+          <input type="email" inputmode="email" placeholder="you@domain.com" value="jonas@stixy.com" />
+          <span class="kbd">⏎</span>
+        </div>
+      </form>
+
+      <button class="submit" type="button">
+        <span>Send link</span>
+        <span class="kbd">⏎</span>
+      </button>
+
+      <div class="palette-hint">
+        <span>Press</span><span class="kbd">⌘K</span><span>anywhere to navigate</span>
+      </div>
+      <p class="legal">By continuing you accept the <a href="#">Terms</a> and <a href="#">Privacy</a>.</p>
+    </div>
+
+    <footer class="statusbar" aria-label="Status bar">
+      <div class="left">
+        <span class="sb-mono">tectonic</span>
+        <span class="dot"></span>
+        <span>signed out</span>
+      </div>
+      <div class="right">
+        <span class="sb-mono">v0.9.4</span>
+        <span class="dot"></span>
+        <span>⌘K palette</span>
+      </div>
+    </footer>
+
+    <div class="home-bar" aria-hidden="true"></div>
+  </div>
+</body>
+</html>

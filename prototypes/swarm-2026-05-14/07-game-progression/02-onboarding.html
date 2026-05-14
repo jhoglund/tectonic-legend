@@ -1,0 +1,202 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Newcomer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+
+  .topbar{
+    padding:6px 20px 10px;display:flex;align-items:center;gap:12px;
+  }
+  .stage-chip{
+    flex:1;display:flex;align-items:center;gap:10px;
+    padding:6px 12px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary);
+  }
+  .stage-chip .stage-name{color:var(--text-primary);font-weight:500}
+  .stage-chip .stage-bar{
+    flex:1;height:2px;background:var(--border);border-radius:1px;
+    position:relative;overflow:hidden;min-width:60px;
+  }
+  .stage-chip .stage-bar::after{
+    content:"";position:absolute;left:0;top:0;bottom:0;
+    width:18%;background:var(--brand-600);
+  }
+  .stage-chip .stage-next{color:var(--text-tertiary);font-size:11px}
+
+  .header{padding:24px 24px 8px}
+  .kicker{
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:8px;
+  }
+  h1{
+    font-weight:500;font-size:28px;line-height:34px;letter-spacing:-0.02em;
+  }
+  .lede{
+    font-size:15px;line-height:22px;color:var(--text-secondary);
+    margin-top:12px;max-width:320px;
+  }
+
+  /* The mini path */
+  .path-wrap{flex:1;position:relative;padding:24px 24px 8px}
+  .path-svg{position:absolute;left:60px;top:24px;width:24px;height:calc(100% - 48px)}
+  .tutorials{
+    display:flex;flex-direction:column;gap:16px;padding-left:36px;
+  }
+  .tut{
+    position:relative;display:flex;gap:16px;align-items:flex-start;
+    padding:12px 14px 12px 16px;border-radius:12px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    cursor:pointer;
+  }
+  .tut::before{
+    content:"";position:absolute;left:-32px;top:24px;
+    width:12px;height:12px;border-radius:999px;
+    background:var(--surface);border:1.5px solid var(--brand-600);
+  }
+  .tut.done::before{background:var(--brand-600)}
+  .tut.current::before{
+    background:var(--brand-600);
+    box-shadow:0 0 0 5px color-mix(in srgb, var(--brand-600) 18%, transparent);
+  }
+  .tut .num{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--text-tertiary);min-width:18px;padding-top:2px;
+  }
+  .tut .body{flex:1}
+  .tut .title{font-size:15px;font-weight:500;margin-bottom:2px}
+  .tut .sub{font-size:12px;color:var(--text-secondary);line-height:18px}
+  .tut .meta{
+    font-size:11px;color:var(--text-tertiary);margin-top:6px;
+    display:flex;align-items:center;gap:6px;
+  }
+  .tut.done .title{color:var(--text-secondary)}
+  .tut .check{
+    width:18px;height:18px;border-radius:999px;
+    display:flex;align-items:center;justify-content:center;
+    color:var(--brand-600);
+  }
+
+  .footer{
+    padding:0 24px 16px;
+  }
+  .footer .skip{
+    width:100%;background:none;border:none;font-family:inherit;
+    color:var(--text-tertiary);font-size:13px;padding:12px;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+  <div class="topbar">
+    <div class="stage-chip">
+      <span class="stage-name">Newcomer</span>
+      <span class="stage-bar"></span>
+      <span class="stage-next">→ Beginner</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="kicker">Stage 0 · Newcomer</div>
+    <h1>Welcome to the path.</h1>
+    <p class="lede">Three short puzzles will teach you the language. After the last one, you become a Beginner.</p>
+  </div>
+
+  <div class="path-wrap">
+    <!-- the vertical line connecting tutorials -->
+    <svg class="path-svg" viewBox="0 0 24 460" preserveAspectRatio="none" aria-hidden="true">
+      <defs>
+        <linearGradient id="vline" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brand-600)" stop-opacity="0.85"/>
+          <stop offset="35%" stop-color="var(--brand-600)" stop-opacity="0.85"/>
+          <stop offset="36%" stop-color="var(--brand-600)" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="var(--brand-600)" stop-opacity="0.2"/>
+        </linearGradient>
+      </defs>
+      <line x1="12" y1="6" x2="12" y2="456" stroke="url(#vline)" stroke-width="1.5"/>
+      <!-- Beginner terminal node -->
+      <circle cx="12" cy="456" r="5" fill="var(--surface)" stroke="var(--brand-600)" stroke-width="1.25"/>
+    </svg>
+
+    <div class="tutorials">
+      <div class="tut done">
+        <div class="num">01</div>
+        <div class="body">
+          <div class="title">Look at a cell</div>
+          <div class="sub">How cages, rows, and columns constrain a cell.</div>
+          <div class="meta">Completed</div>
+        </div>
+        <div class="check">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4 9 L8 13 L14 5"/></svg>
+        </div>
+      </div>
+
+      <div class="tut current">
+        <div class="num">02</div>
+        <div class="body">
+          <div class="title">The naked single</div>
+          <div class="sub">When only one number fits — see it, write it.</div>
+          <div class="meta"><span style="color:var(--brand-600);font-weight:500">Continue →</span></div>
+        </div>
+      </div>
+
+      <div class="tut">
+        <div class="num">03</div>
+        <div class="body">
+          <div class="title">Notes &amp; certainty</div>
+          <div class="sub">Mark possibilities. Commit when you're sure.</div>
+          <div class="meta">~3 minutes</div>
+        </div>
+      </div>
+
+      <div style="padding-left:0;margin-top:12px;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;color:var(--text-tertiary);font-weight:500;margin-left:-28px;padding-left:32px;position:relative">
+        Beginner stage begins here
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="skip">I'd rather just play — show me the home.</button>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

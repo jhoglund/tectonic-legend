@@ -1,0 +1,245 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<meta name="color-scheme" content="light dark" />
+<title>Variant 05 · Console / power-user — Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#0a0a0a;
+    --panel:#111;
+    --panel-2:#171717;
+    --border:#262626;
+    --text:#fafafa;
+    --text-2:#a3a3a3;
+    --text-3:#737373;
+    --brand:#06b6d4;
+    --brand-2:#22d3ee;
+    --accent-bg:#0e2a30;
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0;background:var(--bg);color:var(--text);font-family:'Inter',system-ui,sans-serif;-webkit-font-smoothing:antialiased}
+  .app{display:grid;grid-template-columns:240px 1fr;min-height:100vh}
+  /* sidebar */
+  aside{
+    position:sticky;top:0;height:100vh;
+    border-right:1px solid var(--border);
+    background:var(--panel);
+    display:flex;flex-direction:column;
+    padding:18px 14px;
+    gap:14px;
+  }
+  .brand{display:flex;align-items:center;gap:10px}
+  .mark{
+    width:24px;height:24px;border:1.5px solid var(--text);border-radius:5px;
+    display:grid;grid-template-columns:1fr 1fr;grid-template-rows:1fr 1fr;
+  }
+  .mark span{border-right:1px solid var(--text);border-bottom:1px solid var(--text)}
+  .mark span:nth-child(2),.mark span:nth-child(4){border-right:none}
+  .mark span:nth-child(3),.mark span:nth-child(4){border-bottom:none}
+  .mark span:nth-child(1){background:var(--accent-bg)}
+  .brand .who{display:flex;flex-direction:column;line-height:1.1}
+  .brand .who .n{font-weight:500;font-size:13px}
+  .brand .who .v{font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-3);margin-top:2px}
+
+  .crumbs{font-size:11px;color:var(--text-3);font-family:'JetBrains Mono',monospace;line-height:1.5}
+  .crumbs b{color:var(--text-2);font-weight:500}
+  .crumbs .h{color:var(--text);font-weight:500}
+
+  nav ol{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:1px}
+  nav li{margin:0}
+  nav button.tab{
+    width:100%;
+    display:grid;grid-template-columns:18px 1fr 18px;
+    align-items:center;gap:8px;
+    background:transparent;
+    border:1px solid transparent;
+    color:var(--text-2);
+    font:inherit;font-size:13px;text-align:left;
+    padding:7px 8px;
+    border-radius:6px;
+    cursor:pointer;
+  }
+  nav button.tab:hover{background:var(--panel-2);color:var(--text)}
+  nav button.tab.active{
+    background:var(--accent-bg);
+    color:var(--text);
+    border-color:rgba(6,182,212,.3);
+  }
+  nav button.tab .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10.5px;color:var(--text-3);
+    text-align:center;
+  }
+  nav button.tab.active .num{color:var(--brand)}
+  nav button.tab .kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:16px;height:16px;padding:0 4px;
+    background:var(--panel-2);
+    border:1px solid var(--border);border-bottom-width:2px;
+    border-radius:4px;
+    font-family:'JetBrains Mono',monospace;
+    font-size:9.5px;color:var(--text-2);
+  }
+  nav .label{
+    font-family:'JetBrains Mono',monospace;
+    font-size:10px;color:var(--text-3);
+    text-transform:uppercase;letter-spacing:.08em;
+    padding:14px 8px 4px;
+  }
+
+  .foot{margin-top:auto;font-size:10.5px;color:var(--text-3);font-family:'JetBrains Mono',monospace;line-height:1.55}
+  .foot a{color:var(--text-2)}
+
+  /* main */
+  main{
+    padding:24px;
+    display:flex;flex-direction:column;align-items:center;
+    background:#0a0a0a;
+  }
+  .header{
+    width:100%;
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:18px;
+    color:var(--text-2);
+  }
+  .header .l{display:flex;align-items:center;gap:10px}
+  .header .l .title{font-size:14px;font-weight:500;color:var(--text)}
+  .header .l .mono{font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-3)}
+  .header .r{display:flex;align-items:center;gap:6px;font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-3)}
+  .header .r .kbd{
+    display:inline-flex;align-items:center;justify-content:center;
+    min-width:16px;height:16px;padding:0 4px;
+    background:var(--panel-2);border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;
+    color:var(--text-2);font-size:9.5px;
+  }
+  .frame-shell{
+    width:390px;
+    background:transparent;
+    border-radius:40px;
+  }
+  iframe{
+    width:390px;height:844px;
+    border:0;border-radius:40px;
+    background:#fafafa;
+    box-shadow:0 30px 80px rgba(0,0,0,.5);
+    display:block;
+  }
+  .legend{
+    margin-top:14px;
+    width:390px;
+    display:flex;align-items:center;justify-content:space-between;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;color:var(--text-3);
+  }
+  .legend .l{display:flex;gap:8px}
+  .legend .l span{color:var(--text-2)}
+</style>
+</head>
+<body>
+<div class="app">
+  <aside>
+    <div class="brand">
+      <div class="mark"><span></span><span></span><span></span><span></span></div>
+      <div class="who">
+        <span class="n">Tectonic</span>
+        <span class="v">variant 05 · console</span>
+      </div>
+    </div>
+
+    <div class="crumbs">
+      <span>swarm-2026-05-14</span><br>
+      <b>/</b> 05-console-power-user<br>
+      <b>/</b> <span class="h" id="crumb-here">01-auth</span>
+    </div>
+
+    <nav aria-label="Screens">
+      <div class="label">Screens · 1–8</div>
+      <ol>
+        <li><button class="tab active" data-src="01-auth.html" data-name="01-auth"><span class="num">01</span><span>Auth</span><span class="kbd">1</span></button></li>
+        <li><button class="tab" data-src="02-onboarding.html" data-name="02-onboarding"><span class="num">02</span><span>Onboarding</span><span class="kbd">2</span></button></li>
+        <li><button class="tab" data-src="03-home.html" data-name="03-home"><span class="num">03</span><span>Home</span><span class="kbd">3</span></button></li>
+        <li><button class="tab" data-src="04-new-game.html" data-name="04-new-game"><span class="num">04</span><span>New game</span><span class="kbd">4</span></button></li>
+        <li><button class="tab" data-src="05-solving.html" data-name="05-solving"><span class="num">05</span><span>Solving</span><span class="kbd">5</span></button></li>
+        <li><button class="tab" data-src="06-solved.html" data-name="06-solved"><span class="num">06</span><span>Solved</span><span class="kbd">6</span></button></li>
+        <li><button class="tab" data-src="07-stats.html" data-name="07-stats"><span class="num">07</span><span>Stats</span><span class="kbd">7</span></button></li>
+        <li><button class="tab" data-src="08-stage-up.html" data-name="08-stage-up"><span class="num">08</span><span>Stage-up</span><span class="kbd">8</span></button></li>
+      </ol>
+      <div class="label">Notes</div>
+      <ol>
+        <li><button class="tab" data-src="STATUS.md" data-name="STATUS"><span class="num">·</span><span>STATUS.md</span><span class="kbd">0</span></button></li>
+      </ol>
+    </nav>
+
+    <div class="foot">
+      <div>tectonic · swarm-2026-05-14</div>
+      <div>variant 05 / 8</div>
+      <div>↑↓ to move · 1–8 jump</div>
+    </div>
+  </aside>
+
+  <main>
+    <div class="header">
+      <div class="l">
+        <span class="title">Variant 05 — Console / power-user</span>
+        <span class="mono">390 × 844 · portrait</span>
+      </div>
+      <div class="r">
+        <span>theme follows OS</span>
+        <span class="kbd">⇧</span><span class="kbd">D</span>
+      </div>
+    </div>
+    <div class="frame-shell">
+      <iframe id="frame" src="01-auth.html" title="screen" loading="eager"></iframe>
+    </div>
+    <div class="legend">
+      <div class="l">
+        <span>screen <b id="curr">01</b>/08</span>
+        <span>·</span>
+        <span id="currName">01-auth</span>
+      </div>
+      <div>console / power-user</div>
+    </div>
+  </main>
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('button.tab');
+  const frame = document.getElementById('frame');
+  const curr = document.getElementById('curr');
+  const currName = document.getElementById('currName');
+  const crumbHere = document.getElementById('crumb-here');
+
+  function activate(btn){
+    tabs.forEach(t=>t.classList.remove('active'));
+    btn.classList.add('active');
+    const src = btn.dataset.src;
+    const name = btn.dataset.name;
+    frame.src = src;
+    const n = (name.match(/^(\d+)/)||[])[1] || '·';
+    curr.textContent = n;
+    currName.textContent = name;
+    crumbHere.textContent = name;
+  }
+  tabs.forEach(btn=>btn.addEventListener('click',()=>activate(btn)));
+
+  // 1..8 jump shortcuts (and 0 for STATUS)
+  document.addEventListener('keydown', e=>{
+    if (e.target.tagName === 'IFRAME') return;
+    const map = {'1':0,'2':1,'3':2,'4':3,'5':4,'6':5,'7':6,'8':7,'0':8};
+    if (e.key in map){ activate(tabs[map[e.key]]); }
+    if (e.key === 'ArrowDown' || e.key === 'j'){
+      const i = [...tabs].findIndex(t=>t.classList.contains('active'));
+      const n = Math.min(tabs.length-1, i+1); activate(tabs[n]);
+    }
+    if (e.key === 'ArrowUp' || e.key === 'k'){
+      const i = [...tabs].findIndex(t=>t.classList.contains('active'));
+      const n = Math.max(0, i-1); activate(tabs[n]);
+    }
+  });
+</script>
+</body>
+</html>

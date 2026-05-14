@@ -1,0 +1,296 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Solving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --cell-assumption:#f59e0b; --cell-deduction:#3b82f6;
+    --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#222;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .device{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:44px;overflow:hidden;position:relative;
+    box-shadow:0 24px 80px rgba(0,0,0,0.35);
+    display:flex;flex-direction:column;
+  }
+  .status-bar{
+    height:54px;padding:18px 32px 0;display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:15px;font-weight:600;color:var(--text-primary);flex:0 0 auto;
+  }
+  .status-bar .dots{display:flex;gap:6px;align-items:center}
+  .status-bar .dot{width:4px;height:4px;border-radius:50%;background:var(--text-primary)}
+
+  .topbar{
+    padding:8px 20px 12px;display:flex;justify-content:space-between;align-items:center;
+  }
+  .topbar-left{display:flex;align-items:center;gap:10px}
+  .icon-btn{
+    width:32px;height:32px;border-radius:8px;background:transparent;border:none;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;color:var(--text-secondary);
+  }
+  .topbar-title{
+    font-size:13px;font-weight:600;color:var(--text-primary);letter-spacing:0.01em;
+  }
+  .topbar-title .sep{color:var(--text-tertiary);margin:0 6px;font-weight:400}
+  .topbar-title .meta{color:var(--text-secondary);font-weight:500}
+  .timer{
+    font-family:'JetBrains Mono',monospace;font-size:14px;font-weight:600;color:var(--text-primary);
+    padding:6px 12px;background:var(--surface-elevated);border:1px solid var(--border);border-radius:999px;
+  }
+
+  /* Board */
+  .board-wrap{padding:8px 20px 0}
+  .board{
+    width:100%;aspect-ratio:1;background:var(--surface-board);border:1px solid var(--border);
+    border-radius:16px;padding:10px;
+    display:grid;grid-template-columns:repeat(5,1fr);grid-template-rows:repeat(5,1fr);
+    gap:0;position:relative;
+  }
+  .cell{
+    background:var(--surface-cell);border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;position:relative;
+    font-family:'JetBrains Mono',monospace;font-weight:500;font-size:24px;
+    color:var(--text-primary);font-variant-numeric:tabular-nums;cursor:pointer;
+  }
+  .cell.given{font-weight:600}
+  .cell.player{color:var(--brand-600)}
+  .cell.selected{background:var(--surface-cell-selected);box-shadow:inset 0 0 0 2px var(--brand-600)}
+  .cell.empty{color:transparent}
+  .notes{
+    position:absolute;inset:3px;display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+    font-family:'JetBrains Mono',monospace;font-size:9px;color:var(--text-tertiary);
+  }
+  .notes span{display:flex;align-items:center;justify-content:center}
+
+  /* Hint chain overlay rings */
+  .cell.ring-assumption{box-shadow:inset 0 0 0 2px var(--cell-assumption)}
+  .cell.ring-deduction{box-shadow:inset 0 0 0 2px var(--cell-deduction)}
+  .cell.ring-contradiction{box-shadow:inset 0 0 0 2px var(--cell-contradiction)}
+  .cell.ring-conclusion{box-shadow:inset 0 0 0 2px var(--cell-conclusion)}
+
+  /* Cage borders for 5×5 (cages defined below) */
+  /* Row 1 */
+  .r1c1{border-top:2px solid var(--border-cage);border-left:2px solid var(--border-cage)}
+  .r1c2{border-top:2px solid var(--border-cage);border-right:2px solid var(--border-cage)}
+  .r1c3{border-top:2px solid var(--border-cage)}
+  .r1c4{border-top:2px solid var(--border-cage)}
+  .r1c5{border-top:2px solid var(--border-cage);border-right:2px solid var(--border-cage)}
+  /* Row 2 */
+  .r2c1{border-left:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  .r2c2{border-right:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  .r2c3{}
+  .r2c4{border-right:2px solid var(--border-cage)}
+  .r2c5{border-right:2px solid var(--border-cage)}
+  /* Row 3 */
+  .r3c1{border-left:2px solid var(--border-cage)}
+  .r3c2{}
+  .r3c3{border-right:2px solid var(--border-cage)}
+  .r3c4{}
+  .r3c5{border-right:2px solid var(--border-cage)}
+  /* Row 4 */
+  .r4c1{border-left:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  .r4c2{border-bottom:2px solid var(--border-cage)}
+  .r4c3{border-right:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  .r4c4{border-right:2px solid var(--border-cage)}
+  .r4c5{border-right:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  /* Row 5 */
+  .r5c1{border-left:2px solid var(--border-cage);border-bottom:2px solid var(--border-cage)}
+  .r5c2{border-bottom:2px solid var(--border-cage);border-right:2px solid var(--border-cage)}
+  .r5c3{border-bottom:2px solid var(--border-cage)}
+  .r5c4{border-bottom:2px solid var(--border-cage)}
+  .r5c5{border-bottom:2px solid var(--border-cage);border-right:2px solid var(--border-cage)}
+
+  /* Stepper */
+  .stepper{
+    margin:14px 20px 0;padding:12px 14px;background:var(--surface-elevated);
+    border:1px solid var(--border);border-radius:12px;
+  }
+  .stepper-head{
+    display:flex;justify-content:space-between;align-items:center;margin-bottom:8px;
+  }
+  .stepper-title{
+    font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-secondary);
+  }
+  .stepper-progress{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-tertiary);
+  }
+  .stepper-row{
+    display:flex;gap:8px;align-items:center;margin-bottom:8px;
+  }
+  .step-dot{
+    width:8px;height:8px;border-radius:50%;flex:0 0 8px;
+  }
+  .step-dot.assumption{background:var(--cell-assumption)}
+  .step-dot.deduction{background:var(--cell-deduction)}
+  .step-dot.contradiction{background:var(--cell-contradiction)}
+  .step-dot.conclusion{background:var(--cell-conclusion)}
+  .step-text{font-size:12px;line-height:17px;color:var(--text-primary)}
+  .step-text .ref{font-family:'JetBrains Mono',monospace;font-weight:600;color:var(--text-secondary)}
+  .stepper-actions{
+    display:flex;justify-content:space-between;align-items:center;margin-top:6px;padding-top:8px;
+    border-top:1px solid var(--border);
+  }
+  .step-nav{display:flex;gap:6px}
+  .step-btn{
+    height:28px;padding:0 12px;border:1px solid var(--border);background:var(--surface);
+    border-radius:6px;font-family:inherit;font-size:12px;font-weight:500;color:var(--text-primary);
+    cursor:pointer;
+  }
+  .step-btn.primary{background:var(--brand-600);color:var(--text-on-brand);border-color:var(--brand-600);font-weight:600}
+  .technique-chip{
+    font-size:11px;font-weight:500;color:var(--text-secondary);
+    padding:4px 10px;background:var(--brand-50);color:var(--brand-600);border-radius:999px;
+  }
+
+  /* Number pad */
+  .pad-wrap{margin-top:auto;padding:14px 20px 32px;background:var(--surface)}
+  .pad-mode{
+    display:flex;gap:8px;margin-bottom:10px;
+  }
+  .mode-btn{
+    flex:1;height:36px;border:1px solid var(--border);background:var(--surface-elevated);
+    border-radius:8px;font-family:inherit;font-size:12px;font-weight:500;color:var(--text-secondary);
+    display:flex;align-items:center;justify-content:center;gap:6px;cursor:pointer;
+  }
+  .mode-btn.active{background:var(--brand-600);color:var(--text-on-brand);border-color:var(--brand-600);font-weight:600}
+  .mode-btn svg{width:14px;height:14px}
+  .pad{display:grid;grid-template-columns:repeat(5,1fr);gap:8px}
+  .key{
+    height:48px;background:var(--surface-elevated);border:1px solid var(--border);border-radius:8px;
+    font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--text-primary);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;
+  }
+  .key.erase{font-family:inherit;font-size:13px;font-weight:500;color:var(--text-secondary)}
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  </div>
+
+  <div class="topbar">
+    <div class="topbar-left">
+      <button class="icon-btn" aria-label="Back">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none"><path d="M11 14L6 9l5-5" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <span class="topbar-title">Today<span class="sep">·</span><span class="meta">Hard 5×5</span></span>
+    </div>
+    <span class="timer">2:08</span>
+  </div>
+
+  <div class="board-wrap">
+    <div class="board">
+      <!-- Row 1 -->
+      <div class="cell given r1c1">3</div>
+      <div class="cell player r1c2">5</div>
+      <div class="cell empty r1c3"><div class="notes"><span>1</span><span>4</span><span></span><span></span><span></span><span></span></div></div>
+      <div class="cell given r1c4">2</div>
+      <div class="cell ring-conclusion r1c5">4</div>
+      <!-- Row 2 -->
+      <div class="cell player r2c1">4</div>
+      <div class="cell given r2c2">1</div>
+      <div class="cell empty r2c3"><div class="notes"><span>2</span><span>3</span><span>5</span><span></span><span></span><span></span></div></div>
+      <div class="cell selected r2c4"></div>
+      <div class="cell given r2c5">4</div>
+      <!-- Row 3 -->
+      <div class="cell ring-assumption r3c1">2</div>
+      <div class="cell empty r3c2"><div class="notes"><span>3</span><span>4</span><span></span><span></span><span></span><span></span></div></div>
+      <div class="cell given r3c3">5</div>
+      <div class="cell ring-deduction r3c4">1</div>
+      <div class="cell empty r3c5"><div class="notes"><span>2</span><span>3</span><span></span><span></span><span></span><span></span></div></div>
+      <!-- Row 4 -->
+      <div class="cell given r4c1">2</div>
+      <div class="cell ring-contradiction r4c2">2</div>
+      <div class="cell empty r4c3"><div class="notes"><span>1</span><span>4</span><span></span><span></span><span></span><span></span></div></div>
+      <div class="cell given r4c4">3</div>
+      <div class="cell empty r4c5"><div class="notes"><span>1</span><span>5</span><span></span><span></span><span></span><span></span></div></div>
+      <!-- Row 5 -->
+      <div class="cell empty r5c1"><div class="notes"><span>1</span><span>5</span><span></span><span></span><span></span><span></span></div></div>
+      <div class="cell given r5c2">4</div>
+      <div class="cell player r5c3">2</div>
+      <div class="cell empty r5c4"><div class="notes"><span>4</span><span>5</span><span></span><span></span><span></span><span></span></div></div>
+      <div class="cell given r5c5">1</div>
+    </div>
+  </div>
+
+  <div class="stepper">
+    <div class="stepper-head">
+      <span class="stepper-title">Contradiction chain</span>
+      <span class="stepper-progress">step 3 / 4</span>
+    </div>
+    <div class="stepper-row">
+      <span class="step-dot assumption"></span>
+      <span class="step-text">If <span class="ref">R3C1</span> is <strong>2</strong>…</span>
+    </div>
+    <div class="stepper-row">
+      <span class="step-dot deduction"></span>
+      <span class="step-text">…then <span class="ref">R3C4</span> must be <strong>1</strong>…</span>
+    </div>
+    <div class="stepper-row">
+      <span class="step-dot contradiction"></span>
+      <span class="step-text">…but <span class="ref">R4C2</span> would also need <strong>2</strong>. Adjacent — contradiction.</span>
+    </div>
+    <div class="stepper-row" style="opacity:0.5">
+      <span class="step-dot conclusion"></span>
+      <span class="step-text">So <span class="ref">R1C5</span> must be <strong>4</strong>.</span>
+    </div>
+    <div class="stepper-actions">
+      <span class="technique-chip">Contradiction chain</span>
+      <div class="step-nav">
+        <button class="step-btn">‹ Back</button>
+        <button class="step-btn primary">Next ›</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="pad-wrap">
+    <div class="pad-mode">
+      <button class="mode-btn active">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M2 7h10M7 2v10" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        Enter
+      </button>
+      <button class="mode-btn">
+        <svg viewBox="0 0 14 14" fill="none"><rect x="2" y="2" width="10" height="10" rx="1.5" stroke="currentColor" stroke-width="1.2"/><circle cx="5" cy="5" r="0.8" fill="currentColor"/><circle cx="9" cy="5" r="0.8" fill="currentColor"/><circle cx="5" cy="9" r="0.8" fill="currentColor"/></svg>
+        Notes
+      </button>
+      <button class="mode-btn">
+        <svg viewBox="0 0 14 14" fill="none"><path d="M7 1.5l1.2 3.6 3.8.3-2.9 2.5.9 3.7L7 9.7l-3 2 .9-3.8L2 5.4l3.8-.3L7 1.5z" stroke="currentColor" stroke-width="1.2" stroke-linejoin="round"/></svg>
+        Hint
+      </button>
+    </div>
+    <div class="pad">
+      <button class="key">1</button>
+      <button class="key">2</button>
+      <button class="key">3</button>
+      <button class="key">4</button>
+      <button class="key erase">Erase</button>
+    </div>
+  </div>
+</div>
+</body>
+</html>

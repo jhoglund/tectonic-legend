@@ -1,0 +1,349 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Solving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --surface-board:#ffffff; --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --cell-assumption:#f59e0b; --cell-deduction:#3b82f6; --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --surface-board:#0f1419; --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+
+  .topbar{padding:6px 16px 8px;display:flex;align-items:center;gap:10px}
+  .icon-btn{
+    width:32px;height:32px;border-radius:999px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    display:flex;align-items:center;justify-content:center;color:var(--text-secondary);
+    cursor:pointer;flex:none;
+  }
+  .stage-chip{
+    flex:1;display:flex;align-items:center;gap:8px;
+    padding:6px 10px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:11px;color:var(--text-secondary);min-width:0;
+  }
+  .stage-chip .stage-name{color:var(--text-primary);font-weight:500;white-space:nowrap}
+  .stage-chip .stage-bar{
+    flex:1;height:2px;background:var(--border);border-radius:1px;
+    position:relative;overflow:hidden;min-width:30px;
+  }
+  .stage-chip .stage-bar::after{
+    content:"";position:absolute;left:0;top:0;bottom:0;
+    width:62%;background:var(--brand-600);
+  }
+  .stage-chip .stage-next{color:var(--text-tertiary);font-size:10px;white-space:nowrap}
+  .timer{
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    color:var(--text-secondary);min-width:48px;text-align:right;
+  }
+
+  /* Ambient mastery arc above board */
+  .arc-wrap{
+    padding:16px 24px 0;position:relative;
+  }
+  .arc-meta{
+    display:flex;justify-content:space-between;align-items:flex-end;
+    font-size:11px;color:var(--text-tertiary);
+    padding:0 4px 6px;letter-spacing:0.04em;
+  }
+  .arc-meta b{color:var(--text-secondary);font-weight:500}
+  .arc-svg{width:100%;height:8px;display:block}
+
+  /* Board */
+  .board-wrap{padding:6px 24px 12px;display:flex;justify-content:center}
+  .board{
+    width:340px;height:340px;
+    background:var(--surface-board);
+    border:1.5px solid var(--border-cage);
+    border-radius:16px;padding:6px;
+    position:relative;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  .grid{
+    width:100%;height:100%;
+    display:grid;
+    grid-template-columns:repeat(5,1fr);
+    grid-template-rows:repeat(5,1fr);
+    gap:0;
+    position:relative;
+  }
+  .cell{
+    background:var(--surface-cell);
+    border:0.75px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:24px;line-height:1;font-weight:500;
+    color:var(--text-primary);
+    position:relative;
+    cursor:pointer;
+  }
+  .cell.selected{background:var(--surface-cell-selected)}
+  .cell .notes{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:0;width:100%;height:100%;padding:4px;
+    font-size:10px;line-height:1;color:var(--text-tertiary);
+  }
+  .cell .notes span{
+    display:flex;align-items:center;justify-content:center;
+  }
+  .cell.given{color:var(--text-secondary)}
+
+  /* Cage outlines via thick borders */
+  .cage-t{border-top:1.5px solid var(--border-cage)}
+  .cage-b{border-bottom:1.5px solid var(--border-cage)}
+  .cage-l{border-left:1.5px solid var(--border-cage)}
+  .cage-r{border-right:1.5px solid var(--border-cage)}
+
+  /* Hint chain rings on cells */
+  .cell.ring-assumption::after,
+  .cell.ring-deduction::after,
+  .cell.ring-contradiction::after,
+  .cell.ring-conclusion::after{
+    content:"";position:absolute;inset:3px;border-radius:4px;
+    border:1.5px solid transparent;pointer-events:none;
+  }
+  .cell.ring-assumption::after{border-color:var(--cell-assumption)}
+  .cell.ring-deduction::after{border-color:var(--cell-deduction)}
+  .cell.ring-contradiction::after{border-color:var(--cell-contradiction)}
+  .cell.ring-conclusion::after{
+    border-color:var(--cell-conclusion);
+    box-shadow:inset 0 0 0 2px color-mix(in srgb, var(--cell-conclusion) 12%, transparent);
+  }
+
+  /* Stepper */
+  .stepper{
+    margin:0 24px;padding:10px 12px;border-radius:12px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    display:flex;align-items:center;gap:10px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  .stepper .label{font-size:12px;color:var(--text-secondary);flex:1;line-height:18px}
+  .stepper .label b{color:var(--text-primary);font-weight:500}
+  .stepper .swatch{
+    width:8px;height:8px;border-radius:2px;display:inline-block;
+    margin-right:6px;vertical-align:1px;
+  }
+  .stepper .nav{display:flex;gap:4px}
+  .stepper .nav button{
+    width:28px;height:28px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface);
+    color:var(--text-secondary);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+  }
+  .stepper .step-count{
+    font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-tertiary);
+    padding:0 4px;align-self:center;
+  }
+  .technique-chip{
+    margin:8px 24px 0;
+    display:inline-flex;align-items:center;gap:6px;
+    padding:5px 10px;border-radius:999px;
+    background:var(--brand-50);color:var(--brand-600);
+    font-size:11px;font-weight:500;letter-spacing:0.02em;
+    align-self:flex-start;
+  }
+  .technique-chip .dot{width:5px;height:5px;border-radius:999px;background:var(--brand-600)}
+
+  /* Number pad */
+  .pad{
+    padding:10px 24px 8px;display:flex;flex-direction:column;gap:8px;
+  }
+  .pad-row{display:flex;gap:8px}
+  .pad-row .num{
+    flex:1;height:44px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:500;
+    color:var(--text-primary);cursor:pointer;
+  }
+  .pad-row .num:disabled{opacity:0.3}
+  .pad-row .tool{
+    flex:1;height:44px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    font-family:inherit;font-size:12px;font-weight:500;
+    color:var(--text-secondary);cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:4px;
+  }
+  .pad-row .tool.active{
+    background:var(--brand-50);color:var(--brand-600);border-color:var(--brand-600);
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+
+  <div class="topbar">
+    <button class="icon-btn" aria-label="Back">
+      <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4 L6 8 L10 12"/></svg>
+    </button>
+    <div class="stage-chip">
+      <span class="stage-name">Confident</span>
+      <span class="stage-bar"></span>
+      <span class="stage-next">→ Advanced</span>
+    </div>
+    <span class="timer">06:12</span>
+    <button class="icon-btn" aria-label="Pause">
+      <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><rect x="3" y="2" width="2" height="8"/><rect x="7" y="2" width="2" height="8"/></svg>
+    </button>
+  </div>
+
+  <!-- Ambient mastery arc -->
+  <div class="arc-wrap">
+    <div class="arc-meta">
+      <span><b>Hidden single</b> mastery accruing</span>
+      <span>this solve</span>
+    </div>
+    <svg class="arc-svg" viewBox="0 0 340 8" preserveAspectRatio="none" aria-hidden="true">
+      <rect x="0" y="3" width="340" height="2" rx="1" fill="var(--border)"/>
+      <rect x="0" y="3" width="184" height="2" rx="1" fill="var(--brand-600)" opacity="0.85"/>
+      <!-- accrued pulse markers -->
+      <circle cx="48" cy="4" r="2" fill="var(--brand-600)"/>
+      <circle cx="98" cy="4" r="2" fill="var(--brand-600)"/>
+      <circle cx="148" cy="4" r="2" fill="var(--brand-600)"/>
+      <circle cx="184" cy="4" r="2.5" fill="var(--brand-600)"/>
+    </svg>
+  </div>
+
+  <!-- Board: 5x5 with cages -->
+  <!--
+    Cage layout (letters denote cages, max size 5):
+      A A B B C
+      A D B C C
+      D D E E C
+      F D E G G
+      F F E G H   (H 1-cell? min size 2 — adjust)
+    Adjusted:
+      A A B B C
+      A D B C C
+      A D B E E
+      F D D G E
+      F F G G E
+  -->
+  <div class="board-wrap">
+    <div class="board">
+      <div class="grid">
+        <!-- Row 0 -->
+        <div class="cell given cage-t cage-l">3</div>
+        <div class="cell given cage-t">1</div>
+        <div class="cell cage-t cage-l ring-deduction"><div class="notes"><span></span><span>2</span><span></span><span>4</span><span></span><span></span><span></span><span></span><span></span></div></div>
+        <div class="cell cage-t">4</div>
+        <div class="cell given cage-t cage-r cage-l">5</div>
+
+        <!-- Row 1 -->
+        <div class="cell cage-l">2</div>
+        <div class="cell cage-t cage-l">5</div>
+        <div class="cell"><div class="notes"><span>3</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+        <div class="cell cage-l ring-assumption">2</div>
+        <div class="cell given cage-r">3</div>
+
+        <!-- Row 2 -->
+        <div class="cell cage-b">4</div>
+        <div class="cell">3</div>
+        <div class="cell cage-b">1</div>
+        <div class="cell cage-t cage-l ring-deduction">5</div>
+        <div class="cell cage-r">4</div>
+
+        <!-- Row 3 -->
+        <div class="cell cage-t cage-l cage-b">1</div>
+        <div class="cell cage-t">4</div>
+        <div class="cell cage-t cage-r">2</div>
+        <div class="cell selected cage-t cage-l ring-conclusion">3</div>
+        <div class="cell cage-r ring-contradiction"><div class="notes"><span></span><span>2</span><span></span><span></span><span></span><span></span><span></span><span></span><span></span></div></div>
+
+        <!-- Row 4 -->
+        <div class="cell cage-l cage-b">3</div>
+        <div class="cell cage-b">5</div>
+        <div class="cell cage-t cage-l cage-b">4</div>
+        <div class="cell cage-b">1</div>
+        <div class="cell cage-r cage-b cage-t">2</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="technique-chip">
+    <span class="dot"></span> Hidden single in cage E
+  </div>
+
+  <div class="stepper" role="region" aria-label="Contradiction chain stepper">
+    <div class="label">
+      Step 3 of 4 — <b>If r2c4 = 2</b>, then r4c5 must be 2
+      <div style="margin-top:4px;font-size:11px;color:var(--text-tertiary)">
+        <span class="swatch" style="background:var(--cell-assumption)"></span>assume
+        <span class="swatch" style="background:var(--cell-deduction);margin-left:6px"></span>follows
+        <span class="swatch" style="background:var(--cell-contradiction);margin-left:6px"></span>conflict
+        <span class="swatch" style="background:var(--cell-conclusion);margin-left:6px"></span>proven
+      </div>
+    </div>
+    <span class="step-count">3 / 4</span>
+    <div class="nav">
+      <button aria-label="Prev"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M7.5 3 L4.5 6 L7.5 9"/></svg></button>
+      <button aria-label="Next"><svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M4.5 3 L7.5 6 L4.5 9"/></svg></button>
+    </div>
+  </div>
+
+  <div class="pad">
+    <div class="pad-row">
+      <button class="num">1</button>
+      <button class="num">2</button>
+      <button class="num">3</button>
+      <button class="num">4</button>
+      <button class="num">5</button>
+    </div>
+    <div class="pad-row">
+      <button class="tool">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M2 2 L10 2 M2 6 L8 6 M2 10 L10 10"/></svg>
+        Notes
+      </button>
+      <button class="tool">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 6 L5 8 L9 4"/></svg>
+        Erase
+      </button>
+      <button class="tool active">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><circle cx="6" cy="6" r="4"/><circle cx="6" cy="6" r="1" fill="currentColor"/></svg>
+        Hint
+      </button>
+      <button class="tool">
+        <svg width="12" height="12" viewBox="0 0 12 12" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M9 3 L5 7 L3 5 M3 9 H9"/></svg>
+        Undo
+      </button>
+    </div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Swarm 2026-05-14</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --surface: #fafafa;
+    --surface-elevated: #ffffff;
+    --border: #e5e5e5;
+    --text-primary: #0a0a0a;
+    --text-secondary: #525252;
+    --text-tertiary: #a3a3a3;
+    --brand-600: #0891b2;
+    --brand-100: #cffafe;
+    --radius-card: 12px;
+    --radius-modal: 20px;
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+    --space-2: 8px;
+    --space-3: 12px;
+    --space-4: 16px;
+    --space-6: 24px;
+    --space-8: 32px;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #0a0a0a;
+      --surface-elevated: #171717;
+      --border: #2a2a2a;
+      --text-primary: #fafafa;
+      --text-secondary: #a3a3a3;
+      --text-tertiary: #737373;
+      --brand-600: #06b6d4;
+      --brand-100: #155057;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; background: var(--surface); color: var(--text-primary); font-family: 'Inter', system-ui, sans-serif; font-feature-settings: "tnum"; }
+  header { max-width: 1200px; margin: 0 auto; padding: var(--space-8) var(--space-6) var(--space-6); }
+  header h1 { font-size: 24px; line-height: 30px; font-weight: 600; margin: 0 0 var(--space-2); letter-spacing: -0.01em; }
+  header p { color: var(--text-secondary); font-size: 14px; line-height: 20px; margin: 0; max-width: 56ch; }
+  header code { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--text-tertiary); }
+  main { max-width: 1200px; margin: 0 auto; padding: var(--space-4) var(--space-6) var(--space-8); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: var(--space-4); }
+  .card { background: var(--surface-elevated); border: 1px solid var(--border); border-radius: var(--radius-card); padding: var(--space-4); text-decoration: none; color: inherit; display: block; transition: box-shadow 200ms ease-out, border-color 200ms ease-out; }
+  .card:hover { box-shadow: var(--shadow-card); border-color: var(--brand-600); }
+  .card .n { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--text-tertiary); letter-spacing: 0.04em; }
+  .card h2 { font-size: 16px; line-height: 24px; font-weight: 600; margin: var(--space-2) 0; }
+  .card p { color: var(--text-secondary); font-size: 13px; line-height: 18px; margin: 0; }
+  .card .links { margin-top: var(--space-3); display: flex; gap: var(--space-3); font-size: 12px; }
+  .card .links a { color: var(--brand-600); text-decoration: none; font-weight: 500; }
+  .card .links a:hover { text-decoration: underline; }
+  footer { max-width: 1200px; margin: 0 auto; padding: var(--space-6); color: var(--text-tertiary); font-size: 12px; line-height: 18px; }
+</style>
+</head>
+<body>
+<header>
+  <h1>Tectonic — Swarm 2026-05-14</h1>
+  <p>Eight interaction-model variants on one visual treatment. Click a variant to open its 8-screen reviewer. Brief and per-variant prompts: <code>swarm-2026-05-14/&lt;slug&gt;/</code>.</p>
+</header>
+<main>
+  <div class="grid">
+    <a class="card" href="01-ios-native/index.html">
+      <div class="n">01</div>
+      <h2>iOS-native</h2>
+      <p>Apple HIG playbook — tab bar, large titles, sheet modals, system gestures. Familiarity over novelty.</p>
+      <div class="links"><a href="01-ios-native/index.html">Reviewer</a><a href="01-ios-native/PROMPT.md">Prompt</a><a href="01-ios-native/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="02-material-cross-platform/index.html">
+      <div class="n">02</div>
+      <h2>Material 3 / cross-platform</h2>
+      <p>Bottom nav, FAB, tonal surfaces, full-screen dialog. The Android-parity contrast read.</p>
+      <div class="links"><a href="02-material-cross-platform/index.html">Reviewer</a><a href="02-material-cross-platform/PROMPT.md">Prompt</a><a href="02-material-cross-platform/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="03-gesture-first/index.html">
+      <div class="n">03</div>
+      <h2>Gesture-first</h2>
+      <p>Chrome-less. Swipes drive transitions, long-press for actions, edge gestures for global nav.</p>
+      <div class="links"><a href="03-gesture-first/index.html">Reviewer</a><a href="03-gesture-first/PROMPT.md">Prompt</a><a href="03-gesture-first/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="04-conversational/index.html">
+      <div class="n">04</div>
+      <h2>Conversational / AI-native</h2>
+      <p>Hint engine as a conversational presence across every screen. Chat IS the nav.</p>
+      <div class="links"><a href="04-conversational/index.html">Reviewer</a><a href="04-conversational/PROMPT.md">Prompt</a><a href="04-conversational/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="05-console-power-user/index.html">
+      <div class="n">05</div>
+      <h2>Console / power-user</h2>
+      <p>Linear-density. Command palette, visible kbd chips, tabular dashboards, monospace data.</p>
+      <div class="links"><a href="05-console-power-user/index.html">Reviewer</a><a href="05-console-power-user/PROMPT.md">Prompt</a><a href="05-console-power-user/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="06-editorial/index.html">
+      <div class="n">06</div>
+      <h2>Editorial</h2>
+      <p>Text-led, magazine-paced. Large display type, pull quotes, reading-width prose.</p>
+      <div class="links"><a href="06-editorial/index.html">Reviewer</a><a href="06-editorial/PROMPT.md">Prompt</a><a href="06-editorial/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="07-game-progression/index.html">
+      <div class="n">07</div>
+      <h2>Game-progression</h2>
+      <p>Journey-forward. Map-like path on Home, omnipresent stage indicator, ambient mastery feedback.</p>
+      <div class="links"><a href="07-game-progression/index.html">Reviewer</a><a href="07-game-progression/PROMPT.md">Prompt</a><a href="07-game-progression/STATUS.md">Status</a></div>
+    </a>
+    <a class="card" href="08-daily-ritual/index.html">
+      <div class="n">08</div>
+      <h2>Daily-ritual</h2>
+      <p>The daily puzzle IS the app. Home is one thing. Everything else orbits.</p>
+      <div class="links"><a href="08-daily-ritual/index.html">Reviewer</a><a href="08-daily-ritual/PROMPT.md">Prompt</a><a href="08-daily-ritual/STATUS.md">Status</a></div>
+    </a>
+  </div>
+</main>
+<footer>
+  Brief: <a href="BRIEF.md" style="color: var(--brand-600);">BRIEF.md</a> · Overview: <a href="README.md" style="color: var(--brand-600);">README.md</a> · State: <a href="STATUS.md" style="color: var(--brand-600);">STATUS.md</a>
+</footer>
+</body>
+</html>

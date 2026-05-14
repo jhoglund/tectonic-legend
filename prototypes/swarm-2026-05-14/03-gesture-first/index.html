@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Variant 03 — Gesture-first / chrome-less</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #1a1a1a;
+    --panel: #232323;
+    --border: #2a2a2a;
+    --text: #fafafa;
+    --text-secondary: #a3a3a3;
+    --text-tertiary: #737373;
+    --accent: #06b6d4;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f5f5f5;
+      --panel: #ffffff;
+      --border: #e5e5e5;
+      --text: #0a0a0a;
+      --text-secondary: #525252;
+      --text-tertiary: #a3a3a3;
+      --accent: #0891b2;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-variant-numeric: tabular-nums;
+    -webkit-font-smoothing: antialiased;
+    display: flex;
+    min-height: 100vh;
+  }
+  nav {
+    position: sticky; top: 0;
+    width: 240px;
+    height: 100vh;
+    background: var(--panel);
+    border-right: 1px solid var(--border);
+    padding: 32px 20px;
+    overflow-y: auto;
+    display: flex; flex-direction: column;
+    gap: 8px;
+  }
+  .brand {
+    font-size: 14px; font-weight: 500;
+    color: var(--text);
+    letter-spacing: 0.02em;
+    margin-bottom: 4px;
+  }
+  .brand .dot { color: var(--accent); }
+  .variant {
+    font-size: 11px;
+    color: var(--text-tertiary);
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    margin-bottom: 24px;
+  }
+  .nav-section {
+    font-size: 10px; letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    padding: 12px 8px 6px;
+  }
+  .nav-link {
+    display: flex; align-items: baseline; gap: 8px;
+    padding: 10px 8px;
+    border-radius: 6px;
+    color: var(--text-secondary);
+    text-decoration: none;
+    font-size: 13px;
+    cursor: pointer;
+    transition: background 120ms ease-out;
+    border: none; background: transparent;
+    font-family: inherit;
+    text-align: left;
+    width: 100%;
+  }
+  .nav-link:hover { background: rgba(255,255,255,0.04); color: var(--text); }
+  .nav-link.active { background: rgba(6,182,212,0.08); color: var(--text); }
+  .nav-link.active .num { color: var(--accent); }
+  @media (prefers-color-scheme: light) {
+    .nav-link:hover { background: rgba(0,0,0,0.04); }
+    .nav-link.active { background: rgba(8,145,178,0.08); }
+  }
+  .num {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    font-weight: 500;
+    min-width: 22px;
+  }
+  .nav-foot {
+    margin-top: auto;
+    padding-top: 16px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    line-height: 18px;
+    border-top: 1px solid var(--border);
+  }
+  .nav-foot a {
+    color: var(--accent);
+    text-decoration: none;
+  }
+  .stage {
+    flex: 1;
+    min-height: 100vh;
+    display: flex; align-items: center; justify-content: center;
+    padding: 32px;
+    background: var(--bg);
+  }
+  .frame {
+    width: 390px; height: 844px;
+    border: none;
+    border-radius: 40px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.32);
+    background: #fafafa;
+    display: block;
+  }
+  .meta {
+    position: fixed;
+    bottom: 24px; right: 24px;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    background: var(--panel);
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    padding: 6px 12px;
+    font-family: 'JetBrains Mono', monospace;
+  }
+</style>
+</head>
+<body>
+  <nav>
+    <div class="brand">Tectonic<span class="dot">.</span></div>
+    <div class="variant">03 · Gesture-first</div>
+
+    <div class="nav-section">Flow</div>
+    <button class="nav-link active" data-src="01-auth.html"><span class="num">01</span>Auth</button>
+    <button class="nav-link" data-src="02-onboarding.html"><span class="num">02</span>Onboarding</button>
+    <button class="nav-link" data-src="03-home.html"><span class="num">03</span>Home</button>
+    <button class="nav-link" data-src="04-new-game.html"><span class="num">04</span>New game</button>
+    <button class="nav-link" data-src="05-solving.html"><span class="num">05</span>Solving</button>
+    <button class="nav-link" data-src="06-solved.html"><span class="num">06</span>Solved</button>
+    <button class="nav-link" data-src="07-stats.html"><span class="num">07</span>Stats</button>
+    <button class="nav-link" data-src="08-stage-up.html"><span class="num">08</span>Stage up</button>
+
+    <div class="nav-foot">
+      Swarm <code>2026-05-14</code>.<br>
+      Hypothesis: chrome-less navigation reads as adult focus. Annotations on each screen explain the gesture pattern. See <a href="STATUS.md">STATUS.md</a>.
+    </div>
+  </nav>
+
+  <main class="stage">
+    <iframe class="frame" id="preview" src="01-auth.html"></iframe>
+  </main>
+
+  <div class="meta" id="meta">01-auth.html</div>
+
+  <script>
+    const links = document.querySelectorAll('.nav-link');
+    const frame = document.getElementById('preview');
+    const meta = document.getElementById('meta');
+    links.forEach(link => {
+      link.addEventListener('click', () => {
+        links.forEach(l => l.classList.remove('active'));
+        link.classList.add('active');
+        const src = link.getAttribute('data-src');
+        frame.src = src;
+        meta.textContent = src;
+      });
+    });
+    // arrow key nav
+    document.addEventListener('keydown', e => {
+      if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+      const active = document.querySelector('.nav-link.active');
+      const arr = Array.from(links);
+      let idx = arr.indexOf(active);
+      idx = e.key === 'ArrowDown' ? Math.min(arr.length - 1, idx + 1) : Math.max(0, idx - 1);
+      arr[idx].click();
+    });
+  </script>
+</body>
+</html>

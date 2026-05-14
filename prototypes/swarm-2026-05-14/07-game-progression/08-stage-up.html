@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Advanced</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+
+  /* No stage chip at top — replaced by full kicker */
+  .head{
+    padding:24px 24px 0;display:flex;align-items:center;justify-content:space-between;
+  }
+  .head .label{
+    font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .icon-btn{
+    width:32px;height:32px;border-radius:999px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    display:flex;align-items:center;justify-content:center;color:var(--text-secondary);
+    cursor:pointer;
+  }
+
+  /* The ceremony stage — path graphic centered */
+  .stage{
+    flex:1;position:relative;display:flex;align-items:center;justify-content:center;
+    padding:0 24px;
+  }
+  .path-svg{width:300px;height:480px}
+
+  .stage-label{
+    position:absolute;font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .stage-label.from{color:var(--text-tertiary)}
+  .stage-label.to{
+    color:var(--brand-600);
+    animation: revealLabel 1200ms 600ms ease-out both;
+  }
+  @keyframes revealLabel {
+    0%{opacity:0;transform:translateY(4px)}
+    100%{opacity:1;transform:translateY(0)}
+  }
+  .dot-from{
+    position:absolute;animation:fadePrev 1000ms ease-out both;
+  }
+  @keyframes fadePrev { 0%{opacity:1} 100%{opacity:0.35} }
+
+  .copy{
+    text-align:center;padding:8px 24px 16px;
+  }
+  .copy .ceremony-kicker{
+    font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:12px;
+  }
+  .copy h1{
+    font-weight:500;font-size:36px;line-height:40px;letter-spacing:-0.025em;
+  }
+  .copy h2{
+    font-weight:400;font-size:18px;line-height:26px;letter-spacing:-0.005em;
+    color:var(--text-secondary);margin-top:10px;
+  }
+  .copy .ex{
+    font-size:13px;line-height:20px;color:var(--text-secondary);
+    margin:18px auto 0;max-width:300px;
+    padding:14px 16px;border:1px solid var(--border);border-radius:12px;
+    background:var(--surface-elevated);text-align:left;
+  }
+  .copy .ex b{color:var(--text-primary);font-weight:500;display:block;margin-bottom:4px}
+
+  .footer{padding:0 24px 16px}
+  .btn{
+    width:100%;height:52px;border-radius:8px;border:none;
+    background:var(--brand-600);color:var(--text-on-brand);
+    font-family:inherit;font-size:16px;font-weight:500;cursor:pointer;
+  }
+  .footer .quiet{
+    width:100%;background:none;border:none;font-family:inherit;
+    color:var(--text-tertiary);font-size:12px;padding:12px 0 0;cursor:pointer;
+  }
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+  <div class="head">
+    <span class="label">A new stage</span>
+    <button class="icon-btn" aria-label="Skip">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 3 L11 11 M11 3 L3 11"/></svg>
+    </button>
+  </div>
+
+  <div class="stage">
+    <svg class="path-svg" viewBox="0 0 240 480" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <linearGradient id="stageTrail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brand-600)" stop-opacity="0.85"/>
+          <stop offset="78%" stop-color="var(--brand-600)" stop-opacity="0.95"/>
+          <stop offset="100%" stop-color="var(--brand-600)" stop-opacity="0.5"/>
+        </linearGradient>
+        <linearGradient id="extend" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brand-600)" stop-opacity="0.4"/>
+          <stop offset="100%" stop-color="var(--brand-600)" stop-opacity="0.06"/>
+        </linearGradient>
+      </defs>
+
+      <!-- background contour lines -->
+      <g stroke="var(--brand-600)" stroke-opacity="0.07" fill="none" stroke-width="0.75">
+        <path d="M 10 40 Q 120 10 230 60"/>
+        <path d="M 5 90 Q 130 60 235 110"/>
+        <path d="M 10 160 Q 120 130 230 175"/>
+        <path d="M 10 240 Q 120 210 230 260"/>
+        <path d="M 10 320 Q 120 290 232 340"/>
+        <path d="M 10 400 Q 120 370 232 420"/>
+      </g>
+
+      <!-- the main path traversed -->
+      <path
+        d="M 150 30
+           C 180 80, 60 110, 90 165
+           C 115 220, 200 220, 170 280
+           C 145 340, 50 340, 80 400"
+        fill="none" stroke="url(#stageTrail)" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- onward, faintly -->
+      <path d="M 80 400 C 110 430, 150 440, 170 470"
+            fill="none" stroke="url(#extend)" stroke-width="1.25"
+            stroke-linecap="round" stroke-dasharray="2 4"/>
+
+      <!-- past nodes -->
+      <circle cx="150" cy="30" r="4" fill="var(--brand-600)" opacity="0.5"/>
+      <circle cx="90" cy="165" r="4" fill="var(--brand-600)" opacity="0.6"/>
+
+      <!-- The animated traveler -->
+      <!-- previous position (Confident at 170,280) -->
+      <g class="dot-from-group">
+        <circle cx="170" cy="280" r="4" fill="var(--brand-600)" opacity="0.45"/>
+      </g>
+
+      <!-- ghost connector from old → new, pulsing -->
+      <circle cx="170" cy="280" r="14" fill="none" stroke="var(--brand-600)" stroke-opacity="0.18">
+        <animate attributeName="r" from="6" to="22" dur="2.4s" begin="0.4s" repeatCount="indefinite"/>
+        <animate attributeName="opacity" from="0.32" to="0" dur="2.4s" begin="0.4s" repeatCount="indefinite"/>
+      </circle>
+
+      <!-- new position (Advanced at 80,400), arriving -->
+      <g>
+        <circle cx="80" cy="400" r="20" fill="var(--brand-100)" opacity="0.6"/>
+        <circle cx="80" cy="400" r="12" fill="none" stroke="var(--brand-600)" stroke-opacity="0.35" stroke-width="1"/>
+        <circle cx="80" cy="400" r="7" fill="var(--brand-600)">
+          <animate attributeName="r" values="0;7;7" keyTimes="0;0.5;1" dur="1.4s" begin="0.2s" fill="freeze"/>
+        </circle>
+      </g>
+
+      <!-- Master implied beyond -->
+      <circle cx="170" cy="470" r="3" fill="var(--surface)" stroke="var(--brand-600)" stroke-opacity="0.35"/>
+    </svg>
+
+    <span class="stage-label from" style="left:calc(50% + 28px);top:30px">Newcomer</span>
+    <span class="stage-label from" style="left:calc(50% - 100px);top:180px">Beginner</span>
+    <span class="stage-label from" style="left:calc(50% + 30px);top:280px">Confident</span>
+    <span class="stage-label to"   style="left:calc(50% - 100px);top:418px">Advanced</span>
+    <span class="stage-label" style="left:calc(50% + 28px);top:478px;opacity:0.4">Master</span>
+  </div>
+
+  <div class="copy">
+    <div class="ceremony-kicker">14 May · A new stage</div>
+    <h1>Advanced.</h1>
+    <h2>Hard puzzles are unlocked.</h2>
+
+    <div class="ex">
+      <b>Hard asks you to read a cell's neighborhood.</b>
+      What other cells force this one? You'll catch yourself thinking three steps ahead.
+    </div>
+  </div>
+
+  <div class="footer">
+    <button class="btn">Continue</button>
+    <button class="quiet">Tell me later</button>
+  </div>
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

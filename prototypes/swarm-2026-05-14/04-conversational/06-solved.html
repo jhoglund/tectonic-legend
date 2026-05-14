@@ -1,0 +1,224 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Solved</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --success:#10b981;
+    --shadow-card:0 2px 8px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399;
+      --shadow-card:0 2px 8px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; background:#222; font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; font-feature-settings:"tnum" 1; }
+  body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .device {
+    width:390px; height:844px; background:var(--surface); border-radius:36px; overflow:hidden;
+    position:relative; box-shadow:0 24px 64px rgba(0,0,0,0.35);
+    display:flex; flex-direction:column; color:var(--text-primary);
+  }
+  .safe-top { height:54px; flex-shrink:0; }
+  .safe-bottom { height:34px; flex-shrink:0; }
+  .notch { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; background:#000; border-radius:20px; }
+  .status-bar { position:absolute; top:0; left:0; right:0; height:54px; display:flex; align-items:center; justify-content:space-between; padding:18px 28px 0; font-size:15px; font-weight:600; }
+  .home-indicator { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; background:var(--text-primary); opacity:0.35; border-radius:3px; }
+
+  .header { display:flex; align-items:center; justify-content:space-between; padding:12px 20px 8px; }
+  .wordmark { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text-secondary); letter-spacing:0.04em; text-transform:uppercase; }
+  .wordmark-dot { width:6px; height:6px; border-radius:50%; background:var(--brand-600); }
+  .close { color:var(--text-secondary); font:500 13px/1 'Inter',sans-serif; background:transparent; border:none; cursor:pointer; }
+
+  .chat-scroll {
+    flex:1; overflow-y:auto; padding:8px 20px 12px;
+    display:flex; flex-direction:column; gap:14px;
+  }
+  .msg-engine { display:flex; gap:10px; max-width:92%; }
+  .engine-dot { width:6px; height:6px; border-radius:50%; background:var(--brand-600); margin-top:9px; flex-shrink:0; }
+  .engine-body { color:var(--text-primary); font-size:16px; line-height:24px; }
+  .engine-sub { color:var(--text-secondary); font-size:14px; line-height:20px; margin-top:2px; }
+  .msg-player { align-self:flex-end; color:var(--text-secondary); font-size:14px; line-height:20px; text-align:right; max-width:80%; }
+
+  .card { background:var(--surface-elevated); border:1px solid var(--border); border-radius:12px; padding:14px; box-shadow:var(--shadow-card); margin-left:16px; }
+
+  /* Summary card */
+  .summary {
+    display:grid; grid-template-columns:1fr 1fr 1fr; gap:14px;
+    padding:14px 16px;
+  }
+  .stat-block { }
+  .stat-label { font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:0.04em; color:var(--text-tertiary); text-transform:uppercase; }
+  .stat-value { font:500 22px/28px 'JetBrains Mono',monospace; font-variant-numeric:tabular-nums; color:var(--text-primary); margin-top:6px; }
+  .stat-meta { font:400 12px/16px 'Inter',sans-serif; color:var(--text-secondary); margin-top:2px; }
+
+  /* Histogram */
+  .histo {
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .histo-row { display:flex; align-items:center; gap:10px; }
+  .histo-name { flex-basis:140px; font:500 13px/18px 'Inter',sans-serif; color:var(--text-primary); }
+  .histo-bar { flex:1; height:6px; background:var(--border); border-radius:3px; overflow:hidden; position:relative; }
+  .histo-bar > span { display:block; height:100%; background:var(--brand-600); border-radius:3px; }
+  .histo-count { width:36px; text-align:right; font:500 12px/1 'JetBrains Mono',monospace; color:var(--text-secondary); font-variant-numeric:tabular-nums; }
+
+  /* Mastery chip */
+  .mastery-chip {
+    display:inline-flex; align-items:center; gap:6px;
+    padding:5px 10px; border-radius:999px;
+    background:var(--brand-50); color:var(--brand-600);
+    font:500 12px/1 'Inter',sans-serif;
+    border:1px solid var(--brand-100);
+  }
+  .mastery-chip.earned { background:transparent; color:var(--success); border-color:currentColor; }
+  .mastery-chip .dot { width:5px; height:5px; border-radius:50%; background:currentColor; }
+
+  /* Inline buttons */
+  .actions { display:flex; gap:8px; margin-top:10px; }
+  .btn {
+    background:var(--surface); border:1px solid var(--border); color:var(--text-primary);
+    font:500 13px/1 'Inter',sans-serif; padding:9px 12px; border-radius:8px; cursor:pointer;
+    display:inline-flex; align-items:center; gap:8px;
+  }
+  .btn.primary { background:var(--brand-600); border-color:var(--brand-600); color:var(--text-on-brand); }
+
+  .quick-actions { display:flex; gap:8px; flex-wrap:wrap; margin-left:16px; }
+  .qa-btn { background:var(--surface-elevated); border:1px solid var(--border); color:var(--text-primary); font:500 13px/1 'Inter',sans-serif; padding:8px 12px; border-radius:999px; cursor:pointer; }
+  .qa-btn.primary { background:var(--brand-600); border-color:var(--brand-600); color:var(--text-on-brand); }
+
+  .pill-wrap { padding:0 16px 12px; }
+  .pill { display:flex; align-items:center; gap:10px; background:var(--surface-elevated); border:1px solid var(--border); border-radius:999px; padding:10px 14px; box-shadow:var(--shadow-card); }
+  .pill-dot { width:6px; height:6px; border-radius:50%; background:var(--brand-600); flex-shrink:0; }
+  .pill-input { flex:1; border:none; background:transparent; outline:none; color:var(--text-primary); font:400 14px/20px 'Inter',sans-serif; }
+  .pill-input::placeholder { color:var(--text-tertiary); }
+  .pill-kbd { font:500 11px/1 'JetBrains Mono',monospace; color:var(--text-tertiary); border:1px solid var(--border); border-radius:4px; padding:3px 5px; }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="safe-top"></div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span><svg width="18" height="11" viewBox="0 0 18 11" fill="none"><rect x="0.5" y="0.5" width="14" height="10" rx="2" stroke="currentColor"/><rect x="2" y="2" width="11" height="7" rx="1" fill="currentColor"/><rect x="15.5" y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+
+    <div class="header">
+      <div class="wordmark"><span class="wordmark-dot"></span>Tectonic</div>
+      <button class="close">Done</button>
+    </div>
+
+    <div class="chat-scroll">
+      <div class="msg-engine">
+        <span class="engine-dot"></span>
+        <div>
+          <div class="engine-body">Solved.</div>
+          <div class="engine-sub">2 minutes 14 seconds. No hints used.</div>
+        </div>
+      </div>
+
+      <div class="card" style="padding:14px 16px;">
+        <div class="summary" style="padding:0;">
+          <div class="stat-block">
+            <div class="stat-label">Time</div>
+            <div class="stat-value">2:14</div>
+            <div class="stat-meta">−1:26 vs. avg</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label">Hints</div>
+            <div class="stat-value">0</div>
+            <div class="stat-meta">Unassisted</div>
+          </div>
+          <div class="stat-block">
+            <div class="stat-label">Errors</div>
+            <div class="stat-value">1</div>
+            <div class="stat-meta">Caught it yourself</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="msg-engine">
+        <span class="engine-dot"></span>
+        <div>
+          <div class="engine-body">You self-applied hidden single twice.</div>
+          <div class="engine-sub">One more puzzle like that and you'll have mastered it.</div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="histo">
+          <div class="histo-row">
+            <span class="histo-name">Naked single</span>
+            <div class="histo-bar"><span style="width:80%;"></span></div>
+            <span class="histo-count">12</span>
+          </div>
+          <div class="histo-row">
+            <span class="histo-name">Hidden single</span>
+            <div class="histo-bar"><span style="width:34%;"></span></div>
+            <span class="histo-count">2</span>
+          </div>
+          <div class="histo-row">
+            <span class="histo-name">Forced move</span>
+            <div class="histo-bar"><span style="width:14%;"></span></div>
+            <span class="histo-count">1</span>
+          </div>
+          <div class="histo-row" style="opacity:0.5;">
+            <span class="histo-name">Contradiction</span>
+            <div class="histo-bar"><span style="width:0%;"></span></div>
+            <span class="histo-count">0</span>
+          </div>
+        </div>
+        <div style="display:flex; gap:6px; flex-wrap:wrap; margin-top:14px;">
+          <span class="mastery-chip earned"><span class="dot"></span>Hidden single · 7 of 8</span>
+          <span class="mastery-chip"><span class="dot"></span>Forced move · 4 of 8</span>
+        </div>
+      </div>
+
+      <div class="msg-engine">
+        <span class="engine-dot"></span>
+        <div>
+          <div class="engine-body">Share the shape of your solve?</div>
+          <div class="actions">
+            <button class="btn primary">
+              <svg width="14" height="14" viewBox="0 0 14 14" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"><path d="M7 1v9M4 4l3-3 3 3M2 10v2a1 1 0 0 0 1 1h8a1 1 0 0 0 1-1v-2"/></svg>
+              Share
+            </button>
+            <button class="btn">Copy as text</button>
+          </div>
+        </div>
+      </div>
+
+      <div class="quick-actions">
+        <button class="qa-btn primary">Next puzzle</button>
+        <button class="qa-btn">Same again, harder</button>
+        <button class="qa-btn">Done for today</button>
+      </div>
+    </div>
+
+    <div class="pill-wrap">
+      <div class="pill">
+        <span class="pill-dot"></span>
+        <input class="pill-input" placeholder="'next', 'one more', 'stats'" />
+        <span class="pill-kbd">↵</span>
+      </div>
+    </div>
+
+    <div class="safe-bottom"></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

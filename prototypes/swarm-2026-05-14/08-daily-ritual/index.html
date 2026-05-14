@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Variant 08 · Daily-ritual — Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);background:var(--surface);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;display:grid;grid-template-columns:240px 1fr}
+
+  /* Sidebar */
+  .nav{
+    background:var(--surface-elevated);border-right:1px solid var(--border);
+    padding:24px 16px;display:flex;flex-direction:column;gap:4px;
+    position:sticky;top:0;height:100vh;overflow-y:auto;
+  }
+  .nav-head{padding:0 8px 18px}
+  .nav-eyebrow{
+    font-size:10px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-tertiary);margin-bottom:6px;
+  }
+  .nav-title{
+    font-size:18px;font-weight:600;color:var(--text-primary);line-height:22px;letter-spacing:-0.01em;
+  }
+  .nav-sub{font-size:12px;color:var(--text-secondary);margin-top:6px;line-height:17px}
+
+  .item{
+    display:grid;grid-template-columns:24px 1fr;gap:10px;align-items:center;
+    padding:10px 10px;border-radius:8px;text-decoration:none;
+    color:var(--text-primary);cursor:pointer;border:1px solid transparent;
+  }
+  .item:hover{background:var(--brand-50)}
+  .item.active{background:var(--brand-50);border-color:var(--border)}
+  .item-num{
+    font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:600;
+    color:var(--text-tertiary);width:24px;
+  }
+  .item.active .item-num{color:var(--brand-600)}
+  .item-label{font-size:13px;font-weight:500;color:var(--text-primary)}
+  .item-sub{font-size:11px;color:var(--text-tertiary);grid-column:2}
+
+  .nav-foot{
+    margin-top:auto;padding:14px 8px 0;border-top:1px solid var(--border);
+    font-size:11px;color:var(--text-tertiary);line-height:17px;
+  }
+  .nav-foot a{color:var(--brand-600);text-decoration:none}
+
+  /* Frame */
+  .stage{
+    display:flex;align-items:center;justify-content:center;
+    padding:40px;background:#1a1a1a;
+    min-height:100vh;
+  }
+  .frame-wrap{
+    width:390px;height:844px;border-radius:44px;overflow:hidden;
+    box-shadow:0 24px 80px rgba(0,0,0,0.45);background:var(--surface);
+  }
+  iframe{width:100%;height:100%;border:0;display:block}
+
+  @media (max-width:760px){
+    body{grid-template-columns:1fr;grid-template-rows:auto 1fr}
+    .nav{height:auto;position:relative;border-right:none;border-bottom:1px solid var(--border)}
+    .stage{padding:20px}
+  }
+</style>
+</head>
+<body>
+  <aside class="nav">
+    <div class="nav-head">
+      <div class="nav-eyebrow">Variant 08</div>
+      <div class="nav-title">Daily-ritual</div>
+      <div class="nav-sub">The daily puzzle IS the app. Everything else orbits around today.</div>
+    </div>
+    <a class="item" data-src="01-auth.html"><span class="item-num">01</span><span class="item-label">Auth</span></a>
+    <a class="item" data-src="02-onboarding.html"><span class="item-num">02</span><span class="item-label">Onboarding</span></a>
+    <a class="item active" data-src="03-home.html"><span class="item-num">03</span><span class="item-label">Home — Today</span></a>
+    <a class="item" data-src="04-new-game.html"><span class="item-num">04</span><span class="item-label">Practice</span></a>
+    <a class="item" data-src="05-solving.html"><span class="item-num">05</span><span class="item-label">Solving</span></a>
+    <a class="item" data-src="06-solved.html"><span class="item-num">06</span><span class="item-label">Solved</span></a>
+    <a class="item" data-src="07-stats.html"><span class="item-num">07</span><span class="item-label">Stats</span></a>
+    <a class="item" data-src="08-stage-up.html"><span class="item-num">08</span><span class="item-label">Stage up</span></a>
+    <div class="nav-foot">
+      Signature screen: <strong>Home</strong>. Read <a href="STATUS.md">STATUS.md</a> for direction notes.
+    </div>
+  </aside>
+  <main class="stage">
+    <div class="frame-wrap"><iframe id="frame" src="03-home.html" title="screen"></iframe></div>
+  </main>
+
+<script>
+  const items = document.querySelectorAll('.item');
+  const frame = document.getElementById('frame');
+  items.forEach(it => {
+    it.addEventListener('click', e => {
+      e.preventDefault();
+      items.forEach(i => i.classList.remove('active'));
+      it.classList.add('active');
+      frame.src = it.dataset.src;
+    });
+  });
+  // Keyboard nav: arrow up/down
+  document.addEventListener('keydown', e => {
+    const active = document.querySelector('.item.active');
+    if (!active) return;
+    const arr = Array.from(items);
+    const idx = arr.indexOf(active);
+    if (e.key === 'ArrowDown' || e.key === 'j') {
+      arr[(idx + 1) % arr.length].click();
+    } else if (e.key === 'ArrowUp' || e.key === 'k') {
+      arr[(idx - 1 + arr.length) % arr.length].click();
+    }
+  });
+</script>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Stage-up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --shadow-card:0 2px 8px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --shadow-card:0 2px 8px rgba(0,0,0,0.4);
+    }
+  }
+  * { box-sizing:border-box; }
+  html, body { margin:0; padding:0; background:#222; font-family:'Inter',sans-serif; -webkit-font-smoothing:antialiased; font-feature-settings:"tnum" 1; }
+  body { min-height:100vh; display:flex; align-items:center; justify-content:center; padding:24px; }
+  .device { width:390px; height:844px; background:var(--surface); border-radius:36px; overflow:hidden; position:relative; box-shadow:0 24px 64px rgba(0,0,0,0.35); display:flex; flex-direction:column; color:var(--text-primary); }
+  .safe-top { height:54px; flex-shrink:0; }
+  .safe-bottom { height:34px; flex-shrink:0; }
+  .notch { position:absolute; top:11px; left:50%; transform:translateX(-50%); width:120px; height:34px; background:#000; border-radius:20px; }
+  .status-bar { position:absolute; top:0; left:0; right:0; height:54px; display:flex; align-items:center; justify-content:space-between; padding:18px 28px 0; font-size:15px; font-weight:600; }
+  .home-indicator { position:absolute; bottom:8px; left:50%; transform:translateX(-50%); width:134px; height:5px; background:var(--text-primary); opacity:0.35; border-radius:3px; }
+
+  .header { display:flex; align-items:center; justify-content:flex-start; padding:12px 20px 8px; }
+  .wordmark { display:flex; align-items:center; gap:8px; font-size:13px; font-weight:500; color:var(--text-secondary); letter-spacing:0.04em; text-transform:uppercase; }
+  .wordmark-dot { width:6px; height:6px; border-radius:50%; background:var(--brand-600); }
+
+  .body-wrap {
+    flex:1; min-height:0; display:flex; flex-direction:column;
+    padding:8px 28px 0;
+    overflow:hidden;
+  }
+
+  /* Stage rail */
+  .stage-rail {
+    display:flex; align-items:center; gap:8px; padding:18px 0 10px;
+  }
+  .stage-pip {
+    flex:1; height:3px; border-radius:2px; background:var(--border);
+  }
+  .stage-pip.done { background:var(--brand-600); }
+  .stage-pip.now { background:var(--brand-500); }
+  .stage-labels {
+    display:flex; justify-content:space-between;
+    font:500 10px/1 'JetBrains Mono',monospace; letter-spacing:0.04em;
+    color:var(--text-tertiary); text-transform:uppercase;
+  }
+  .stage-labels .now { color:var(--brand-600); }
+
+  /* Engine moment — one full-screen message */
+  .moment {
+    flex:1; min-height:0;
+    display:flex; flex-direction:column;
+    margin-top:24px;
+  }
+  .moment-dot {
+    width:10px; height:10px; border-radius:50%; background:var(--brand-600);
+    margin-bottom:20px;
+  }
+  .moment-eyebrow {
+    font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:0.08em;
+    color:var(--brand-600); text-transform:uppercase;
+    margin-bottom:14px;
+  }
+  .moment-title {
+    font:500 26px/32px 'Inter',sans-serif; color:var(--text-primary);
+    letter-spacing:-0.01em;
+  }
+  .moment-body {
+    font:400 16px/24px 'Inter',sans-serif; color:var(--text-secondary);
+    margin-top:14px;
+  }
+  .moment-body strong {
+    color:var(--text-primary); font-weight:500;
+  }
+  .moment-aside {
+    margin-top:24px;
+    padding:14px 16px;
+    border:1px solid var(--border); border-radius:12px;
+    background:var(--surface-elevated);
+    font:400 14px/20px 'Inter',sans-serif; color:var(--text-secondary);
+  }
+  .moment-aside .label {
+    font:500 11px/1 'JetBrains Mono',monospace; letter-spacing:0.04em;
+    color:var(--text-tertiary); text-transform:uppercase;
+    display:block; margin-bottom:8px;
+  }
+
+  .actions {
+    padding:20px 24px 0;
+    display:flex; flex-direction:column; gap:10px;
+  }
+  .btn {
+    width:100%; padding:14px;
+    background:var(--brand-600); color:var(--text-on-brand);
+    border:none; border-radius:8px;
+    font:500 15px/1 'Inter',sans-serif; cursor:pointer;
+  }
+  .btn.ghost {
+    background:transparent; color:var(--text-primary); border:1px solid var(--border);
+  }
+
+  .pill-wrap { padding:8px 16px 12px; }
+  .pill { display:flex; align-items:center; gap:10px; background:transparent; border:1px solid var(--border); border-radius:999px; padding:10px 14px; }
+  .pill-dot { width:6px; height:6px; border-radius:50%; background:var(--brand-600); flex-shrink:0; }
+  .pill-input { flex:1; border:none; background:transparent; outline:none; color:var(--text-primary); font:400 14px/20px 'Inter',sans-serif; }
+  .pill-input::placeholder { color:var(--text-tertiary); }
+  .pill-kbd { font:500 11px/1 'JetBrains Mono',monospace; color:var(--text-tertiary); border:1px solid var(--border); border-radius:4px; padding:3px 5px; }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="safe-top"></div>
+    <div class="notch"></div>
+    <div class="status-bar"><span>9:41</span><span><svg width="18" height="11" viewBox="0 0 18 11" fill="none"><rect x="0.5" y="0.5" width="14" height="10" rx="2" stroke="currentColor"/><rect x="2" y="2" width="11" height="7" rx="1" fill="currentColor"/><rect x="15.5" y="3.5" width="1.5" height="4" rx="0.5" fill="currentColor"/></svg></span></div>
+
+    <div class="header">
+      <div class="wordmark"><span class="wordmark-dot"></span>Tectonic</div>
+    </div>
+
+    <div class="body-wrap">
+      <div class="stage-rail">
+        <span class="stage-pip done"></span>
+        <span class="stage-pip done"></span>
+        <span class="stage-pip done"></span>
+        <span class="stage-pip now"></span>
+        <span class="stage-pip"></span>
+      </div>
+      <div class="stage-labels">
+        <span>Newcomer</span>
+        <span>Beginner</span>
+        <span>Confident</span>
+        <span class="now">Advanced</span>
+        <span>Master</span>
+      </div>
+
+      <div class="moment">
+        <div class="moment-dot"></div>
+        <div class="moment-eyebrow">Stage — Confident → Advanced</div>
+        <div class="moment-title">You're an Advanced player now.</div>
+        <div class="moment-body">
+          Hard puzzles are unlocked. Hard asks you to read a cell's neighborhood — <strong>what other cells force this one</strong>.
+        </div>
+
+        <div class="moment-aside">
+          <span class="label">Earned by mastering · forced moves</span>
+          You self-applied forced moves 8 times across 4 puzzles. The engine logged each one.
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn">Try a Hard puzzle</button>
+      <button class="btn ghost">Tell me what Hard asks of me</button>
+    </div>
+
+    <div class="pill-wrap">
+      <div class="pill">
+        <span class="pill-dot"></span>
+        <input class="pill-input" placeholder="'why did I get stage-up'd?'" />
+        <span class="pill-kbd">↵</span>
+      </div>
+    </div>
+
+    <div class="safe-bottom"></div>
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

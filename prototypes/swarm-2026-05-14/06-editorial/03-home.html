@@ -1,0 +1,195 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Today</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+  .page{padding:0 28px}
+
+  .masthead{
+    padding:16px 0 12px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:2px solid var(--text-primary);
+  }
+  .masthead .title{
+    font-size:22px;font-weight:600;letter-spacing:-0.03em;
+  }
+  .masthead .date{
+    font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--text-secondary);font-weight:500;
+  }
+  .subhead{
+    padding:8px 0;font-size:11px;letter-spacing:0.16em;
+    text-transform:uppercase;color:var(--text-tertiary);
+    font-weight:500;
+    border-bottom:1px solid var(--border);
+  }
+
+  .hero{padding:32px 0 24px;border-bottom:1px solid var(--border)}
+  .hero .kicker{
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:14px;
+  }
+  .hero h1{
+    font-size:32px;line-height:1.1;letter-spacing:-0.03em;
+    font-weight:600;margin-bottom:16px;
+  }
+  .hero .dek{
+    font-size:16px;line-height:1.65;color:var(--text-secondary);
+    max-width:55ch;margin-bottom:24px;
+  }
+  .meta-row{
+    display:flex;gap:24px;
+    font-size:12px;color:var(--text-tertiary);
+    padding-bottom:20px;
+  }
+  .meta-row span strong{
+    color:var(--text-primary);font-weight:500;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+  }
+  .resume{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:16px 18px;
+    background:var(--brand-50);
+    border:1px solid var(--brand-100);
+    border-radius:8px;
+    text-decoration:none;color:inherit;
+  }
+  .resume .l{display:flex;flex-direction:column;gap:2px}
+  .resume .l .h{font-size:14px;font-weight:500;color:var(--brand-600)}
+  .resume .l .s{font-size:12px;color:var(--text-secondary);font-variant-numeric:tabular-nums}
+  .resume .arr{font-size:18px;color:var(--brand-600)}
+
+  .section{
+    padding:28px 0 20px;
+    border-bottom:1px solid var(--border);
+  }
+  .section h2{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:18px;
+  }
+  .item{
+    padding:14px 0;border-top:1px solid var(--border);
+    display:block;text-decoration:none;color:inherit;
+  }
+  .item:first-of-type{border-top:0;padding-top:4px}
+  .item .row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    margin-bottom:4px;
+  }
+  .item .name{
+    font-size:17px;font-weight:500;letter-spacing:-0.01em;
+    color:var(--text-primary);
+  }
+  .item .meta{
+    font-size:11px;letter-spacing:0.1em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .item .desc{
+    font-size:14px;line-height:1.55;color:var(--text-secondary);
+    max-width:50ch;
+  }
+  .item.locked .name{color:var(--text-tertiary)}
+  .item.locked .desc{color:var(--text-tertiary);font-style:italic}
+
+  .byline{
+    padding:24px 0 16px;
+    display:flex;justify-content:space-between;align-items:center;
+    font-size:12px;color:var(--text-tertiary);font-style:italic;
+  }
+  .byline .stage strong{
+    color:var(--brand-600);font-style:normal;font-weight:500;
+    letter-spacing:-0.01em;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+    <div class="page">
+      <header class="masthead">
+        <span class="title">Tectonic</span>
+        <span class="date">Sat · May 14 · 2026</span>
+      </header>
+      <p class="subhead">Today's Edition</p>
+
+      <section class="hero">
+        <p class="kicker">The Daily</p>
+        <h1>A puzzle that rewards looking, not guessing.</h1>
+        <p class="dek">Today's daily is a Medium 5×5. It opens with two naked singles, then asks you to find a hidden one — a value that can only land in one cell of its cage, even though that cell looks crowded with options.</p>
+        <div class="meta-row">
+          <span>Difficulty <strong>Medium</strong></span>
+          <span>Avg <strong>4:02</strong></span>
+          <span>Solved by <strong>61%</strong></span>
+        </div>
+        <a class="resume" href="#">
+          <span class="l">
+            <span class="h">Resume — 1:47 in</span>
+            <span class="s">14 of 25 cells placed</span>
+          </span>
+          <span class="arr">→</span>
+        </a>
+      </section>
+
+      <section class="section">
+        <h2>Other puzzles</h2>
+        <a class="item" href="#">
+          <div class="row"><span class="name">Practice</span><span class="meta">Easy · 5×5</span></div>
+          <p class="desc">Solve as many as you'd like. No timer, no record kept. The best place to warm up.</p>
+        </a>
+        <a class="item" href="#">
+          <div class="row"><span class="name">New game</span><span class="meta">Choose</span></div>
+          <p class="desc">Pick a difficulty and a grid size. Your unlocked stages are listed there.</p>
+        </a>
+        <div class="item locked">
+          <div class="row"><span class="name">Expert daily</span><span class="meta">Locked</span></div>
+          <p class="desc">Unlocks once you reach Master. You're three contradiction chains away.</p>
+        </div>
+      </section>
+
+      <footer class="byline">
+        <span>Stage — <span class="stage"><strong>Confident</strong></span></span>
+        <span>Streak · 6 days</span>
+      </footer>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

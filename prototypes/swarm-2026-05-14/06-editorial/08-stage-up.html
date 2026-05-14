@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Advanced</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+    display:flex;flex-direction:column;
+    overflow:hidden;
+  }
+  .safe-top{height:44px;flex-shrink:0}
+  .safe-bottom{height:34px;flex-shrink:0}
+
+  .masthead{
+    padding:16px 28px;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--border);
+  }
+  .masthead .vol{
+    font-size:10px;letter-spacing:0.18em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .masthead .vol.brand{color:var(--brand-600)}
+
+  .body{
+    flex:1;display:flex;flex-direction:column;
+    padding:0 32px;justify-content:center;
+    text-align:center;
+  }
+
+  .stage-progress{
+    display:flex;justify-content:center;align-items:center;gap:6px;
+    margin-bottom:48px;
+    font-size:10px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .stage-progress .pip{
+    width:6px;height:6px;border-radius:999px;
+    background:var(--border);
+  }
+  .stage-progress .pip.done{background:var(--text-tertiary)}
+  .stage-progress .pip.now{background:var(--brand-600);width:8px;height:8px}
+
+  .kicker{
+    font-size:11px;letter-spacing:0.2em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;
+    margin-bottom:32px;
+  }
+
+  /* The pull-quote hero */
+  .pullquote{
+    margin:0 auto 40px;
+    max-width:340px;
+  }
+  .pullquote q{
+    quotes:"\201C" "\201D";
+    font-size:42px;line-height:1.1;font-weight:600;
+    letter-spacing:-0.035em;font-style:italic;
+    color:var(--text-primary);
+  }
+  .pullquote q::before{
+    content:open-quote;
+    color:var(--brand-600);
+  }
+  .pullquote q::after{
+    content:close-quote;
+    color:var(--brand-600);
+  }
+
+  .divider{
+    width:48px;height:1px;background:var(--text-primary);
+    margin:0 auto 32px;opacity:0.4;
+  }
+
+  .lede{
+    font-size:16px;line-height:1.7;
+    color:var(--text-secondary);
+    max-width:50ch;margin:0 auto 16px;
+    font-weight:400;
+  }
+  .lede strong{
+    color:var(--text-primary);font-weight:500;
+  }
+  .lede em{
+    color:var(--brand-600);font-style:normal;font-weight:500;
+  }
+
+  .foot{
+    flex-shrink:0;
+    padding:24px 32px;
+    border-top:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .foot .meta{
+    font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+    font-style:italic;
+  }
+  .foot a{
+    font-size:15px;font-weight:500;color:var(--brand-600);
+    text-decoration:none;letter-spacing:-0.01em;
+  }
+  .foot a::after{content:" →"}
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+
+    <header class="masthead">
+      <span class="vol">A stage transition</span>
+      <span class="vol brand">Vol. IV</span>
+    </header>
+
+    <main class="body">
+      <div class="stage-progress" aria-label="Stage progress">
+        <span class="pip done"></span>
+        <span>Newcomer</span>
+        <span class="pip done"></span>
+        <span>Beginner</span>
+        <span class="pip done"></span>
+        <span>Confident</span>
+        <span class="pip now"></span>
+        <span style="color:var(--brand-600)">Advanced</span>
+      </div>
+
+      <p class="kicker">A small ceremony</p>
+
+      <div class="pullquote">
+        <q>You're an Advanced player now.</q>
+      </div>
+
+      <div class="divider"></div>
+
+      <p class="lede">Hard puzzles are unlocked. Hard asks you to read a cell's <strong>neighbourhood</strong> — what other cells <em>force</em> this one.</p>
+
+      <p class="lede">There's no rush to step up. The Medium daily will still be waiting tomorrow morning.</p>
+    </main>
+
+    <footer class="foot">
+      <span class="meta">Stage IV of V</span>
+      <a href="#">Continue</a>
+    </footer>
+
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

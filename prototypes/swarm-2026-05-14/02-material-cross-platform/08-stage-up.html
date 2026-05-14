@@ -1,0 +1,155 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Tectonic · Stage up · M3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;background:#e4e4e7;display:flex;align-items:center;justify-content:center;padding:24px}
+  @media (prefers-color-scheme: dark){ body{background:#050505} }
+  .device{
+    width:390px;height:844px;background:var(--surface-elevated);border-radius:44px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.25),0 0 0 1px rgba(0,0,0,0.04);
+    overflow:hidden;position:relative;display:flex;flex-direction:column;
+  }
+  /* Full-screen dialog: surface-elevated takes over the whole screen */
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:16px 28px 0;font-size:14px;font-weight:500}
+  .app-bar{
+    height:64px;display:flex;align-items:center;justify-content:space-between;padding:0 4px 0 4px;
+  }
+  .iconbtn{width:48px;height:48px;border:0;background:transparent;color:var(--text-primary);display:grid;place-items:center;cursor:pointer;border-radius:999px}
+  .app-bar h1{margin:0;font-size:15px;font-weight:500;color:var(--text-secondary);letter-spacing:.04em;text-transform:uppercase;flex:1;text-align:center}
+  .right{display:flex}
+  .content{flex:1;display:flex;flex-direction:column;padding:8px 24px 24px;gap:20px;overflow:auto}
+  .progress{
+    background:var(--brand-100);border-radius:16px;padding:18px 18px 22px;display:flex;flex-direction:column;gap:14px;
+  }
+  .progress .eyebrow{font:500 11px/1 'Inter';letter-spacing:.08em;text-transform:uppercase;color:var(--brand-600)}
+  .stages{display:flex;align-items:center;gap:6px;margin-top:2px}
+  .stages .pip{
+    height:6px;border-radius:999px;background:rgba(8,145,178,.25);flex:1;
+  }
+  @media (prefers-color-scheme: dark){ .stages .pip{background:rgba(34,211,238,.25)} }
+  .stages .pip.done{background:var(--brand-600)}
+  .stages .pip.cur{background:var(--brand-600);position:relative}
+  .stages .pip.cur::after{
+    content:"";position:absolute;right:-3px;top:-4px;width:14px;height:14px;border-radius:50%;background:var(--brand-600);box-shadow:0 0 0 4px var(--brand-100);
+  }
+  .stage-labels{display:grid;grid-template-columns:repeat(5,1fr);font:500 11px/1 'Inter';color:var(--text-secondary);gap:4px}
+  .stage-labels span{text-align:center}
+  .stage-labels span.cur{color:var(--brand-600);font-weight:500}
+  .stage-labels span.done{color:var(--text-primary)}
+
+  .hero{padding:4px 4px 0}
+  .hero .eyebrow{font:500 12px/1 'Inter';letter-spacing:.08em;text-transform:uppercase;color:var(--brand-600)}
+  .hero h2{
+    margin:14px 0 12px;font-size:32px;line-height:38px;font-weight:600;letter-spacing:-.015em;color:var(--text-primary);
+  }
+  .hero p{margin:0;font-size:15px;line-height:22px;color:var(--text-secondary)}
+  .hero p b{color:var(--text-primary);font-weight:500}
+
+  .preview{
+    border:1px solid var(--border);border-radius:12px;padding:16px;background:var(--surface);display:flex;gap:14px;align-items:center;margin-top:8px;
+  }
+  .preview .ico{width:44px;height:44px;border-radius:12px;background:var(--brand-100);color:var(--brand-600);display:grid;place-items:center;flex:0 0 44px}
+  .preview .text h3{margin:0;font:500 14px/20px 'Inter'}
+  .preview .text p{margin:2px 0 0;font-size:12.5px;line-height:18px;color:var(--text-secondary)}
+
+  .footer{padding:8px 24px 24px;display:flex;flex-direction:column;gap:10px}
+  .btn{height:52px;border-radius:16px;font:500 15px/1 'Inter';cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:10px;border:0}
+  .btn.filled{background:var(--brand-600);color:var(--text-on-brand)}
+  .btn.text{background:transparent;color:var(--text-secondary)}
+  .home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:#0a0a0a;border-radius:3px;opacity:.85}
+  @media (prefers-color-scheme: dark){ .home-ind{background:#fafafa;opacity:.55} }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-bar"><span>9:41</span><span></span></div>
+    <div class="app-bar">
+      <button class="iconbtn" aria-label="Close">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+      </button>
+      <h1>Stage up</h1>
+      <div class="right" style="width:48px"></div>
+    </div>
+
+    <div class="content">
+      <div class="progress">
+        <div class="eyebrow">Your journey</div>
+        <div class="stages">
+          <span class="pip done"></span>
+          <span class="pip done"></span>
+          <span class="pip cur"></span>
+          <span class="pip"></span>
+          <span class="pip"></span>
+        </div>
+        <div class="stage-labels">
+          <span class="done">Newcomer</span>
+          <span class="done">Beginner</span>
+          <span class="cur">Confident →<br/>Advanced</span>
+          <span>Advanced</span>
+          <span>Master</span>
+        </div>
+      </div>
+
+      <div class="hero">
+        <div class="eyebrow">New stage reached</div>
+        <h2>You're an Advanced player now.</h2>
+        <p>Hard puzzles are unlocked. <b>Hard</b> asks you to read a cell's neighborhood — what other cells force this one.</p>
+      </div>
+
+      <div class="preview">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M12 3L3 21h18L12 3z" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="text">
+          <h3>Hard difficulty unlocked</h3>
+          <p>Forced moves · 8×8 boards · est. 10–15 min</p>
+        </div>
+      </div>
+
+      <div class="preview">
+        <div class="ico">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </div>
+        <div class="text">
+          <h3>Earned by mastering forced moves</h3>
+          <p>You used the technique self-applied 8 times across 3 puzzles</p>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn filled">
+        Continue
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+      <button class="btn text">Try a Hard puzzle now</button>
+    </div>
+    <div class="home-ind"></div>
+  </div>
+</body>
+</html>

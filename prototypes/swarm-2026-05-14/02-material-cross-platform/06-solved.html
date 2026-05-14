@@ -1,0 +1,166 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>Tectonic · Solved · M3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;background:#e4e4e7;display:flex;align-items:center;justify-content:center;padding:24px}
+  @media (prefers-color-scheme: dark){ body{background:#050505} }
+  .device{width:390px;height:844px;background:var(--surface);border-radius:44px;box-shadow:0 30px 80px rgba(0,0,0,0.25),0 0 0 1px rgba(0,0,0,0.04);overflow:hidden;position:relative;display:flex;flex-direction:column}
+  .status-bar{height:54px;display:flex;align-items:center;justify-content:space-between;padding:16px 28px 0;font-size:14px;font-weight:500;background:var(--brand-600);color:var(--text-on-brand)}
+  /* Celebration app bar — branded but restrained */
+  .app-bar{
+    background:var(--brand-600);color:var(--text-on-brand);padding:8px 4px 24px;
+  }
+  .app-bar .row1{display:flex;align-items:center;padding:0 4px}
+  .app-bar .iconbtn{width:48px;height:48px;border:0;background:transparent;color:inherit;display:grid;place-items:center;cursor:pointer;border-radius:999px}
+  .app-bar .row1 .title{flex:1;text-align:center;font:500 15px/20px 'Inter'}
+  .app-bar .hero{padding:8px 24px 0}
+  .app-bar .hero .eyebrow{font:500 12px/1 'Inter';letter-spacing:.06em;text-transform:uppercase;opacity:.8}
+  .app-bar .hero h1{margin:6px 0 4px;font-size:30px;line-height:36px;font-weight:600;letter-spacing:-.015em}
+  .app-bar .hero p{margin:0;font-size:14px;line-height:20px;opacity:.85}
+  .summary-card{
+    margin:-16px 16px 0;background:var(--surface-elevated);border-radius:14px;padding:18px 18px 14px;
+    box-shadow:0 2px 8px rgba(0,0,0,.08);border:1px solid var(--border);
+    display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;position:relative;z-index:2;
+  }
+  .summary-card .stat{text-align:left}
+  .summary-card .label{font-size:11px;color:var(--text-secondary);letter-spacing:.04em;text-transform:uppercase;font-weight:500}
+  .summary-card .value{font:500 22px/26px 'JetBrains Mono';color:var(--text-primary);margin-top:6px;font-variant-numeric:tabular-nums}
+  .summary-card .delta{font-size:11px;color:var(--success);margin-top:2px;font-weight:500}
+  .content{flex:1;overflow:auto;padding:20px 16px 28px;display:flex;flex-direction:column;gap:14px}
+  .section-label{font-size:11px;font-weight:500;text-transform:uppercase;letter-spacing:.08em;color:var(--text-secondary);margin:4px 8px 0}
+  .card{background:var(--surface-elevated);border:1px solid var(--border);border-radius:12px;padding:16px}
+  .histo{display:grid;grid-template-columns:120px 1fr 48px;gap:10px;align-items:center;margin-top:8px}
+  .histo .name{font-size:13px;color:var(--text-primary)}
+  .histo .bar{height:8px;background:var(--brand-50);border-radius:999px;overflow:hidden}
+  .histo .bar i{display:block;height:100%;background:var(--brand-600);border-radius:999px}
+  .histo .n{font:500 13px/1 'JetBrains Mono';color:var(--text-secondary);text-align:right;font-variant-numeric:tabular-nums}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:12px}
+  .achip{
+    display:inline-flex;align-items:center;gap:6px;height:32px;padding:0 12px;border-radius:8px;
+    background:var(--brand-100);color:var(--brand-600);font:500 12px/1 'Inter';
+  }
+  .achip svg{width:14px;height:14px}
+  .achip.new{background:rgba(16,185,129,.12);color:var(--success)}
+  .row-list{display:flex;flex-direction:column}
+  .row-list .li{display:flex;align-items:center;justify-content:space-between;padding:12px 0;border-bottom:1px solid var(--border)}
+  .row-list .li:last-child{border-bottom:0}
+  .row-list .name{font-size:14px}
+  .row-list .val{font:500 14px/1 'JetBrains Mono';color:var(--text-secondary);font-variant-numeric:tabular-nums}
+  .actions{display:flex;gap:10px;padding:0 16px 24px;margin-top:auto}
+  .btn{flex:1;height:48px;border-radius:12px;font:500 14px/1 'Inter';cursor:pointer;display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn.outlined{border:1px solid var(--border);background:var(--surface-elevated);color:var(--text-primary)}
+  .btn.filled{border:0;background:var(--brand-600);color:var(--text-on-brand)}
+  .home-ind{position:absolute;bottom:8px;left:50%;transform:translateX(-50%);width:134px;height:5px;background:#0a0a0a;border-radius:3px;opacity:.85}
+  @media (prefers-color-scheme: dark){ .home-ind{background:#fafafa;opacity:.55} }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-bar"><span>9:48</span><span></span></div>
+    <div class="app-bar">
+      <div class="row1">
+        <button class="iconbtn" aria-label="Close">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M6 6l12 12M18 6L6 18" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/></svg>
+        </button>
+        <div class="title">Solved</div>
+        <button class="iconbtn" aria-label="Share">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        </button>
+      </div>
+      <div class="hero">
+        <div class="eyebrow">Medium · 5×5</div>
+        <h1>Clean solve</h1>
+        <p>No mistakes, two hints used. Below your last seven on this difficulty.</p>
+      </div>
+    </div>
+
+    <div class="summary-card">
+      <div class="stat">
+        <div class="label">Time</div>
+        <div class="value">06:48</div>
+        <div class="delta">−1:14 vs. avg</div>
+      </div>
+      <div class="stat">
+        <div class="label">Hints</div>
+        <div class="value">2</div>
+        <div class="delta" style="color:var(--text-tertiary)">avg 2.4</div>
+      </div>
+      <div class="stat">
+        <div class="label">Errors</div>
+        <div class="value">0</div>
+        <div class="delta">streak 4</div>
+      </div>
+    </div>
+
+    <div class="content">
+      <p class="section-label">Techniques used</p>
+      <div class="card">
+        <div class="histo"><span class="name">Naked single</span><div class="bar"><i style="width:90%"></i></div><span class="n">12</span></div>
+        <div class="histo"><span class="name">Hidden single</span><div class="bar"><i style="width:62%"></i></div><span class="n">8</span></div>
+        <div class="histo"><span class="name">Pair lock</span><div class="bar"><i style="width:32%"></i></div><span class="n">4</span></div>
+        <div class="histo"><span class="name">Forced move</span><div class="bar"><i style="width:14%"></i></div><span class="n">1</span></div>
+      </div>
+
+      <p class="section-label">Mastery</p>
+      <div class="card">
+        <div style="font-size:13px;color:var(--text-secondary);line-height:18px">You used <b style="color:var(--text-primary);font-weight:500">hidden singles</b> eight times across three puzzles. That technique is now mastered.</div>
+        <div class="chips">
+          <span class="achip new">
+            <svg viewBox="0 0 24 24" fill="none"><path d="M5 12l5 5L20 7" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"/></svg>
+            Hidden single
+          </span>
+          <span class="achip">Naked single</span>
+          <span class="achip">Pair lock</span>
+        </div>
+      </div>
+
+      <p class="section-label">Compare</p>
+      <div class="card">
+        <div class="row-list">
+          <div class="li"><span class="name">Best on Medium 5×5</span><span class="val">04:31</span></div>
+          <div class="li"><span class="name">Average last 7</span><span class="val">08:02</span></div>
+          <div class="li"><span class="name">This solve</span><span class="val" style="color:var(--brand-600)">06:48</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="actions">
+      <button class="btn outlined">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none"><path d="M4 12v7a1 1 0 001 1h14a1 1 0 001-1v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+        Share
+      </button>
+      <button class="btn filled">
+        Next puzzle
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none"><path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      </button>
+    </div>
+    <div class="home-ind"></div>
+  </div>
+</body>
+</html>
