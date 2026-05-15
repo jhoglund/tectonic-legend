@@ -17,10 +17,10 @@ The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design targ
 
 **Done:** Phase 0 (design tokens, Vitest + 13 engine tests, 3-tab app shell) and Phase 1 (profile + progression layer with 26 tests; Home landing; difficulty picker; the iOS-native Solving screen + states; Solved screen). 39 tests, lint + build green.
 
-**Deferred slices** (carried forward, not blocking Phase 2):
-- Profile wiring — nothing calls `recordSolve()` yet. Needs a shared profile store so Home / Solving / Stats agree. Slot before Phase 2's stage-gating + mastery work, which depend on it.
+**Deferred slices** (carried forward):
 - Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
-- Undo, and the hint-mode options (candidates/reveal/check), dropped from the v1 Solving UI.
+- Mid-solve mastery-crossing moment — self-applied detection now feeds real data (`classifyMove` + useGame tracking, 2026-05-15), so `mastered` is reachable; the live "you just mastered X" beat during a solve is still not built.
+- Self-applied credit covers naked / hidden singles only — the engine never emits `forced-move` or `pair-elimination`, so the Master gate (forced-move mastery) stays unreachable until the hint engine grows those techniques.
 
 **Phase 2 is next.**
 
