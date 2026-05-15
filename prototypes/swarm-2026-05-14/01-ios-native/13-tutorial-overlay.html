@@ -1,0 +1,359 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Tutorial · Naked singles</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand-600:#0891b2;--brand-500:#06b6d4;--brand-100:#cffafe;--brand-50:#ecfeff;
+    --surface:#fafafa;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;--surface-cell-sel:#e0f7fa;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;--text-on-brand:#ffffff;
+    --success:#10b981;--warning:#f59e0b;--danger:#dc2626;
+    --separator:rgba(60,60,67,0.18);
+    --scrim:rgba(10,10,10,0.48);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --brand-600:#06b6d4;--brand-500:#22d3ee;--brand-100:#155057;--brand-50:#0e2a30;
+      --surface:#0a0a0a;--surface-elevated:#171717;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;--surface-cell-sel:#164e5b;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;--text-on-brand:#0a0a0a;
+      --success:#34d399;--warning:#fbbf24;--danger:#f87171;
+      --separator:rgba(84,84,88,0.5);
+      --scrim:rgba(0,0,0,0.62);
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;background:#e9eaee;color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  @media (prefers-color-scheme: dark){ body{background:#000} }
+  .device{
+    width:390px;min-height:844px;background:var(--surface);position:relative;overflow:hidden;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);border-radius:44px;
+    display:flex;flex-direction:column;
+  }
+  .status-bar{
+    height:54px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 28px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;flex-shrink:0;
+    z-index:5;background:var(--surface);
+  }
+  .status-bar .right{display:flex;align-items:center;gap:6px}
+
+  /* Nav bar */
+  .nav{
+    height:44px;display:flex;align-items:center;justify-content:space-between;
+    padding:0 8px;flex-shrink:0;
+    border-bottom:0.5px solid var(--separator);
+    background:var(--surface);
+    z-index:5;
+  }
+  .nav-btn{
+    background:none;border:0;font:inherit;color:var(--brand-600);
+    padding:8px 12px;cursor:pointer;font-size:15px;
+    display:flex;align-items:center;gap:4px;
+  }
+  .nav-title{
+    font-size:16px;font-weight:600;letter-spacing:-.01em;
+    display:flex;flex-direction:column;align-items:center;line-height:1.1;
+  }
+  .nav-title .t{font-size:15px;font-weight:600}
+  .nav-title .s{font-size:11px;font-weight:400;color:var(--text-secondary)}
+  .nav-spacer{width:44px}
+
+  /* Board stage (relative for scrim + callout overlay) */
+  .stage{
+    position:relative;
+    flex:1;
+    display:flex;
+    flex-direction:column;
+  }
+
+  .board-wrap{
+    padding:20px 16px 8px;display:flex;justify-content:center;
+    position:relative;z-index:1;
+  }
+  .board{
+    --cell:70px;
+    display:grid;grid-template-columns:repeat(5,var(--cell));grid-template-rows:repeat(5,var(--cell));
+    background:var(--surface-board);
+    border:2px solid var(--border-cage);
+    border-radius:16px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .cell{
+    position:relative;
+    border:1px solid var(--border);
+    background:var(--surface-cell);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:24px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+  }
+  .cell.empty{color:var(--text-tertiary)}
+  .cell .notes{
+    position:absolute;inset:4px;
+    display:grid;grid-template-columns:repeat(3,1fr);grid-template-rows:repeat(2,1fr);
+    font-family:'JetBrains Mono',monospace;font-size:10px;line-height:1;
+    color:var(--text-tertiary);font-variant-numeric:tabular-nums;
+  }
+  .cell .notes span{display:flex;align-items:center;justify-content:center}
+  /* Cage borders */
+  .cb-t{border-top:2px solid var(--border-cage)}
+  .cb-r{border-right:2px solid var(--border-cage)}
+  .cb-b{border-bottom:2px solid var(--border-cage)}
+  .cb-l{border-left:2px solid var(--border-cage)}
+
+  /* The scrim — sits between the board and the focus callout.
+     Covers the entire stage; the focus cell + adjacent context cells are
+     punched-through using a higher z-index. */
+  .scrim{
+    position:absolute;inset:0;
+    background:var(--scrim);
+    z-index:2;
+    pointer-events:none;
+  }
+
+  /* Focus cell — fully opaque, sits above scrim with a brand-600 ring */
+  .focus{
+    position:absolute;
+    z-index:4;
+    border-radius:6px;
+    box-shadow:
+      0 0 0 3px var(--brand-600),
+      0 0 0 7px rgba(8,145,178,0.18),
+      0 2px 8px rgba(0,0,0,0.18);
+    background:var(--surface-cell);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:24px;font-weight:500;color:var(--brand-600);
+  }
+
+  /* Context spotlight — keeps the row + cage neighbours visible at
+     lower-but-not-dimmed level. */
+  .context{
+    position:absolute;
+    z-index:3;
+    background:var(--surface-cell);
+    border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:24px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+    opacity:0.96;
+  }
+  .context.empty{color:var(--text-tertiary)}
+
+  /* Callout balloon */
+  .callout{
+    position:absolute;
+    z-index:5;
+    background:var(--brand-600);
+    color:var(--text-on-brand);
+    border-radius:12px;
+    padding:12px 14px;
+    font-size:13px;line-height:18px;font-weight:500;
+    letter-spacing:-.005em;
+    max-width:240px;
+    box-shadow:0 12px 28px rgba(0,0,0,0.28);
+  }
+  .callout .lead{
+    display:block;
+    font-size:11px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;
+    opacity:0.78;margin-bottom:4px;
+  }
+  .callout code{
+    font-family:'JetBrains Mono',monospace;font-weight:500;font-variant-numeric:tabular-nums;
+    background:rgba(255,255,255,0.18);padding:0 4px;border-radius:3px;
+  }
+  /* Balloon arrow */
+  .callout::after{
+    content:"";
+    position:absolute;
+    width:14px;height:14px;
+    background:var(--brand-600);
+    transform:rotate(45deg);
+    bottom:-6px;left:48px;
+    border-radius:2px;
+  }
+
+  /* Walkthrough card (bottom, in toolbar area) */
+  .walkthrough{
+    margin-top:auto;
+    padding:14px 16px max(20px, env(safe-area-inset-bottom)) 16px;
+    background:var(--surface);
+    border-top:0.5px solid var(--separator);
+    position:relative;z-index:6;
+  }
+  .wt-head{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-bottom:6px;
+  }
+  .wt-step{
+    font-size:11px;font-weight:600;color:var(--brand-600);
+    letter-spacing:.08em;text-transform:uppercase;
+    font-variant-numeric:tabular-nums;
+    display:flex;align-items:center;gap:8px;
+  }
+  .wt-step .dots{display:inline-flex;gap:4px}
+  .wt-step .dot{
+    width:6px;height:6px;border-radius:999px;background:var(--border);
+  }
+  .wt-step .dot.on{background:var(--brand-600)}
+  .wt-step .dot.done{background:var(--brand-600);opacity:.45}
+  .wt-skip{
+    background:none;border:0;font:inherit;font-size:13px;
+    color:var(--text-secondary);cursor:pointer;padding:4px 0;
+  }
+  .wt-title{
+    font-size:17px;font-weight:600;letter-spacing:-.01em;
+    margin:0 0 4px;
+  }
+  .wt-body{
+    font-size:13px;line-height:18px;color:var(--text-secondary);
+    margin:0 0 12px;
+  }
+  .wt-cta{
+    width:100%;height:48px;border-radius:8px;border:0;
+    background:var(--brand-600);color:var(--text-on-brand);
+    font:inherit;font-size:15px;font-weight:500;letter-spacing:-.005em;
+    cursor:pointer;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    transition:opacity 120ms ease-out;
+  }
+  .wt-cta:active{opacity:.85}
+
+  .home-indicator{
+    position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+    width:134px;height:5px;border-radius:3px;background:var(--text-primary);opacity:.9;
+    z-index:7;
+  }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="right">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 4.5C3 2.5 6 1.5 8 1.5s5 1 7 3M3 7c1.5-1.2 3.2-1.7 5-1.7S11.5 5.8 13 7M5.5 9.3C6.2 8.8 7 8.5 8 8.5s1.8.3 2.5.8"/><circle cx="8" cy="10.7" r=".9" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor"/><rect x="23.5" y="3.5" width="1.5" height="5" rx=".5" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <div class="nav">
+      <button class="nav-btn" type="button">
+        <svg width="11" height="18" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 2 2 9 9 16"/></svg>
+        Exit
+      </button>
+      <div class="nav-title">
+        <span class="t">Tutorial · Naked singles</span>
+        <span class="s">Newcomer · 2 of 3</span>
+      </div>
+      <span class="nav-spacer"></span>
+    </div>
+
+    <div class="stage">
+      <!-- Underlying dimmed board (kept identical to 05-solving for cage geometry) -->
+      <div class="board-wrap" aria-hidden="true">
+        <div class="board" role="presentation">
+          <!-- ROW 1 -->
+          <div class="cell cb-t cb-l cb-r cb-b"><span>4</span></div>
+          <div class="cell cb-t cb-r empty"></div>
+          <div class="cell cb-t cb-b"><span>3</span></div>
+          <div class="cell cb-t cb-l cb-r cb-b"><span>1</span></div>
+          <div class="cell cb-t cb-r cb-b"><span>5</span></div>
+          <!-- ROW 2 -->
+          <div class="cell cb-l cb-r empty"></div>
+          <div class="cell cb-r cb-b"><span>5</span></div>
+          <div class="cell cb-b"><span>2</span></div>
+          <div class="cell cb-l empty"></div>
+          <div class="cell cb-r"><span>1</span></div>
+          <!-- ROW 3 — focus row -->
+          <div class="cell cb-l cb-r cb-b"><span>3</span></div>
+          <div class="cell cb-b"><span>1</span></div>
+          <div class="cell cb-r cb-b empty"></div>
+          <div class="cell empty"></div>
+          <div class="cell cb-r cb-b"><span>2</span></div>
+          <!-- ROW 4 -->
+          <div class="cell cb-l cb-r"><span>5</span></div>
+          <div class="cell cb-r"><span>2</span></div>
+          <div class="cell cb-r cb-b"><span>3</span></div>
+          <div class="cell cb-l empty"></div>
+          <div class="cell cb-l cb-r cb-b"><span>4</span></div>
+          <!-- ROW 5 -->
+          <div class="cell cb-l cb-r cb-b empty"></div>
+          <div class="cell cb-r cb-b"><span>3</span></div>
+          <div class="cell cb-b empty"></div>
+          <div class="cell cb-l cb-r cb-b"><span>5</span></div>
+          <div class="cell cb-l cb-r cb-b"><span>2</span></div>
+        </div>
+      </div>
+
+      <!-- Soft scrim over the whole stage -->
+      <div class="scrim"></div>
+
+      <!--
+        Context strip — keeps the focus row visible at full opacity above the scrim.
+        Focus cell is r3c3 (the only naked single in the demo: cage E with 1,3 placed,
+        row 3 contains 3,1,2 already → only 4 fits at r3c3 once row constraint applies).
+        The board origin sits at left:16px + 1px cage border. Cell size 70px.
+        Row 3 top edge: 20px (board-wrap pad-top) + 2px (cage border) + 2*70 = 162px.
+        Left edge of board interior: 16 + 2 = 18px.
+      -->
+      <div class="context" style="left:18px; top:162px; width:70px; height:70px;">3</div>
+      <div class="context" style="left:88px; top:162px; width:70px; height:70px;">1</div>
+      <!-- focus cell at r3c3 omitted here (rendered as .focus below) -->
+      <div class="context empty" style="left:228px; top:162px; width:70px; height:70px;"></div>
+      <div class="context" style="left:298px; top:162px; width:70px; height:70px;">2</div>
+
+      <!-- Focus cell, fully opaque, with brand ring -->
+      <div class="focus" style="left:158px; top:162px; width:70px; height:70px;">
+        4
+      </div>
+
+      <!-- Callout balloon, anchored above-right of the focus cell -->
+      <div class="callout" style="left:140px; top:64px;">
+        <span class="lead">Naked single</span>
+        Only one digit fits here. <code>1</code>, <code>2</code>, <code>3</code> and <code>5</code> already appear in the row, cage, or as neighbours — so this cell must be <code>4</code>.
+      </div>
+
+      <!-- Walkthrough card pinned to bottom -->
+      <div class="walkthrough">
+        <div class="wt-head">
+          <span class="wt-step">
+            <span>Step 2 of 3</span>
+            <span class="dots" aria-hidden="true">
+              <span class="dot done"></span>
+              <span class="dot on"></span>
+              <span class="dot"></span>
+            </span>
+          </span>
+          <button class="wt-skip" type="button">Skip tutorial</button>
+        </div>
+        <h2 class="wt-title">Naked singles</h2>
+        <p class="wt-body">Find the cell where only one digit fits. Tap it to place the value.</p>
+        <button class="wt-cta" type="button">
+          Tap the highlighted cell
+          <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 3 11 8 6 13"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>
