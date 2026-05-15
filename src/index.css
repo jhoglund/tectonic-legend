@@ -3,10 +3,49 @@
 /* =============================================================
    Design tokens — Tectonic
    Canonical reference: specs/design-tokens.md
-   Board / cage palette finalized 2026-05-15 (Open Design).
+   Every value here is mirrored in that file. Light values live in
+   :root; dark overrides in the prefers-color-scheme block below.
    ============================================================= */
 
 :root {
+  /* --- Brand (cool blue-green — "thinking", not "marketing") --- */
+  --brand-50: #ecfeff;
+  --brand-100: #cffafe;
+  --brand-500: #06b6d4;
+  --brand-600: #0891b2;   /* primary brand */
+  --brand-700: #0e7490;
+
+  /* --- Surfaces ----------------------------------------------- */
+  --surface: #fafafa;
+  --surface-elevated: #ffffff;
+  --surface-board: #ffffff;
+  --surface-cell: #ffffff;
+  --surface-cell-clue: #f5f5f5;
+  --surface-cell-selected: #e0f7fa;
+  --border: #e5e5e5;
+
+  /* --- Text --------------------------------------------------- */
+  --text-primary: #0a0a0a;
+  --text-secondary: #525252;
+  --text-tertiary: #a3a3a3;
+  --text-on-brand: #ffffff;
+  --text-cell-clue: #525252;
+  --text-cell-player: #0891b2;
+  --text-cell-error: #dc2626;
+  --text-ghost-value: #a3a3a3;
+
+  /* --- Hint chain (RESERVED — solving's contradiction stepper) - */
+  --cell-assumption: #f59e0b;    /* "what if this cell is X?" */
+  --cell-deduction: #3b82f6;     /* logical consequence */
+  --cell-contradiction: #dc2626; /* proves the assumption wrong */
+  --cell-conclusion: #10b981;    /* the proven move */
+
+  /* --- Status ------------------------------------------------- */
+  --success: #10b981;
+  --warning: #f59e0b;
+  --danger: #dc2626;
+  --info: #3b82f6;
+
   /* --- Board: cage fills (light mode) -------------------------
      5-colour set. Cages are graph-coloured so two adjacent
      cages never share a colour. */
@@ -35,11 +74,84 @@
 
   /* --- Board: cell value text --------------------------------- */
   --cell-text: oklch(4% 0 0);
+
+  /* --- Typography --------------------------------------------- */
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', sans-serif;
+  --font-mono: 'JetBrains Mono', ui-monospace, 'SF Mono', monospace;
+
+  /* --- Radius ------------------------------------------------- */
+  --radius-cell: 4px;
+  --radius-button: 8px;
+  --radius-chip: 999px;
+  --radius-card: 12px;
+  --radius-board: 16px;
+  --radius-modal: 20px;
+
+  /* --- Spacing (4px base) ------------------------------------- */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-12: 48px;
+  --space-16: 64px;
+
+  /* --- Elevation ---------------------------------------------- */
+  --shadow-cell: 0 1px 2px rgba(0, 0, 0, 0.04);
+  --shadow-cell-selected: 0 2px 6px rgba(8, 145, 178, 0.20);
+  --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.18);
+  --shadow-fab: 0 4px 16px rgba(0, 0, 0, 0.16);
+
+  /* --- Motion (categorical, not arbitrary) -------------------- */
+  --motion-fast: 120ms ease-out;
+  --motion-base: 200ms ease-out;
+  --motion-slow: 400ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  --motion-chain-cascade: 180ms;
 }
 
 @media (prefers-color-scheme: dark) {
   :root {
-    /* Dark cage fills — derived from light by L −60, C ×0.7 */
+    /* Brand */
+    --brand-50: #0e2a30;
+    --brand-100: #155057;
+    --brand-500: #22d3ee;
+    --brand-600: #06b6d4;
+    --brand-700: #0e7490;
+
+    /* Surfaces */
+    --surface: #0a0a0a;
+    --surface-elevated: #171717;
+    --surface-board: #0f1419;
+    --surface-cell: #1a1f24;
+    --surface-cell-clue: #262626;
+    --surface-cell-selected: #164e5b;
+    --border: #2a2a2a;
+
+    /* Text */
+    --text-primary: #fafafa;
+    --text-secondary: #a3a3a3;
+    --text-tertiary: #737373;
+    --text-on-brand: #0a0a0a;
+    --text-cell-clue: #a3a3a3;
+    --text-cell-player: #06b6d4;
+    --text-cell-error: #f87171;
+    --text-ghost-value: #737373;
+
+    /* Hint chain — lightened ~15% for contrast on a dark board */
+    --cell-assumption: #fbbf24;
+    --cell-deduction: #60a5fa;
+    --cell-contradiction: #f87171;
+    --cell-conclusion: #34d399;
+
+    /* Status */
+    --success: #34d399;
+    --warning: #fbbf24;
+    --danger: #f87171;
+    --info: #60a5fa;
+
+    /* Board cage fills — derived from light by L −60, C ×0.7 */
     --cage-1: oklch(36.5% 0.052 88);
     --cage-2: oklch(32% 0.025 0);
     --cage-3: oklch(28% 0.027 256);
@@ -57,3 +169,10 @@
 .cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); }
 .cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); }
 .cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); }
+
+/* Base — applies the UI font + surface tokens app-wide. */
+body {
+  font-family: var(--font-ui);
+  background: var(--surface);
+  color: var(--text-primary);
+}

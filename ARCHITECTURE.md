@@ -120,8 +120,9 @@ iOS-specific concerns when we get there:
 - `npm run build` — typecheck + Vite production build
 - `npm run lint` — ESLint
 - `npm run preview` — preview production build locally
+- `npm run test` — Vitest (engine unit tests); `npm run test:watch` for watch mode
 
-No test runner yet. Adding **Vitest** is item #1 in [`docs/backlog.md`](docs/backlog.md) Next, because progression and mastery logic need unit coverage before they grow.
+**Vitest** is wired (`vitest.config.ts`, node environment). First engine coverage lives in `src/engine/*.test.ts` — generator validity + uniqueness, solver correctness, validator error/solved detection. Progression and mastery logic must land with tests as they're built.
 
 ---
 
@@ -131,7 +132,6 @@ No test runner yet. Adding **Vitest** is item #1 in [`docs/backlog.md`](docs/bac
 - No analytics yet (added before soft launch — see backlog)
 - No authentication
 - No cross-device sync
-- No tests
 - No Capacitor / native wrappers
 - No CI
 

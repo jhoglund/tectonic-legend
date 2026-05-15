@@ -11,9 +11,11 @@
 
 Active work, in progress or paused awaiting input.
 
-### v1 implementation · 2026-05-15 — *starting*
+### v1 implementation · 2026-05-15 — *Phase 0 in progress*
 
-The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design target. Scope was triaged against the PRD on 2026-05-15 — see [ADR-0011](decisions/ADR-0011-v1-scope-triage.md). The v1 build plan below is the result. Work starts at Phase 0.
+The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design target. Scope was triaged against the PRD on 2026-05-15 — see [ADR-0011](decisions/ADR-0011-v1-scope-triage.md). The v1 build plan below is the result.
+
+**Phase 0 progress:** items 1 (design tokens — full set bound to `src/index.css`, Inter + JetBrains Mono loaded) and 2 (Vitest wired, 13 engine tests) are done. Item 3 (app shell + 3-tab nav) is next.
 
 **Decisions still blocked on Jonas:**
 - App name (ADR-0006) — needed before App Store submission.
