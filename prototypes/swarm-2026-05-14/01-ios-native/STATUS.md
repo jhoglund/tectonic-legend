@@ -15,3 +15,6 @@ Apple HIG playbook. Every interaction borrows from system-native iOS conventions
 
 ## Open question
 The brief says nav between Home and Solving is via push (variant 01 uses iOS's standard nav stack), which means tapping "Start daily" pushes the solving screen and hides the tab bar — but the contradiction stepper currently competes with the keypad for vertical space at 390 × 844. Should I (A) make the stepper a sheet that rises only when a contradiction hint fires (more HIG-correct, but hides the chain colours by default), (B) keep it permanently visible as it is now and shrink the keypad row, or (C) collapse the technique chip into the nav bar to reclaim a row of height?
+
+## Second-round expansion · batch 1 — solving states · 2026-05-15
+Added 7 alternate states of the solving screen: fresh, cell-selected, notes-mode, conflict, basic-hint, pause, abandon-confirm. Board geometry constant across all 7. Reviewer nav updated.
