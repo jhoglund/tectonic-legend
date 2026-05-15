@@ -99,6 +99,29 @@ export function availableDifficulties(stage: PlayerStage): Difficulty[] {
   }
 }
 
+/**
+ * Per-difficulty unlock data (progression.md §1) — the stage that
+ * opens it, and the plain-language requirement shown on a locked row.
+ * `requirement` is a bare action; the UI appends "to unlock".
+ */
+export const DIFFICULTY_UNLOCK: Record<
+  Difficulty,
+  { stage: PlayerStage; requirement: string }
+> = {
+  easy: { stage: 1, requirement: 'Finish the 3 starter tutorials' },
+  medium: { stage: 2, requirement: 'Master naked singles' },
+  hard: { stage: 3, requirement: 'Master hidden singles' },
+  expert: { stage: 4, requirement: 'Master forced moves' },
+};
+
+/** Whether a player at this stage may play this difficulty. */
+export function isDifficultyUnlocked(
+  stage: PlayerStage,
+  difficulty: Difficulty,
+): boolean {
+  return stage >= DIFFICULTY_UNLOCK[difficulty].stage;
+}
+
 /** Minimal view of a profile needed to evaluate stage advancement —
  *  kept structural so progression.ts has no dependency on profile.ts. */
 export interface StageInput {

@@ -41,6 +41,7 @@ export function HomeTab() {
       )}
       <DifficultyPicker
         open={pickerOpen}
+        stage={profile.stage}
         onClose={() => setPickerOpen(false)}
         onStart={handleStart}
       />

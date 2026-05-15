@@ -1,5 +1,10 @@
 import { useState } from 'react';
 import type { Difficulty, GridSize } from '../engine/types';
+import {
+  DIFFICULTY_UNLOCK,
+  isDifficultyUnlocked,
+  type PlayerStage,
+} from '../lib/progression';
 
 const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
   { id: 'easy', label: 'Easy', blurb: 'Naked singles' },
@@ -10,16 +15,42 @@ const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
 
 interface DifficultyPickerProps {
   open: boolean;
+  stage: PlayerStage;
   onClose: () => void;
   onStart: (difficulty: Difficulty, gridSize: GridSize) => void;
 }
 
+/** Padlock glyph for a stage-locked difficulty row. */
+function LockIcon() {
+  return (
+    <svg
+      width="16"
+      height="16"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <rect x="5" y="11" width="14" height="10" rx="2" />
+      <path d="M8 11V7a4 4 0 0 1 8 0v4" />
+    </svg>
+  );
+}
+
 /**
  * The single merged difficulty entry point (ADR-0011 A2) — a bottom
- * sheet. Stage-gated locked rows are Phase 2 (backlog item 9); for
- * now every difficulty is selectable.
+ * sheet. Difficulties above the player's stage are shown locked with
+ * the requirement to unlock them (progression.md §1).
  */
-export function DifficultyPicker({ open, onClose, onStart }: DifficultyPickerProps) {
+export function DifficultyPicker({
+  open,
+  stage,
+  onClose,
+  onStart,
+}: DifficultyPickerProps) {
   const [size, setSize] = useState<GridSize>('5x5');
   if (!open) return null;
 
@@ -87,31 +118,41 @@ export function DifficultyPicker({ open, onClose, onStart }: DifficultyPickerPro
             overflow: 'hidden',
           }}
         >
-          {DIFFICULTIES.map((d, i) => (
-            <button
-              key={d.id}
-              type="button"
-              onClick={() => onStart(d.id, size)}
-              className="flex cursor-pointer items-center justify-between px-4 py-3 text-left"
-              style={{
-                background: 'var(--surface-elevated)',
-                borderTop: i > 0 ? '1px solid var(--border)' : 'none',
-              }}
-            >
-              <span className="flex flex-col">
-                <span
-                  className="text-base font-medium"
-                  style={{ color: 'var(--text-primary)' }}
-                >
-                  {d.label}
+          {DIFFICULTIES.map((d, i) => {
+            const unlocked = isDifficultyUnlocked(stage, d.id);
+            return (
+              <button
+                key={d.id}
+                type="button"
+                disabled={!unlocked}
+                onClick={() => unlocked && onStart(d.id, size)}
+                className="flex items-center justify-between px-4 py-3 text-left"
+                style={{
+                  background: 'var(--surface-elevated)',
+                  borderTop: i > 0 ? '1px solid var(--border)' : 'none',
+                  cursor: unlocked ? 'pointer' : 'default',
+                  opacity: unlocked ? 1 : 0.55,
+                }}
+              >
+                <span className="flex flex-col">
+                  <span
+                    className="text-base font-medium"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    {d.label}
+                  </span>
+                  <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                    {unlocked
+                      ? d.blurb
+                      : `${DIFFICULTY_UNLOCK[d.id].requirement} to unlock`}
+                  </span>
                 </span>
-                <span className="text-xs" style={{ color: 'var(--text-tertiary)' }}>
-                  {d.blurb}
+                <span style={{ color: 'var(--text-tertiary)' }}>
+                  {unlocked ? '›' : <LockIcon />}
                 </span>
-              </span>
-              <span style={{ color: 'var(--text-tertiary)' }}>›</span>
-            </button>
-          ))}
+              </button>
+            );
+          })}
         </div>
 
         <button
