@@ -1,9 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
 import { Board } from '../components/Board';
+import { MasteryChip } from '../components/MasteryChip';
 import type { GameState, Difficulty, GridSize } from '../engine/types';
 import { useProfile } from '../lib/profileContext';
 import type { SolveTechniqueTally } from '../lib/profile';
-import type { TechniqueName } from '../lib/progression';
+import { TECHNIQUE_NAMES, type TechniqueName } from '../lib/progression';
 
 const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
@@ -39,10 +40,9 @@ interface SolvedScreenProps {
 
 /**
  * The post-solve summary — v1 Phase 1, backlog item 8. Solve time,
- * the per-solve hint breakdown, and a share button. Cohort/percentile
- * is deliberately absent (ADR-0011 — needs a backend). Technique-
- * mastery chips and the colored-mini-grid share artifact come with
- * the profile wiring and backlog item 15.
+ * the per-solve hint breakdown, technique-mastery chips, and a share
+ * button. Cohort/percentile is deliberately absent (ADR-0011 — needs
+ * a backend); the colored-mini-grid share artifact is backlog item 15.
  */
 export function SolvedScreen({
   gameState,
@@ -54,10 +54,16 @@ export function SolvedScreen({
   onExit,
 }: SolvedScreenProps) {
   const [copied, setCopied] = useState(false);
-  const { recordSolve } = useProfile();
+  const { profile, recordSolve } = useProfile();
 
   const timeStr = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
   const techniqueRows = Object.entries(techniquesUsed).filter(([, n]) => n > 0);
+
+  // Techniques the player has any history with — their mastery chips
+  // reflect the profile *after* this solve has been recorded.
+  const masteryTechniques = TECHNIQUE_NAMES.filter(
+    (t) => profile.techniques[t].usedCount > 0,
+  );
 
   // Record the finished solve into the profile exactly once. The ref
   // guard keeps it idempotent under StrictMode's double-invoke.
@@ -173,6 +179,31 @@ export function SolvedScreen({
         )}
       </div>
 
+      {/* technique mastery — recognition of where the player stands */}
+      {masteryTechniques.length > 0 && (
+        <div
+          className="w-full"
+          style={{
+            background: 'var(--surface-elevated)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-card)',
+            padding: 'var(--space-4)',
+          }}
+        >
+          <p
+            className="mb-3 text-xs font-semibold"
+            style={{ color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}
+          >
+            TECHNIQUE MASTERY
+          </p>
+          <div className="flex flex-wrap gap-2">
+            {masteryTechniques.map((t) => (
+              <MasteryChip key={t} mastery={profile.techniques[t]} />
+            ))}
+          </div>
+        </div>
+      )}
+
       <button
         type="button"
         onClick={handleShare}
@@ -200,8 +231,7 @@ export function SolvedScreen({
       </button>
 
       <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
-        Technique-mastery chips and the shareable solve artifact arrive in a
-        later build.
+        The shareable solve artifact arrives in a later build.
       </p>
     </div>
   );

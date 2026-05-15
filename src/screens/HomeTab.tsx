@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { HomeLanding } from './HomeLanding';
 import { SolvingScreen } from './SolvingScreen';
+import { TutorialFlow } from './TutorialFlow';
 import { DifficultyPicker } from '../components/DifficultyPicker';
 import { useProfile } from '../lib/profileContext';
 import type { Difficulty, GridSize } from '../engine/types';
@@ -8,7 +9,8 @@ import type { Difficulty, GridSize } from '../engine/types';
 /**
  * The Home tab — owns navigation between the landing screen and a
  * playing session, with the difficulty picker as a sheet over the
- * landing.
+ * landing. A Newcomer (stage 0) is routed into the tutorial funnel
+ * instead, until they earn the Beginner stage.
  */
 export function HomeTab() {
   const { profile } = useProfile();
@@ -25,6 +27,11 @@ export function HomeTab() {
     setGameKey((k) => k + 1);
     setPickerOpen(false);
     setView('playing');
+  }
+
+  // A Newcomer plays the tutorial funnel, nothing else, until Beginner.
+  if (profile.stage === 0) {
+    return <TutorialFlow />;
   }
 
   return (
