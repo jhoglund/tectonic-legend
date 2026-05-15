@@ -1,0 +1,277 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Biography</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+
+  .topbar{padding:6px 20px 10px;display:flex;align-items:center;gap:12px}
+  .stage-chip{
+    flex:1;display:flex;align-items:center;gap:10px;
+    padding:6px 12px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary);
+  }
+  .stage-chip .stage-name{color:var(--text-primary);font-weight:500}
+  .stage-chip .stage-bar{flex:1;height:2px;background:var(--border);border-radius:1px;position:relative;overflow:hidden;min-width:60px}
+  .stage-chip .stage-bar::after{content:"";position:absolute;left:0;top:0;bottom:0;width:62%;background:var(--brand-600)}
+  .stage-chip .stage-next{color:var(--text-tertiary);font-size:11px}
+
+  .header{padding:16px 24px 8px}
+  .kicker{
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:6px;
+  }
+  h1{font-weight:500;font-size:24px;line-height:30px;letter-spacing:-0.01em}
+  .lede{font-size:13px;color:var(--text-secondary);margin-top:6px}
+
+  .scroll{
+    flex:1;overflow-y:auto;padding:8px 0 16px;
+  }
+  .scroll::-webkit-scrollbar{width:0}
+
+  /* Timeline biography */
+  .timeline{
+    position:relative;margin:8px 24px 16px;
+    padding-left:24px;
+  }
+  .timeline::before{
+    content:"";position:absolute;left:6px;top:8px;bottom:8px;
+    width:1.5px;background:linear-gradient(to bottom, var(--brand-600) 0%, var(--brand-600) 60%, color-mix(in srgb, var(--brand-600) 25%, transparent) 61%, color-mix(in srgb, var(--brand-600) 18%, transparent) 100%);
+  }
+  .entry{position:relative;padding:6px 0 14px}
+  .entry .node{
+    position:absolute;left:-22px;top:8px;
+    width:13px;height:13px;border-radius:999px;
+    background:var(--surface);border:1.5px solid var(--brand-600);
+  }
+  .entry.stage .node{background:var(--brand-600);box-shadow:0 0 0 4px color-mix(in srgb, var(--brand-600) 14%, transparent)}
+  .entry.future .node{border-style:dashed;border-color:var(--text-tertiary);opacity:0.6}
+  .entry .when{
+    font-family:'JetBrains Mono',monospace;font-size:11px;
+    color:var(--text-tertiary);margin-bottom:2px;
+  }
+  .entry .what{font-size:14px;font-weight:500}
+  .entry.stage .what{font-size:16px;letter-spacing:-0.01em}
+  .entry .desc{font-size:12px;color:var(--text-secondary);margin-top:2px;line-height:18px}
+  .entry .chip-row{display:flex;flex-wrap:wrap;gap:4px;margin-top:6px}
+  .entry .chip-row .chip{
+    padding:3px 8px;border-radius:999px;font-size:10px;font-weight:500;
+    background:var(--brand-50);color:var(--brand-600);
+    border:1px solid color-mix(in srgb, var(--brand-600) 14%, transparent);
+  }
+
+  /* Sub-section: solve performance */
+  .sub-section{margin:8px 24px 0;padding-top:16px;border-top:1px solid var(--border)}
+  .sub-title{
+    font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:10px;
+  }
+  .perf-grid{
+    display:grid;grid-template-columns:1fr 1fr;gap:8px;
+  }
+  .perf{
+    padding:12px;border-radius:12px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+  }
+  .perf .label{font-size:11px;color:var(--text-tertiary)}
+  .perf .val{
+    font-family:'JetBrains Mono',monospace;font-size:20px;font-weight:500;
+    color:var(--text-primary);margin-top:4px;
+  }
+  .perf .diff{font-size:11px;color:var(--text-secondary);margin-top:2px}
+
+  /* Sub-section: streak (gentle) */
+  .streak{
+    margin:12px 24px 24px;padding:12px 14px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    border-radius:12px;display:flex;align-items:center;gap:14px;
+  }
+  .streak .ring{flex:none}
+  .streak .text{flex:1}
+  .streak .title{font-size:13px;font-weight:500}
+  .streak .sub{font-size:11px;color:var(--text-secondary);margin-top:2px;line-height:16px}
+
+  .tabbar{
+    border-top:1px solid var(--border);background:var(--surface);
+    display:flex;justify-content:space-around;padding:8px 16px 4px;
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:6px 4px;color:var(--text-tertiary);font-size:10px;font-weight:500;
+    background:none;border:none;cursor:pointer;
+  }
+  .tab.active{color:var(--text-primary)}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+  <div class="topbar">
+    <div class="stage-chip">
+      <span class="stage-name">Confident</span>
+      <span class="stage-bar"></span>
+      <span class="stage-next">→ Advanced</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="kicker">Biography</div>
+    <h1>The story so far.</h1>
+    <p class="lede">Stage transitions, mastery moments, and a few numbers.</p>
+  </div>
+
+  <div class="scroll">
+    <div class="timeline">
+      <div class="entry future">
+        <span class="node"></span>
+        <div class="when">SOON</div>
+        <div class="what">Advanced</div>
+        <div class="desc">Master Forced moves and Hidden singles to cross over. 2 to go.</div>
+      </div>
+
+      <div class="entry">
+        <span class="node"></span>
+        <div class="when">14 MAY · TODAY</div>
+        <div class="what">Read the neighborhood</div>
+        <div class="desc">Three Forced-move applications across one solve.</div>
+        <div class="chip-row">
+          <span class="chip">+3 Forced move</span>
+          <span class="chip">+3 Hidden single</span>
+        </div>
+      </div>
+
+      <div class="entry">
+        <span class="node"></span>
+        <div class="when">12 MAY</div>
+        <div class="what">First contradiction sighted</div>
+        <div class="desc">Used the contradiction stepper for the first time on a Hard puzzle.</div>
+      </div>
+
+      <div class="entry stage">
+        <span class="node"></span>
+        <div class="when">12 MAY</div>
+        <div class="what">Reached Confident</div>
+        <div class="desc">Hidden singles mastered. The third stage opens.</div>
+      </div>
+
+      <div class="entry">
+        <span class="node"></span>
+        <div class="when">9 MAY</div>
+        <div class="what">A week of daily puzzles</div>
+        <div class="desc">Seven consecutive days, no skips.</div>
+      </div>
+
+      <div class="entry stage">
+        <span class="node"></span>
+        <div class="when">8 MAY</div>
+        <div class="what">Reached Beginner</div>
+        <div class="desc">Naked singles mastered across 4 puzzles.</div>
+      </div>
+
+      <div class="entry">
+        <span class="node"></span>
+        <div class="when">1 MAY</div>
+        <div class="what">First puzzle finished</div>
+        <div class="desc">5×5 Easy in 09:14. The path begins.</div>
+      </div>
+
+      <div class="entry stage">
+        <span class="node"></span>
+        <div class="when">1 MAY</div>
+        <div class="what">Joined as Newcomer</div>
+      </div>
+    </div>
+
+    <div class="sub-section">
+      <div class="sub-title">Solve performance</div>
+      <div class="perf-grid">
+        <div class="perf">
+          <div class="label">Best · Easy 5×5</div>
+          <div class="val">03:42</div>
+          <div class="diff">8 solves</div>
+        </div>
+        <div class="perf">
+          <div class="label">Best · Medium 5×5</div>
+          <div class="val">06:28</div>
+          <div class="diff">5 solves</div>
+        </div>
+        <div class="perf">
+          <div class="label">Best · Hard 5×5</div>
+          <div class="val">11:54</div>
+          <div class="diff">2 solves</div>
+        </div>
+        <div class="perf">
+          <div class="label">Avg this week</div>
+          <div class="val">07:48</div>
+          <div class="diff">–1:12 vs. last</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="streak">
+      <svg class="ring" width="44" height="44" viewBox="0 0 44 44">
+        <circle cx="22" cy="22" r="18" fill="none" stroke="var(--border)" stroke-width="3"/>
+        <circle cx="22" cy="22" r="18" fill="none" stroke="var(--brand-600)" stroke-width="3"
+                stroke-dasharray="113" stroke-dashoffset="22" stroke-linecap="round" transform="rotate(-90 22 22)"/>
+      </svg>
+      <div class="text">
+        <div class="title">Played 6 of the last 7 days.</div>
+        <div class="sub">Steady. Skips don't reset anything; only consistency builds.</div>
+      </div>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10 L10 4 L17 10 M5 9 V16 H15 V9"/></svg>
+      Path
+    </button>
+    <button class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8 H17 M3 13 H17 M8 3 V17 M13 3 V17"/></svg>
+      Practice
+    </button>
+    <button class="tab active">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16 V8 M8 16 V4 M13 16 V11 M3 16 H17"/></svg>
+      Stats
+    </button>
+  </nav>
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --warning:#f59e0b;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --warning:#fbbf24;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#222;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .device{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:44px;overflow:hidden;position:relative;
+    box-shadow:0 24px 80px rgba(0,0,0,0.35);
+    display:flex;flex-direction:column;
+  }
+  .status-bar{
+    height:54px;padding:18px 32px 0;display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:15px;font-weight:600;color:var(--text-primary);flex:0 0 auto;
+  }
+  .status-bar .dots{display:flex;gap:6px;align-items:center}
+  .status-bar .dot{width:4px;height:4px;border-radius:50%;background:var(--text-primary)}
+
+  .header{
+    padding:12px 24px 0;display:flex;justify-content:space-between;align-items:center;
+  }
+  .back{
+    font-size:14px;color:var(--text-secondary);text-decoration:none;font-weight:500;
+    display:flex;align-items:center;gap:6px;
+  }
+  .header-title{font-size:14px;font-weight:600;color:var(--text-primary)}
+  .header-spacer{width:60px}
+
+  .content{flex:1;padding:24px 24px 32px;overflow-y:auto}
+  .eyebrow{
+    font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-secondary);margin-bottom:6px;
+  }
+  .h1{
+    font-size:24px;line-height:30px;font-weight:600;letter-spacing:-0.02em;
+    color:var(--text-primary);margin-bottom:6px;
+  }
+  .sub{font-size:13px;color:var(--text-secondary);margin-bottom:24px;line-height:19px}
+
+  .section-title{
+    font-size:11px;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-secondary);margin:8px 4px 12px;
+  }
+
+  .diff-list{display:flex;flex-direction:column;gap:8px;margin-bottom:24px}
+  .diff{
+    display:grid;grid-template-columns:48px 1fr auto;align-items:center;gap:14px;
+    padding:14px 16px;background:var(--surface-elevated);border:1px solid var(--border);
+    border-radius:12px;cursor:pointer;text-decoration:none;
+  }
+  .diff.selected{border-color:var(--brand-600);box-shadow:0 0 0 1px var(--brand-600) inset}
+  .diff.locked{opacity:0.7}
+  .diff-marker{
+    width:32px;height:32px;border-radius:6px;background:var(--surface-board);
+    display:grid;grid-template-columns:repeat(3,1fr);gap:2px;padding:4px;
+  }
+  .diff-marker .pip{background:var(--border);border-radius:1px}
+  .diff-marker .pip.on{background:var(--brand-600)}
+  .diff-body{display:flex;flex-direction:column;gap:2px}
+  .diff-name{font-size:15px;font-weight:600;color:var(--text-primary)}
+  .diff-tech{font-size:12px;font-weight:400;color:var(--text-secondary)}
+  .diff-time{
+    font-family:'JetBrains Mono',monospace;font-size:12px;font-weight:500;
+    color:var(--text-tertiary);
+  }
+  .lock{
+    display:flex;align-items:center;gap:5px;font-size:11px;font-weight:500;
+    color:var(--warning);
+  }
+  .lock svg{width:11px;height:11px}
+
+  .grid-row{
+    display:flex;gap:8px;margin-bottom:24px;
+  }
+  .grid-pill{
+    flex:1;padding:14px;background:var(--surface-elevated);border:1px solid var(--border);
+    border-radius:10px;text-align:center;cursor:pointer;
+  }
+  .grid-pill.selected{border-color:var(--brand-600);box-shadow:0 0 0 1px var(--brand-600) inset}
+  .grid-pill-size{font-family:'JetBrains Mono',monospace;font-size:18px;font-weight:600;color:var(--text-primary)}
+  .grid-pill-label{font-size:11px;font-weight:500;color:var(--text-secondary);margin-top:2px}
+
+  .footer{
+    flex:0 0 auto;padding:16px 24px 34px;border-top:1px solid var(--border);
+    background:var(--surface);
+  }
+  .btn{
+    height:48px;width:100%;border-radius:8px;border:none;background:var(--brand-600);
+    color:var(--text-on-brand);font-family:inherit;font-size:15px;font-weight:600;
+    text-decoration:none;display:flex;align-items:center;justify-content:center;cursor:pointer;
+  }
+  .ritual-note{
+    font-size:12px;color:var(--text-tertiary);text-align:center;margin-top:10px;line-height:17px;
+  }
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  </div>
+  <div class="header">
+    <a class="back" href="03-home.html">
+      <svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M9 12L4 7l5-5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Today
+    </a>
+    <div class="header-title">Practice</div>
+    <div class="header-spacer"></div>
+  </div>
+  <div class="content">
+    <div class="eyebrow">Practice</div>
+    <div class="h1">Solve any puzzle you'd like.</div>
+    <div class="sub">Practice doesn't affect your daily streak. Choose a difficulty and grid size.</div>
+
+    <div class="section-title">Difficulty</div>
+    <div class="diff-list">
+      <a class="diff" href="05-solving.html">
+        <div class="diff-marker"><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+        <div class="diff-body"><span class="diff-name">Easy</span><span class="diff-tech">Naked singles · Hidden singles</span></div>
+        <span class="diff-time">~ 0:50</span>
+      </a>
+      <a class="diff" href="05-solving.html">
+        <div class="diff-marker"><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+        <div class="diff-body"><span class="diff-name">Medium</span><span class="diff-tech">Hidden singles · Forced moves</span></div>
+        <span class="diff-time">~ 1:50</span>
+      </a>
+      <a class="diff selected" href="05-solving.html">
+        <div class="diff-marker"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span><span class="pip"></span></div>
+        <div class="diff-body"><span class="diff-name">Hard</span><span class="diff-tech">Forced moves · Read the neighborhood</span></div>
+        <span class="diff-time">~ 3:00</span>
+      </a>
+      <div class="diff locked">
+        <div class="diff-marker"><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip on"></span><span class="pip"></span><span class="pip"></span></div>
+        <div class="diff-body"><span class="diff-name">Expert</span><span class="diff-tech">Master forced moves to unlock</span></div>
+        <span class="lock"><svg viewBox="0 0 12 12" fill="none"><rect x="2.5" y="5.5" width="7" height="5" rx="1" stroke="currentColor" stroke-width="1.2"/><path d="M4 5.5V3.5a2 2 0 0 1 4 0v2" stroke="currentColor" stroke-width="1.2"/></svg>Locked</span>
+      </div>
+    </div>
+
+    <div class="section-title">Grid size</div>
+    <div class="grid-row">
+      <div class="grid-pill selected">
+        <div class="grid-pill-size">5×5</div>
+        <div class="grid-pill-label">Classic</div>
+      </div>
+      <div class="grid-pill">
+        <div class="grid-pill-size">8×8</div>
+        <div class="grid-pill-label">Larger</div>
+      </div>
+    </div>
+  </div>
+  <div class="footer">
+    <a class="btn" href="05-solving.html">Start practice</a>
+    <div class="ritual-note">Today's puzzle is still waiting whenever you'd like.</div>
+  </div>
+</div>
+</body>
+</html>

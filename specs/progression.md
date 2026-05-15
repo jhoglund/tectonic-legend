@@ -166,6 +166,7 @@ The player profile is the data behind all of this. Local-only in v1; designed to
 type PlayerProfile = {
   stage: 0 | 1 | 2 | 3 | 4;
   techniques: Record<TechniqueName, TechniqueMastery>;
+  tutorialsCompleted: number;       // Newcomer tutorials done — gates stage 0 → 1
   solveHistory: SolveRecord[];      // capped at last 1000
   streak: { current: number; longest: number; lastSolveDate: string };
   tier: 'free' | 'premium';

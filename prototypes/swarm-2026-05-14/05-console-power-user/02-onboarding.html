@@ -1,0 +1,289 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<title>Tectonic · Onboarding</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#fff;
+    --cell-assumption:#f59e0b; --cell-deduction:#3b82f6; --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:#111;color:var(--text-primary);min-height:100vh;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+  .device{width:390px;height:844px;background:var(--surface);border-radius:40px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .status-os{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .status-os .right{display:flex;gap:6px;align-items:center}
+  .screen{flex:1;display:flex;flex-direction:column;padding:4px 24px 0;overflow:hidden}
+  .home-bar{height:34px;display:flex;align-items:center;justify-content:center}
+  .home-bar::after{content:"";width:134px;height:5px;background:var(--text-primary);opacity:.85;border-radius:3px}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .kbd{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;line-height:1;color:var(--text-secondary);background:var(--surface-elevated);border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;font-variant-numeric:tabular-nums}
+  .statusbar{border-top:1px solid var(--border);padding:8px 24px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-tertiary);background:var(--surface)}
+  .statusbar .left,.statusbar .right{display:flex;align-items:center;gap:6px}
+  .statusbar .dot{width:3px;height:3px;border-radius:50%;background:var(--text-tertiary)}
+  .statusbar .sb-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+  .statusbar .ok{color:var(--success)}
+
+  /* breadcrumb header */
+  .topbar{
+    display:flex;align-items:center;justify-content:space-between;
+    height:36px;
+  }
+  .crumbs{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-tertiary)}
+  .crumbs .sep{color:var(--text-tertiary)}
+  .crumbs .here{color:var(--text-primary);font-weight:500}
+  .crumbs .mono{font-size:11px}
+  .topbar .kbd-row{display:flex;gap:4px}
+
+  h1.title{margin:8px 0 4px;font-size:22px;line-height:28px;font-weight:600;letter-spacing:-.01em}
+  p.sub{margin:0 0 14px;font-size:13px;line-height:18px;color:var(--text-secondary)}
+
+  .step-list{
+    list-style:none;margin:0;padding:0;
+    display:flex;flex-direction:column;
+    border:1px solid var(--border);border-radius:12px;
+    background:var(--surface-elevated);
+    overflow:hidden;
+  }
+  .step{
+    display:flex;align-items:flex-start;gap:10px;
+    padding:11px 12px;
+    border-bottom:1px solid var(--border);
+    font-size:13px;line-height:18px;
+  }
+  .step:last-child{border-bottom:0}
+  .step .num{
+    width:18px;height:18px;flex:0 0 auto;
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    color:var(--text-secondary);
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:4px;
+    display:flex;align-items:center;justify-content:center;
+    margin-top:1px;
+  }
+  .step.done .num{background:var(--brand-100);color:var(--brand-600);border-color:transparent}
+  .step.active{background:var(--brand-50)}
+  .step.active .num{background:var(--brand-600);color:var(--text-on-brand);border-color:transparent}
+  .step .body{flex:1}
+  .step .body .label{font-weight:500;color:var(--text-primary)}
+  .step .body .meta{font-size:11.5px;color:var(--text-tertiary);margin-top:2px;font-family:'JetBrains Mono',monospace}
+  .step .body .meta b{color:var(--text-secondary);font-weight:500}
+  .step .kbd{margin-top:1px}
+
+  /* mini tutorial board */
+  .tut-card{
+    margin-top:14px;
+    border:1px solid var(--border);border-radius:12px;
+    background:var(--surface-elevated);
+    padding:12px;
+  }
+  .tut-head{display:flex;align-items:center;justify-content:space-between;font-size:11px;color:var(--text-tertiary);margin-bottom:8px}
+  .tut-head .l{display:flex;align-items:center;gap:6px}
+  .tut-head .l b{color:var(--text-secondary);font-weight:500;font-family:'JetBrains Mono',monospace}
+
+  .miniboard{
+    --c: 38px;
+    width:calc(var(--c)*4);
+    margin:0 auto 8px;
+    background:var(--surface-board);
+    border-radius:8px;
+    display:grid;
+    grid-template-columns:repeat(4,var(--c));
+    grid-template-rows:repeat(3,var(--c));
+    border:1.5px solid var(--border-cage);
+    position:relative;
+  }
+  .cell{
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
+    font-size:18px;color:var(--text-primary);
+    background:var(--surface-cell);
+    position:relative;
+  }
+  .cell.n{color:var(--text-tertiary);font-size:10px}
+  .cell:nth-child(4n){border-right:0}
+  /* last row no bottom */
+  .cell.lr{border-bottom:0}
+  /* cage hints — thick edges */
+  .cage-t{box-shadow:inset 0 1.5px 0 var(--border-cage)}
+  .cage-r{box-shadow:inset -1.5px 0 0 var(--border-cage)}
+  .cage-b{box-shadow:inset 0 -1.5px 0 var(--border-cage)}
+  .cage-l{box-shadow:inset 1.5px 0 0 var(--border-cage)}
+  .cage-tr{box-shadow:inset 0 1.5px 0 var(--border-cage), inset -1.5px 0 0 var(--border-cage)}
+  .cage-tb{box-shadow:inset 0 1.5px 0 var(--border-cage), inset 0 -1.5px 0 var(--border-cage)}
+  .cage-tl{box-shadow:inset 0 1.5px 0 var(--border-cage), inset 1.5px 0 0 var(--border-cage)}
+  .cage-bl{box-shadow:inset 0 -1.5px 0 var(--border-cage), inset 1.5px 0 0 var(--border-cage)}
+  .cage-br{box-shadow:inset 0 -1.5px 0 var(--border-cage), inset -1.5px 0 0 var(--border-cage)}
+  .cage-trb{box-shadow:inset 0 1.5px 0 var(--border-cage), inset -1.5px 0 0 var(--border-cage), inset 0 -1.5px 0 var(--border-cage)}
+  .cage-tlb{box-shadow:inset 0 1.5px 0 var(--border-cage), inset 1.5px 0 0 var(--border-cage), inset 0 -1.5px 0 var(--border-cage)}
+
+  .cell.deduce{background:rgba(59,130,246,.12)}
+  .cell.deduce::after{content:"";position:absolute;inset:3px;border:1.5px solid var(--cell-deduction);border-radius:4px;pointer-events:none}
+  .cell.conclude{background:rgba(16,185,129,.14)}
+  .cell.conclude::after{content:"";position:absolute;inset:3px;border:1.5px solid var(--cell-conclusion);border-radius:4px;pointer-events:none}
+
+  .tut-explain{
+    display:flex;flex-direction:column;gap:6px;
+    border-top:1px dashed var(--border);
+    padding-top:8px;
+  }
+  .tut-move{
+    display:flex;align-items:flex-start;gap:8px;
+    font-size:11.5px;line-height:16px;color:var(--text-secondary);
+  }
+  .tut-move .tag{
+    font-family:'JetBrains Mono',monospace;font-size:10px;
+    padding:1px 5px;border-radius:4px;
+    background:var(--brand-100);color:var(--brand-600);
+    flex:0 0 auto;
+    letter-spacing:.02em;
+  }
+  .tut-move .ref{font-family:'JetBrains Mono',monospace;color:var(--text-tertiary);font-size:10.5px}
+
+  .cta-row{
+    margin-top:auto;margin-bottom:10px;
+    display:flex;gap:8px;
+  }
+  .btn{
+    flex:1;height:42px;border-radius:8px;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    font-size:13px;font-weight:500;cursor:pointer;border:1px solid var(--border);
+    background:var(--surface-elevated);color:var(--text-primary);
+  }
+  .btn.primary{background:var(--text-primary);color:var(--text-on-brand);border-color:transparent}
+  .btn.primary .kbd{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+  @media (prefers-color-scheme: dark){
+    .btn.primary .kbd{background:rgba(0,0,0,.18);border-color:rgba(0,0,0,.3);color:#0a0a0a}
+  }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-os"><span>9:41</span><span class="right mono">5G · 100%</span></div>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="crumbs">
+          <span class="mono">tectonic</span>
+          <span class="sep">/</span>
+          <span class="here">onboarding</span>
+          <span class="sep">·</span>
+          <span class="mono">step 1/3</span>
+        </div>
+        <span class="kbd">esc</span>
+      </div>
+
+      <h1 class="title">Welcome, Newcomer.</h1>
+      <p class="sub">Three things, in order. You'll be solving a Tectonic in under a minute.</p>
+
+      <ol class="step-list">
+        <li class="step active">
+          <span class="num">1</span>
+          <div class="body">
+            <span class="label">Read the rules</span>
+            <div class="meta"><b>30s</b> · region 1–5 cells · same digit can't touch, ever</div>
+          </div>
+          <span class="kbd">⏎</span>
+        </li>
+        <li class="step">
+          <span class="num">2</span>
+          <div class="body">
+            <span class="label">First tutorial puzzle</span>
+            <div class="meta"><b>3×4</b> · naked single only · embedded below</div>
+          </div>
+          <span class="kbd">2</span>
+        </li>
+        <li class="step">
+          <span class="num">3</span>
+          <div class="body">
+            <span class="label">Begin Newcomer track</span>
+            <div class="meta"><b>5</b> easy puzzles to master <b>naked single</b></div>
+          </div>
+          <span class="kbd">3</span>
+        </li>
+      </ol>
+
+      <section class="tut-card">
+        <header class="tut-head">
+          <div class="l"><b>tutorial.001</b> · 3×4 · naked single demo</div>
+          <span class="mono">0/3</span>
+        </header>
+
+        <div class="miniboard" role="img" aria-label="Mini tutorial board">
+          <!-- row 1 -->
+          <div class="cell cage-tl">1</div>
+          <div class="cell cage-tb">2</div>
+          <div class="cell cage-t">3</div>
+          <div class="cell cage-trb">1</div>
+          <!-- row 2 -->
+          <div class="cell cage-l">3</div>
+          <div class="cell deduce">2</div>
+          <div class="cell"><span class="n">1·2</span></div>
+          <div class="cell cage-r">2</div>
+          <!-- row 3 -->
+          <div class="cell cage-bl lr">2</div>
+          <div class="cell cage-b lr">1</div>
+          <div class="cell conclude lr">3</div>
+          <div class="cell cage-br lr">1</div>
+        </div>
+
+        <div class="tut-explain">
+          <div class="tut-move">
+            <span class="tag">naked single</span>
+            <span>R3C3 can only be <b style="color:var(--cell-conclusion);font-weight:500">3</b> — every other digit collides with a neighbor.</span>
+          </div>
+          <div class="tut-move">
+            <span class="tag" style="background:transparent;color:var(--text-tertiary);border:1px solid var(--border)">why?</span>
+            <span class="ref">neighbors: 2·1·1·2 → only 3 remains in {1..3}</span>
+          </div>
+        </div>
+      </section>
+
+      <div class="cta-row">
+        <button class="btn" type="button">Skip</button>
+        <button class="btn primary" type="button">
+          Read rules <span class="kbd">⏎</span>
+        </button>
+      </div>
+    </div>
+
+    <footer class="statusbar">
+      <div class="left">
+        <span class="sb-mono">jonas</span>
+        <span class="dot"></span>
+        <span>Stage: Newcomer</span>
+      </div>
+      <div class="right">
+        <span>Day <span class="sb-mono">1</span></span>
+        <span class="dot"></span>
+        <span>⌘K palette</span>
+      </div>
+    </footer>
+
+    <div class="home-bar"></div>
+  </div>
+</body>
+</html>

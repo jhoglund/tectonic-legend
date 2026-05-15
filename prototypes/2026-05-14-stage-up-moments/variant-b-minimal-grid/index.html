@@ -1,0 +1,490 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage-Up Moments — Variant B: Scandinavian Minimal (Board Ghost)</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fafafa;
+    --fg: #0a0a0a;
+    --muted: #71717a;
+    --border: #e4e4e7;
+    --brand: #0891b2;
+    --brand-subtle: rgba(8, 145, 178, 0.06);
+    --brand-ghost: rgba(8, 145, 178, 0.04);
+    --surface: #ffffff;
+    --grid-line: rgba(0, 0, 0, 0.04);
+    --grid-cell-bg: rgba(0, 0, 0, 0.015);
+    --grid-num: rgba(0, 0, 0, 0.06);
+    --radius-card: 12px;
+    --radius-modal: 20px;
+    --radius-chip: 999px;
+    --motion-base: 200ms;
+    --motion-slow: 400ms;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    --font-mono: 'JetBrains Mono', ui-monospace, Menlo, monospace;
+  }
+
+  :root.dark {
+    --bg: #0a0a0a;
+    --fg: #fafafa;
+    --muted: #a1a1aa;
+    --border: #27272a;
+    --brand: #06b6d4;
+    --brand-subtle: rgba(6, 182, 212, 0.08);
+    --brand-ghost: rgba(6, 182, 212, 0.04);
+    --surface: #18181b;
+    --grid-line: rgba(255, 255, 255, 0.04);
+    --grid-cell-bg: rgba(255, 255, 255, 0.015);
+    --grid-num: rgba(255, 255, 255, 0.05);
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    transition: background var(--motion-base) ease, color var(--motion-base) ease;
+  }
+
+  /* ── Controls bar ── */
+  .controls {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--motion-base) ease, border-color var(--motion-base) ease;
+  }
+
+  .controls button {
+    font-family: var(--font);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-chip);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all var(--motion-base) ease;
+  }
+  .controls button:hover { color: var(--fg); border-color: var(--fg); }
+  .controls button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .controls .separator { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+  .controls .theme-toggle {
+    font-size: 14px; width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  }
+
+  /* ── Card viewport ── */
+  .card-viewport {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px 24px;
+  }
+
+  /* ── Stage-up card ── */
+  .stage-card {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    max-width: 390px;
+    height: 100%;
+    max-height: 844px;
+    padding: 48px 32px 40px;
+    position: relative;
+    overflow: hidden;
+  }
+  .stage-card.visible {
+    display: flex;
+    animation: cardFadeIn var(--motion-slow) cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Ghost board ── */
+  .ghost-board {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -55%);
+    width: 280px;
+    height: 280px;
+    pointer-events: none;
+    opacity: 1;
+  }
+
+  .ghost-board svg {
+    width: 100%;
+    height: 100%;
+  }
+
+  /* ── Content blocks ── */
+  .card-spacer { flex: 1; }
+
+  .stage-label {
+    font-size: 11px;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-title {
+    font-size: 28px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    line-height: 1.15;
+    margin-bottom: 20px;
+    position: relative;
+    z-index: 2;
+  }
+
+  .card-body {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 1.55;
+    color: var(--muted);
+    max-width: 300px;
+    position: relative;
+    z-index: 2;
+  }
+  .card-body em { font-style: italic; color: var(--fg); }
+
+  .unlock-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-top: 24px;
+    padding: 6px 14px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--brand);
+    background: var(--brand-subtle);
+    border-radius: var(--radius-chip);
+    letter-spacing: -0.01em;
+    position: relative;
+    z-index: 2;
+  }
+  .unlock-pill::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--brand);
+  }
+
+  /* ── Journey dots ── */
+  .journey-dots {
+    display: flex;
+    gap: 8px;
+    margin-top: auto;
+    margin-bottom: 24px;
+    padding-top: 48px;
+    position: relative;
+    z-index: 2;
+  }
+  .journey-dot {
+    width: 6px; height: 6px; border-radius: 50%;
+    background: var(--border);
+    transition: background var(--motion-base) ease, transform var(--motion-base) ease;
+  }
+  .journey-dot.reached { background: var(--muted); }
+  .journey-dot.current { background: var(--brand); transform: scale(1.33); }
+
+  /* ── Continue button ── */
+  .continue-btn {
+    font-family: var(--font);
+    font-size: 16px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    width: 100%;
+    padding: 14px 0;
+    border: none;
+    border-radius: var(--radius-card);
+    background: var(--fg);
+    color: var(--bg);
+    cursor: pointer;
+    transition: opacity var(--motion-base) ease;
+    position: relative;
+    z-index: 2;
+  }
+  .continue-btn:hover { opacity: 0.85; }
+  .continue-btn:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button class="card-tab active" data-card="0">Beginner</button>
+  <button class="card-tab" data-card="1">Confident</button>
+  <button class="card-tab" data-card="2">Advanced</button>
+  <button class="card-tab" data-card="3">Master</button>
+  <div class="separator"></div>
+  <button class="theme-toggle" aria-label="Toggle dark mode">
+    <span class="theme-icon">&#9789;</span>
+  </button>
+</div>
+
+<div class="card-viewport">
+
+  <!-- Card 1: Beginner — 5×5 ghost grid -->
+  <div class="stage-card visible" data-index="0">
+    <div class="ghost-board" id="ghost-0"></div>
+    <div class="card-spacer"></div>
+    <div class="stage-label">Stage Up</div>
+    <h1 class="card-title">You're a Beginner now</h1>
+    <p class="card-body">Easy asks you to find what a cell <em>must</em> hold. One answer, no ambiguity.</p>
+    <div class="unlock-pill">Easy puzzles unlocked</div>
+    <div class="journey-dots">
+      <div class="journey-dot current"></div>
+      <div class="journey-dot"></div>
+      <div class="journey-dot"></div>
+      <div class="journey-dot"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 2: Confident -->
+  <div class="stage-card" data-index="1">
+    <div class="ghost-board" id="ghost-1"></div>
+    <div class="card-spacer"></div>
+    <div class="stage-label">Stage Up</div>
+    <h1 class="card-title">You're Confident now</h1>
+    <p class="card-body">Medium asks where a value <em>can</em> go, not just what a cell must hold.</p>
+    <div class="unlock-pill">Medium puzzles unlocked</div>
+    <div class="journey-dots">
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot current"></div>
+      <div class="journey-dot"></div>
+      <div class="journey-dot"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 3: Advanced -->
+  <div class="stage-card" data-index="2">
+    <div class="ghost-board" id="ghost-2"></div>
+    <div class="card-spacer"></div>
+    <div class="stage-label">Stage Up</div>
+    <h1 class="card-title">You're Advanced now</h1>
+    <p class="card-body">Hard asks you to read a cell's neighborhood — what other cells force this one.</p>
+    <div class="unlock-pill">Hard puzzles unlocked</div>
+    <div class="journey-dots">
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot current"></div>
+      <div class="journey-dot"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 4: Master -->
+  <div class="stage-card" data-index="3">
+    <div class="ghost-board" id="ghost-3"></div>
+    <div class="card-spacer"></div>
+    <div class="stage-label">Stage Up</div>
+    <h1 class="card-title">You're a Master now</h1>
+    <p class="card-body">Expert puzzles aren't solvable by direct logic alone — you'll need to follow a contradiction chain.</p>
+    <div class="unlock-pill">Expert puzzles unlocked</div>
+    <div class="journey-dots">
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot reached"></div>
+      <div class="journey-dot current"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+</div>
+
+<script>
+  // ── Ghost board SVG generation ──
+  // Renders a faint Tectonic/Suguru-style grid with region outlines and ghost numerals
+  function createGhostBoard(container, gridSize, regions, values) {
+    const cellSize = 280 / gridSize;
+    const lineColor = 'var(--grid-line)';
+    const regionColor = 'var(--grid-line)';
+    const numColor = 'var(--grid-num)';
+
+    let svg = `<svg viewBox="0 0 280 280" xmlns="http://www.w3.org/2000/svg">`;
+
+    // Cell backgrounds
+    for (let r = 0; r < gridSize; r++) {
+      for (let c = 0; c < gridSize; c++) {
+        svg += `<rect x="${c * cellSize}" y="${r * cellSize}" width="${cellSize}" height="${cellSize}" fill="var(--grid-cell-bg)" rx="2"/>`;
+      }
+    }
+
+    // Inner grid lines
+    for (let i = 1; i < gridSize; i++) {
+      svg += `<line x1="${i * cellSize}" y1="0" x2="${i * cellSize}" y2="280" stroke="${lineColor}" stroke-width="1"/>`;
+      svg += `<line x1="0" y1="${i * cellSize}" x2="280" y2="${i * cellSize}" stroke="${lineColor}" stroke-width="1"/>`;
+    }
+
+    // Region borders (thicker)
+    regions.forEach(region => {
+      region.forEach(([r, c]) => {
+        const x = c * cellSize;
+        const y = r * cellSize;
+        // Check each neighbor
+        if (!region.some(([nr, nc]) => nr === r - 1 && nc === c)) {
+          svg += `<line x1="${x}" y1="${y}" x2="${x + cellSize}" y2="${y}" stroke="${regionColor}" stroke-width="2.5"/>`;
+        }
+        if (!region.some(([nr, nc]) => nr === r + 1 && nc === c)) {
+          svg += `<line x1="${x}" y1="${y + cellSize}" x2="${x + cellSize}" y2="${y + cellSize}" stroke="${regionColor}" stroke-width="2.5"/>`;
+        }
+        if (!region.some(([nr, nc]) => nr === r && nc === c - 1)) {
+          svg += `<line x1="${x}" y1="${y}" x2="${x}" y2="${y + cellSize}" stroke="${regionColor}" stroke-width="2.5"/>`;
+        }
+        if (!region.some(([nr, nc]) => nr === r && nc === c + 1)) {
+          svg += `<line x1="${x + cellSize}" y1="${y}" x2="${x + cellSize}" y2="${y + cellSize}" stroke="${regionColor}" stroke-width="2.5"/>`;
+        }
+      });
+    });
+
+    // Ghost numerals
+    values.forEach(({ r, c, v }) => {
+      svg += `<text x="${c * cellSize + cellSize / 2}" y="${r * cellSize + cellSize / 2 + 1}" text-anchor="middle" dominant-baseline="central" fill="${numColor}" font-family="'JetBrains Mono', ui-monospace, monospace" font-size="${cellSize * 0.4}" font-weight="500">${v}</text>`;
+    });
+
+    svg += `</svg>`;
+    container.innerHTML = svg;
+  }
+
+  // 5×5 sample regions and values for each card
+  const boards = [
+    { // Beginner — sparse, simple
+      size: 5,
+      regions: [
+        [[0,0],[0,1],[1,0]],
+        [[0,2],[0,3],[0,4]],
+        [[1,1],[1,2],[2,2]],
+        [[1,3],[1,4],[2,3],[2,4]],
+        [[2,0],[2,1],[3,0]],
+        [[3,1],[3,2],[4,2]],
+        [[3,3],[3,4],[4,3],[4,4]],
+        [[4,0],[4,1]]
+      ],
+      values: [
+        {r:0,c:0,v:2},{r:0,c:3,v:1},{r:1,c:2,v:3},{r:2,c:1,v:5},
+        {r:3,c:0,v:4},{r:3,c:4,v:2},{r:4,c:2,v:1},{r:4,c:4,v:3}
+      ]
+    },
+    { // Confident — slightly more filled
+      size: 5,
+      regions: [
+        [[0,0],[1,0],[1,1]],
+        [[0,1],[0,2],[0,3]],
+        [[0,4],[1,4],[1,3]],
+        [[1,2],[2,2],[2,1]],
+        [[2,0],[3,0],[3,1]],
+        [[2,3],[2,4],[3,4]],
+        [[3,2],[3,3],[4,3]],
+        [[4,0],[4,1],[4,2]],
+        [[4,4]]
+      ],
+      values: [
+        {r:0,c:1,v:3},{r:0,c:4,v:1},{r:1,c:0,v:2},{r:1,c:3,v:3},
+        {r:2,c:2,v:1},{r:2,c:4,v:4},{r:3,c:1,v:5},{r:3,c:3,v:2},
+        {r:4,c:0,v:3},{r:4,c:2,v:4},{r:4,c:4,v:5}
+      ]
+    },
+    { // Advanced — more complex
+      size: 5,
+      regions: [
+        [[0,0],[0,1],[1,1]],
+        [[0,2],[0,3],[0,4],[1,4]],
+        [[1,0],[2,0],[2,1]],
+        [[1,2],[1,3],[2,3]],
+        [[2,2],[3,2],[3,1]],
+        [[2,4],[3,4],[3,3]],
+        [[3,0],[4,0],[4,1]],
+        [[4,2],[4,3],[4,4]]
+      ],
+      values: [
+        {r:0,c:0,v:1},{r:0,c:2,v:4},{r:0,c:4,v:2},{r:1,c:1,v:3},
+        {r:1,c:3,v:1},{r:2,c:0,v:3},{r:2,c:2,v:5},{r:2,c:4,v:1},
+        {r:3,c:1,v:4},{r:3,c:3,v:3},{r:4,c:0,v:2},{r:4,c:2,v:1},{r:4,c:4,v:5}
+      ]
+    },
+    { // Master — dense
+      size: 5,
+      regions: [
+        [[0,0],[0,1],[1,0],[1,1]],
+        [[0,2],[0,3]],
+        [[0,4],[1,4],[1,3]],
+        [[1,2],[2,2],[2,3]],
+        [[2,0],[2,1],[3,0]],
+        [[2,4],[3,4],[3,3]],
+        [[3,1],[3,2],[4,2]],
+        [[4,0],[4,1]],
+        [[4,3],[4,4]]
+      ],
+      values: [
+        {r:0,c:0,v:1},{r:0,c:1,v:3},{r:0,c:2,v:2},{r:0,c:4,v:4},
+        {r:1,c:0,v:4},{r:1,c:2,v:5},{r:1,c:3,v:1},{r:1,c:4,v:2},
+        {r:2,c:1,v:2},{r:2,c:3,v:4},{r:3,c:0,v:5},{r:3,c:2,v:3},
+        {r:3,c:4,v:1},{r:4,c:0,v:3},{r:4,c:1,v:1},{r:4,c:3,v:5},{r:4,c:4,v:2}
+      ]
+    }
+  ];
+
+  boards.forEach((board, i) => {
+    const container = document.getElementById(`ghost-${i}`);
+    if (container) createGhostBoard(container, board.size, board.regions, board.values);
+  });
+
+  // Card tab switching
+  const tabs = document.querySelectorAll('.card-tab');
+  const cards = document.querySelectorAll('.stage-card');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = parseInt(tab.dataset.card);
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      cards.forEach(c => c.classList.remove('visible'));
+      cards[idx].classList.add('visible');
+    });
+  });
+
+  // Theme toggle
+  const root = document.documentElement;
+  const themeBtn = document.querySelector('.theme-toggle');
+  const themeIcon = themeBtn.querySelector('.theme-icon');
+
+  themeBtn.addEventListener('click', () => {
+    root.classList.toggle('dark');
+    themeIcon.innerHTML = root.classList.contains('dark') ? '&#9788;' : '&#9789;';
+  });
+</script>
+</body>
+</html>

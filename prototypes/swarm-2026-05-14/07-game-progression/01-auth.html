@@ -1,0 +1,137 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;
+    color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh; padding:24px;
+    font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:env(safe-area-inset-top,44px);min-height:44px}
+  .safe-bottom{height:34px}
+  .wordmark{
+    font-weight:600;letter-spacing:-0.01em;font-size:18px;
+    padding:8px 24px 0;
+  }
+  .wordmark span{color:var(--brand-600)}
+
+  .hero{
+    flex:1;display:flex;flex-direction:column;justify-content:flex-end;
+    padding:0 24px;position:relative;overflow:hidden;
+  }
+  .hero h1{
+    font-weight:500;font-size:32px;line-height:36px;letter-spacing:-0.02em;
+    margin-bottom:12px;
+  }
+  .hero p{
+    font-size:16px;line-height:24px;color:var(--text-secondary);
+    max-width:300px;margin-bottom:32px;
+  }
+  .path-hint{
+    position:absolute;left:0;right:0;top:60px;bottom:200px;
+    pointer-events:none;
+  }
+  .actions{padding:0 24px 24px;display:flex;flex-direction:column;gap:8px}
+  .btn{
+    width:100%;height:48px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface-elevated);color:var(--text-primary);
+    font-family:inherit;font-size:15px;font-weight:500;
+    display:flex;align-items:center;justify-content:center;gap:8px;
+    cursor:pointer;
+  }
+  .btn.primary{background:var(--brand-600);color:var(--text-on-brand);border-color:transparent}
+  .divider{
+    display:flex;align-items:center;gap:12px;
+    color:var(--text-tertiary);font-size:12px;margin:8px 0;
+  }
+  .divider::before,.divider::after{
+    content:"";height:1px;flex:1;background:var(--border);
+  }
+  .toggle{
+    text-align:center;padding-top:8px;
+    font-size:13px;color:var(--text-secondary);
+  }
+  .toggle a{color:var(--brand-600);text-decoration:none;font-weight:500}
+  .legal{
+    text-align:center;font-size:11px;line-height:16px;color:var(--text-tertiary);
+    padding:12px 24px 0;
+  }
+  .legal a{color:var(--text-secondary);text-decoration:none}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+  <div class="wordmark">tectonic<span>.</span></div>
+
+  <div class="hero">
+    <svg class="path-hint" viewBox="0 0 390 580" preserveAspectRatio="none" aria-hidden="true">
+      <!-- topographic contour suggesting the start of a journey -->
+      <defs>
+        <linearGradient id="fadeOut" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brand-600)" stop-opacity="0"/>
+          <stop offset="40%" stop-color="var(--brand-600)" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="var(--brand-600)" stop-opacity="0.7"/>
+        </linearGradient>
+      </defs>
+      <path d="M -40 60 C 80 80, 180 200, 130 320 S 240 480, 220 580"
+            fill="none" stroke="url(#fadeOut)" stroke-width="1.25" />
+      <path d="M -60 140 C 120 180, 260 280, 180 420 S 320 560, 300 640"
+            fill="none" stroke="var(--brand-600)" stroke-width="0.75" stroke-opacity="0.18" />
+      <path d="M 40 20 C 160 60, 100 220, 220 280 S 100 440, 160 580"
+            fill="none" stroke="var(--brand-600)" stroke-width="0.75" stroke-opacity="0.12" />
+      <!-- start dot -->
+      <circle cx="220" cy="540" r="4" fill="var(--brand-600)"/>
+      <circle cx="220" cy="540" r="10" fill="none" stroke="var(--brand-600)" stroke-opacity="0.3"/>
+    </svg>
+
+    <h1>The path<br>begins quietly.</h1>
+    <p>A Tectonic puzzle game that grows with you, from your first deduction to your last.</p>
+  </div>
+
+  <div class="actions">
+    <button class="btn primary">Continue with Apple</button>
+    <button class="btn">Continue with Google</button>
+    <div class="divider">or</div>
+    <button class="btn">Continue with email</button>
+    <div class="toggle">New here? <a href="#">Begin as a Newcomer</a></div>
+    <div class="legal">By continuing you agree to our <a href="#">terms</a> and <a href="#">privacy</a>.</div>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

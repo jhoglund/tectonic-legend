@@ -1,0 +1,332 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Solving</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa; --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+    --cell-assumption:#f59e0b; --cell-deduction:#3b82f6; --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b; --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #2a2a2a;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .device {
+    width: 390px; height: 844px;
+    background: var(--surface);
+    position: relative; overflow: hidden;
+    border-radius: 40px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  }
+  .safe-top { height: 54px; }
+  .safe-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 34px; display: flex; align-items: center; justify-content: center; }
+  .home-indicator { width: 134px; height: 5px; background: var(--text-primary); opacity: 0.35; border-radius: 999px; }
+
+  /* Almost no chrome — just thin status row */
+  .micro-status {
+    position: absolute;
+    top: 18px; left: 0; right: 0;
+    display: flex; justify-content: space-between;
+    padding: 0 24px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px;
+    color: var(--text-tertiary);
+    letter-spacing: 0.04em;
+    z-index: 2;
+  }
+
+  .stage {
+    padding: 16px 16px 0;
+    height: calc(100% - 88px);
+    display: flex; flex-direction: column;
+    gap: 12px;
+  }
+
+  /* Board container — visual hero */
+  .board-wrap {
+    width: 100%;
+    aspect-ratio: 1/1;
+    background: var(--surface-board);
+    border: 2px solid var(--border-cage);
+    border-radius: 16px;
+    overflow: hidden;
+    position: relative;
+  }
+  .board {
+    width: 100%; height: 100%;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    grid-template-rows: repeat(5, 1fr);
+  }
+  .cell {
+    border: 1px solid var(--border);
+    background: var(--surface-cell);
+    display: flex; align-items: center; justify-content: center;
+    position: relative;
+  }
+  .cell .v {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 24px;
+    font-weight: 500;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .cell.given .v { font-weight: 500; }
+  .cell.user .v { color: var(--brand-600); font-weight: 500; }
+  .cell.selected { background: var(--surface-cell-selected); }
+  .cell.cr { border-right: 2px solid var(--border-cage); }
+  .cell.cb { border-bottom: 2px solid var(--border-cage); }
+
+  /* notes */
+  .notes {
+    position: absolute; inset: 2px;
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: repeat(2, 1fr);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 9px;
+    color: var(--text-tertiary);
+    font-variant-numeric: tabular-nums;
+  }
+  .notes span { display: flex; align-items: center; justify-content: center; }
+
+  /* hint chain rings */
+  .cell.ring-assumption::before, .cell.ring-deduction::before,
+  .cell.ring-contradiction::before, .cell.ring-conclusion::before {
+    content: "";
+    position: absolute; inset: 3px;
+    border-radius: 4px;
+    border: 2px solid;
+    pointer-events: none;
+  }
+  .cell.ring-assumption::before { border-color: var(--cell-assumption); }
+  .cell.ring-deduction::before { border-color: var(--cell-deduction); }
+  .cell.ring-contradiction::before { border-color: var(--cell-contradiction); }
+  .cell.ring-conclusion::before { border-color: var(--cell-conclusion); }
+
+  /* Stepper below board */
+  .stepper {
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 14px;
+    display: flex; flex-direction: column; gap: 10px;
+  }
+  .stepper-head {
+    display: flex; justify-content: space-between; align-items: center;
+  }
+  .stepper-title {
+    font-size: 11px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text-tertiary); font-weight: 500;
+  }
+  .stepper-count {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 11px; color: var(--text-secondary);
+  }
+  .step-line {
+    font-size: 13px; line-height: 18px; color: var(--text-primary);
+  }
+  .step-line .swatch {
+    display: inline-block; width: 8px; height: 8px; border-radius: 2px;
+    vertical-align: middle; margin-right: 6px;
+  }
+  .step-line .swatch.a { background: var(--cell-assumption); }
+  .step-line .swatch.d { background: var(--cell-deduction); }
+  .step-line .swatch.x { background: var(--cell-contradiction); }
+  .step-line .swatch.c { background: var(--cell-conclusion); }
+  .step-line em { font-style: normal; color: var(--text-secondary); font-weight: 400; }
+
+  .step-nav {
+    display: flex; align-items: center; gap: 4px;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 12px; color: var(--text-tertiary);
+  }
+  .step-nav .ix { color: var(--text-primary); font-weight: 500; }
+  .step-nav .dots { display: inline-flex; gap: 4px; margin: 0 8px; }
+  .step-nav .dots i { width: 4px; height: 4px; border-radius: 999px; background: var(--text-tertiary); opacity: 0.4; }
+  .step-nav .dots i.on { background: var(--text-primary); opacity: 1; }
+  .step-nav .arrow { color: var(--text-secondary); }
+
+  /* Technique chip surfaced post-hint */
+  .technique-chip {
+    align-self: flex-start;
+    display: inline-flex; align-items: center; gap: 6px;
+    background: var(--brand-50);
+    color: var(--brand-600);
+    font-size: 11px;
+    font-weight: 500;
+    padding: 4px 10px;
+    border-radius: 999px;
+    letter-spacing: 0.02em;
+  }
+  .technique-chip .pip { width: 5px; height: 5px; border-radius: 999px; background: var(--brand-600); }
+
+  /* Floating number row at bottom edge — summoned by selection */
+  .num-row {
+    position: absolute;
+    left: 16px; right: 16px;
+    bottom: 50px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 10px;
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 4px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.12);
+  }
+  .num-row .k {
+    height: 44px;
+    border-radius: 8px;
+    background: transparent;
+    color: var(--text-primary);
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 20px;
+    font-weight: 500;
+    cursor: pointer;
+  }
+  .num-row .k.dim { color: var(--text-tertiary); }
+
+  .annot {
+    position: absolute;
+    font-size: 10px;
+    color: var(--brand-600);
+    font-weight: 500;
+    pointer-events: none;
+    line-height: 13px;
+    letter-spacing: 0.02em;
+  }
+  .annot::before { content: ""; display: inline-block; width: 12px; height: 1px; background: var(--brand-600); vertical-align: middle; margin-right: 5px; opacity: 0.5; }
+  .annot.tl { top: 38px; left: 16px; }
+  .annot.tr { top: 38px; right: 16px; text-align: right; }
+  .annot.ml { top: 50%; left: 6px; transform: translateY(-50%); }
+  .annot.br { bottom: 16px; right: 16px; text-align: right; }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="safe-top"></div>
+
+    <div class="micro-status">
+      <span>05:42</span>
+      <span>#214 · medium</span>
+    </div>
+
+    <div class="stage">
+      <div class="board-wrap">
+        <div class="board">
+          <!-- Row 1 -->
+          <div class="cell given cr cb"><span class="v">3</span></div>
+          <div class="cell user cb"><span class="v">5</span></div>
+          <div class="cell cr cb ring-assumption">
+            <div class="notes"><span>1</span><span></span><span>2</span><span></span><span>4</span><span></span></div>
+          </div>
+          <div class="cell given cb"><span class="v">2</span></div>
+          <div class="cell cb ring-deduction"><span class="v" style="color:var(--cell-deduction)">4</span></div>
+
+          <!-- Row 2 -->
+          <div class="cell cr"><span class="v" style="color:var(--brand-600)">2</span></div>
+          <div class="cell given cb cr"><span class="v">1</span></div>
+          <div class="cell"><span class="v" style="color:var(--brand-600)">5</span></div>
+          <div class="cell given cr cb"><span class="v">4</span></div>
+          <div class="cell ring-contradiction">
+            <div class="notes"><span>3</span><span></span><span></span><span></span><span></span><span></span></div>
+          </div>
+
+          <!-- Row 3 -->
+          <div class="cell cr cb selected">
+            <div class="notes"><span>1</span><span></span><span>4</span><span></span><span>5</span><span></span></div>
+          </div>
+          <div class="cell given"><span class="v">3</span></div>
+          <div class="cell cb cr"><span class="v" style="color:var(--brand-600)">2</span></div>
+          <div class="cell"><span class="v" style="color:var(--brand-600)">1</span></div>
+          <div class="cell given cb"><span class="v">5</span></div>
+
+          <!-- Row 4 -->
+          <div class="cell given"><span class="v">2</span></div>
+          <div class="cell cr cb ring-conclusion"><span class="v" style="color:var(--cell-conclusion)">5</span></div>
+          <div class="cell"><span class="v" style="color:var(--brand-600)">4</span></div>
+          <div class="cell cr cb"><span class="v" style="color:var(--brand-600)">3</span></div>
+          <div class="cell given"><span class="v">1</span></div>
+
+          <!-- Row 5 -->
+          <div class="cell"><span class="v" style="color:var(--brand-600)">5</span></div>
+          <div class="cell given"><span class="v">4</span></div>
+          <div class="cell"><span class="v" style="color:var(--brand-600)">1</span></div>
+          <div class="cell given"><span class="v">3</span></div>
+          <div class="cell"><span class="v" style="color:var(--brand-600)">2</span></div>
+        </div>
+      </div>
+
+      <div class="technique-chip"><span class="pip"></span>Contradiction chain</div>
+
+      <div class="stepper">
+        <div class="stepper-head">
+          <span class="stepper-title">Hint · step 3 of 4</span>
+          <span class="stepper-count">R1C3 → R2C5 → R4C2</span>
+        </div>
+        <div class="step-line">
+          <span class="swatch a"></span>If R1C3 is 4 <em>(assumption)</em>
+        </div>
+        <div class="step-line">
+          <span class="swatch d"></span>then R1C5 must be 5 <em>(deduction)</em>
+        </div>
+        <div class="step-line">
+          <span class="swatch x"></span>but R2C5 already needs 3 <em>(contradiction)</em>
+        </div>
+        <div class="step-line">
+          <span class="swatch c"></span>so R4C2 is 5 <em>(conclusion)</em>
+        </div>
+        <div class="step-nav">
+          <span class="arrow">‹</span>
+          <span>step</span>
+          <span class="dots"><i></i><i></i><i class="on"></i><i></i></span>
+          <span class="ix">03</span>
+          <span class="arrow">›</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="num-row">
+      <div class="k">1</div>
+      <div class="k">2</div>
+      <div class="k dim">3</div>
+      <div class="k">4</div>
+      <div class="k">5</div>
+    </div>
+
+    <div class="safe-bottom"><div class="home-indicator"></div></div>
+
+    <div class="annot tl">long-press cell<br>→ notes mode</div>
+    <div class="annot tr">two-finger swipe ↓<br>→ hint</div>
+    <div class="annot ml">edge swipe →<br>abandon (confirm)</div>
+    <div class="annot br">number row appears<br>on selection</div>
+  </div>
+</body>
+</html>

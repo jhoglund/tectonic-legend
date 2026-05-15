@@ -1,0 +1,212 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — New game</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+  .topbar{padding:6px 20px 10px;display:flex;align-items:center;gap:12px}
+  .back{
+    width:32px;height:32px;border-radius:999px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    display:flex;align-items:center;justify-content:center;color:var(--text-secondary);
+    cursor:pointer;
+  }
+  .stage-chip{
+    flex:1;display:flex;align-items:center;gap:10px;
+    padding:6px 12px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary);
+  }
+  .stage-chip .stage-name{color:var(--text-primary);font-weight:500}
+  .stage-chip .stage-bar{
+    flex:1;height:2px;background:var(--border);border-radius:1px;
+    position:relative;overflow:hidden;min-width:60px;
+  }
+  .stage-chip .stage-bar::after{
+    content:"";position:absolute;left:0;top:0;bottom:0;
+    width:62%;background:var(--brand-600);
+  }
+  .stage-chip .stage-next{color:var(--text-tertiary);font-size:11px}
+
+  .header{padding:8px 24px 16px}
+  .kicker{
+    font-size:11px;letter-spacing:0.08em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:6px;
+  }
+  h1{font-weight:500;font-size:24px;line-height:30px;letter-spacing:-0.01em}
+  .sub{font-size:13px;color:var(--text-secondary);margin-top:6px;max-width:320px}
+
+  /* Section: Size */
+  .section{padding:8px 24px 4px}
+  .section-title{
+    font-size:11px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:8px;
+  }
+  .size-row{display:flex;gap:8px}
+  .size-pill{
+    flex:1;padding:10px 12px;border-radius:8px;
+    border:1px solid var(--border);background:var(--surface-elevated);
+    font-family:'JetBrains Mono',monospace;font-size:13px;
+    color:var(--text-primary);cursor:pointer;text-align:center;font-weight:500;
+  }
+  .size-pill.active{
+    border-color:var(--brand-600);background:var(--brand-50);color:var(--brand-600);
+  }
+
+  /* Difficulty list */
+  .diff-list{display:flex;flex-direction:column;gap:8px;padding:0 24px}
+  .diff{
+    padding:14px;border-radius:12px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    display:flex;align-items:center;gap:14px;cursor:pointer;
+    position:relative;
+  }
+  .diff .dot{
+    width:10px;height:10px;border-radius:999px;background:var(--brand-600);flex:none;
+  }
+  .diff.future .dot{background:none;border:1.5px solid var(--brand-600);opacity:0.4}
+  .diff.locked .dot{background:none;border:1.5px dashed var(--border-cage);opacity:0.6}
+  .diff .text{flex:1}
+  .diff .name{font-size:15px;font-weight:500}
+  .diff .desc{font-size:12px;color:var(--text-secondary);margin-top:2px;line-height:18px}
+  .diff .meta{font-size:11px;color:var(--text-tertiary);font-family:'JetBrains Mono',monospace}
+  .diff.locked .name{color:var(--text-tertiary)}
+  .diff.locked .desc{color:var(--text-tertiary)}
+  .diff .gate{
+    font-size:11px;color:var(--text-tertiary);
+    background:var(--surface);border:1px solid var(--border);
+    padding:3px 8px;border-radius:999px;display:inline-flex;align-items:center;gap:6px;
+    margin-top:6px;
+  }
+  .diff .gate b{color:var(--text-secondary);font-weight:500}
+  .diff .gate-bar{
+    width:32px;height:2px;background:var(--border);border-radius:1px;position:relative;overflow:hidden;
+  }
+  .diff .gate-bar::after{content:"";position:absolute;inset:0 0 0 0;width:38%;background:var(--brand-600)}
+
+  .start-row{padding:12px 24px 16px;display:flex;gap:8px}
+  .btn{
+    flex:1;height:48px;border-radius:8px;border:1px solid var(--border);
+    background:var(--surface-elevated);color:var(--text-primary);
+    font-family:inherit;font-size:15px;font-weight:500;cursor:pointer;
+  }
+  .btn.primary{background:var(--brand-600);color:var(--text-on-brand);border-color:transparent}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+  <div class="topbar">
+    <button class="back" aria-label="Back">
+      <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10 4 L6 8 L10 12"/></svg>
+    </button>
+    <div class="stage-chip">
+      <span class="stage-name">Confident</span>
+      <span class="stage-bar"></span>
+      <span class="stage-next">→ Advanced</span>
+    </div>
+  </div>
+
+  <div class="header">
+    <div class="kicker">Stage · Confident</div>
+    <h1>Pick today's puzzle.</h1>
+    <p class="sub">Difficulties at and below your stage are open. Higher difficulties appear as you master techniques.</p>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Grid size</div>
+    <div class="size-row">
+      <button class="size-pill active">5 × 5</button>
+      <button class="size-pill">6 × 6</button>
+      <button class="size-pill">8 × 8</button>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Difficulty</div>
+  </div>
+
+  <div class="diff-list">
+    <div class="diff">
+      <span class="dot"></span>
+      <div class="text">
+        <div class="name">Easy</div>
+        <div class="desc">Naked singles. A warm-up.</div>
+      </div>
+      <span class="meta">~4 min</span>
+    </div>
+    <div class="diff" style="border-color:var(--brand-600);background:var(--brand-50)">
+      <span class="dot"></span>
+      <div class="text">
+        <div class="name">Medium</div>
+        <div class="desc">Hidden singles within cages and rows.</div>
+      </div>
+      <span class="meta">~8 min</span>
+    </div>
+    <div class="diff future">
+      <span class="dot"></span>
+      <div class="text">
+        <div class="name">Hard</div>
+        <div class="desc">Forced moves — reading a cell's neighborhood.</div>
+        <span class="gate">
+          <b>Forced moves</b>
+          <span class="gate-bar"></span>
+          <span>3 / 8</span>
+        </span>
+      </div>
+    </div>
+    <div class="diff locked">
+      <span class="dot"></span>
+      <div class="text">
+        <div class="name">Expert</div>
+        <div class="desc">Contradiction chains. Appears at Master.</div>
+      </div>
+    </div>
+  </div>
+
+  <div style="flex:1"></div>
+
+  <div class="start-row">
+    <button class="btn">Random seed</button>
+    <button class="btn primary">Begin</button>
+  </div>
+
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>

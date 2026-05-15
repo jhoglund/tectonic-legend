@@ -1,0 +1,154 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Tectonic — Variant 06 Editorial · Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --bg:#fafafa; --panel:#ffffff; --ink:#0a0a0a; --ink-2:#525252; --ink-3:#a3a3a3;
+    --border:#e5e5e5; --brand:#0891b2; --brand-soft:#ecfeff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --bg:#0a0a0a; --panel:#171717; --ink:#fafafa; --ink-2:#a3a3a3; --ink-3:#737373;
+      --border:#2a2a2a; --brand:#06b6d4; --brand-soft:#0e2a30;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--bg);color:var(--ink);
+    display:flex;height:100vh;overflow:hidden;
+    -webkit-font-smoothing:antialiased;
+  }
+  aside{
+    width:280px;flex-shrink:0;
+    background:var(--panel);
+    border-right:1px solid var(--border);
+    padding:32px 24px;
+    overflow-y:auto;
+    position:sticky;top:0;height:100vh;
+  }
+  aside h1{
+    font-size:20px;letter-spacing:-0.02em;font-weight:600;
+    margin-bottom:4px;
+  }
+  aside .sub{
+    font-size:12px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:500;margin-bottom:24px;
+    padding-bottom:20px;border-bottom:1px solid var(--border);
+  }
+  aside .angle{
+    font-size:13px;line-height:1.6;color:var(--ink-2);
+    margin-bottom:24px;padding-bottom:20px;
+    border-bottom:1px solid var(--border);
+    font-style:italic;
+  }
+  nav{display:flex;flex-direction:column;gap:2px}
+  nav a{
+    display:flex;align-items:baseline;gap:10px;
+    padding:10px 12px;border-radius:8px;
+    text-decoration:none;color:var(--ink);
+    font-size:14px;font-weight:500;
+    border:1px solid transparent;
+  }
+  nav a:hover{background:var(--brand-soft);border-color:var(--border)}
+  nav a.active{
+    background:var(--brand-soft);color:var(--brand);
+    border-color:var(--brand);
+  }
+  nav a .num{
+    font-size:11px;color:var(--ink-3);font-weight:500;
+    width:20px;letter-spacing:0.06em;
+  }
+  nav a.active .num{color:var(--brand)}
+  .foot{
+    margin-top:24px;padding-top:20px;
+    border-top:1px solid var(--border);
+    font-size:11px;line-height:1.6;color:var(--ink-3);
+  }
+  .foot a{color:var(--ink-2);text-decoration:underline;text-underline-offset:2px}
+
+  main{
+    flex:1;display:flex;align-items:center;justify-content:center;
+    background:
+      radial-gradient(circle at 25% 25%, rgba(8,145,178,0.04), transparent 50%),
+      var(--bg);
+    overflow:auto;padding:32px;
+  }
+  .device-shell{
+    width:412px;
+    background:#0a0a0a;
+    padding:11px;
+    border-radius:48px;
+    box-shadow:0 30px 80px rgba(0,0,0,0.35), 0 0 0 1px rgba(255,255,255,0.05) inset;
+  }
+  iframe{
+    width:390px;height:844px;
+    border:0;border-radius:38px;display:block;
+    background:#fafafa;
+  }
+  @media (prefers-color-scheme: dark) {
+    iframe{background:#0a0a0a}
+  }
+  .caption{
+    text-align:center;margin-top:16px;
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--ink-3);font-weight:500;
+  }
+</style>
+</head>
+<body>
+  <aside>
+    <h1>Tectonic</h1>
+    <p class="sub">Variant 06 · Editorial</p>
+    <p class="angle">Text-led, magazine-paced. The product reads like an editorial section — generous whitespace, long-form copy, and the occasional pull quote for moments worth pausing on.</p>
+    <nav id="nav">
+      <a href="#" data-src="01-auth.html"><span class="num">01</span>Auth</a>
+      <a href="#" data-src="02-onboarding.html"><span class="num">02</span>Onboarding</a>
+      <a href="#" data-src="03-home.html"><span class="num">03</span>Home</a>
+      <a href="#" data-src="04-new-game.html"><span class="num">04</span>New game</a>
+      <a href="#" data-src="05-solving.html"><span class="num">05</span>Solving</a>
+      <a href="#" data-src="06-solved.html"><span class="num">06</span>Solved</a>
+      <a href="#" data-src="07-stats.html"><span class="num">07</span>Stats</a>
+      <a href="#" data-src="08-stage-up.html"><span class="num">08</span>Stage up</a>
+    </nav>
+    <div class="foot">
+      <p>Swarm 2026-05-14. 390×844 portrait. Tokens from BRIEF.md §4. Dark-mode aware.</p>
+      <p style="margin-top:8px"><a href="STATUS.md">STATUS.md</a></p>
+    </div>
+  </aside>
+  <main>
+    <div>
+      <div class="device-shell">
+        <iframe id="frame" src="03-home.html" title="Variant preview"></iframe>
+      </div>
+      <p class="caption" id="cap">03 · Home</p>
+    </div>
+  </main>
+<script>
+  const nav = document.getElementById('nav');
+  const frame = document.getElementById('frame');
+  const cap = document.getElementById('cap');
+  function activate(link) {
+    [...nav.querySelectorAll('a')].forEach(a => a.classList.remove('active'));
+    link.classList.add('active');
+    frame.src = link.dataset.src;
+    cap.textContent = link.querySelector('.num').textContent + ' · ' + link.textContent.replace(link.querySelector('.num').textContent,'').trim();
+  }
+  nav.addEventListener('click', e => {
+    const a = e.target.closest('a');
+    if (!a) return;
+    e.preventDefault();
+    activate(a);
+  });
+  // Start on Home
+  activate(nav.querySelector('a[data-src="03-home.html"]'));
+</script>
+</body>
+</html>

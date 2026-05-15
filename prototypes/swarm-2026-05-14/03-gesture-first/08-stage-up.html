@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Stage up</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa; --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b; --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: 'Inter', system-ui, sans-serif;
+    background: #2a2a2a;
+    color: var(--text-primary);
+    font-variant-numeric: tabular-nums;
+    display: flex; align-items: center; justify-content: center;
+    min-height: 100vh;
+    -webkit-font-smoothing: antialiased;
+  }
+  .device {
+    width: 390px; height: 844px;
+    background: var(--surface);
+    position: relative; overflow: hidden;
+    border-radius: 40px;
+    box-shadow: 0 12px 40px rgba(0,0,0,0.18);
+  }
+  /* Background ghost — the page underneath, zoomed out */
+  .ghost-bg {
+    position: absolute; inset: 0;
+    transform: scale(0.92);
+    opacity: 0.18;
+    filter: blur(1px);
+    pointer-events: none;
+    padding: 60px 36px;
+  }
+  .ghost-board {
+    width: 100%; aspect-ratio: 1/1;
+    background: var(--surface-board);
+    border: 2px solid var(--border-cage);
+    border-radius: 16px;
+    display: grid;
+    grid-template-columns: repeat(5,1fr);
+    grid-template-rows: repeat(5,1fr);
+  }
+  .ghost-board .c {
+    border: 1px solid var(--border);
+  }
+  .ghost-board .c.cr { border-right: 2px solid var(--border-cage); }
+  .ghost-board .c.cb { border-bottom: 2px solid var(--border-cage); }
+
+  /* Foreground layer — the stage card */
+  .layer {
+    position: absolute; inset: 0;
+    background: var(--surface);
+    opacity: 0.92;
+  }
+
+  .center {
+    position: absolute; inset: 0;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    padding: 0 40px;
+    text-align: center;
+    gap: 24px;
+  }
+
+  .stage-track {
+    display: flex; align-items: center; gap: 10px;
+    margin-bottom: 8px;
+  }
+  .stage-track .label {
+    font-size: 10px; letter-spacing: 0.12em; text-transform: uppercase;
+    color: var(--text-tertiary); font-weight: 500;
+  }
+  .stage-track .label.cur { color: var(--text-primary); }
+  .stage-track .arrow {
+    color: var(--text-tertiary);
+    font-family: 'JetBrains Mono', monospace; font-size: 12px;
+  }
+
+  .glyph {
+    width: 96px; height: 96px;
+    border-radius: 16px;
+    background: var(--surface-elevated);
+    border: 1px solid var(--border);
+    display: flex; align-items: center; justify-content: center;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+    margin-bottom: 8px;
+    position: relative;
+  }
+  .glyph svg { width: 56px; height: 56px; }
+  /* a quiet symbolic mark */
+
+  .h {
+    font-size: 32px; line-height: 36px; font-weight: 500;
+    letter-spacing: -0.02em;
+    color: var(--text-primary);
+  }
+  .h em { font-style: normal; color: var(--brand-600); }
+
+  .body {
+    font-size: 15px; line-height: 22px;
+    color: var(--text-secondary);
+    max-width: 300px;
+  }
+  .body strong { color: var(--text-primary); font-weight: 500; }
+
+  .footer {
+    position: absolute;
+    left: 0; right: 0; bottom: 60px;
+    display: flex; flex-direction: column; align-items: center; gap: 8px;
+    color: var(--text-tertiary);
+  }
+  .footer .chev {
+    display: inline-flex; gap: 4px;
+  }
+  .footer .chev i { width: 6px; height: 6px; border-radius: 999px; background: currentColor; opacity: 0.4; }
+  .footer .label {
+    font-size: 12px; letter-spacing: 0.02em;
+  }
+
+  .safe-bottom { position: absolute; bottom: 0; left: 0; right: 0; height: 34px; display: flex; align-items: center; justify-content: center; z-index: 3; }
+  .home-indicator { width: 134px; height: 5px; background: var(--text-primary); opacity: 0.35; border-radius: 999px; }
+
+  .annot {
+    position: absolute;
+    font-size: 11px;
+    color: var(--brand-600);
+    font-weight: 500;
+    pointer-events: none;
+    z-index: 4;
+  }
+  .annot::before { content: ""; display: inline-block; width: 14px; height: 1px; background: var(--brand-600); vertical-align: middle; margin-right: 6px; opacity: 0.5; }
+  .annot.tr { top: 18px; right: 24px; }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="ghost-bg">
+      <div class="ghost-board">
+        <div class="c cr cb"></div><div class="c cb"></div><div class="c cr cb"></div><div class="c cb"></div><div class="c cb"></div>
+        <div class="c cr"></div><div class="c cb cr"></div><div class="c"></div><div class="c cr cb"></div><div class="c"></div>
+        <div class="c cr cb"></div><div class="c"></div><div class="c cb cr"></div><div class="c"></div><div class="c cb"></div>
+        <div class="c"></div><div class="c cr cb"></div><div class="c"></div><div class="c cr cb"></div><div class="c"></div>
+        <div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div><div class="c"></div>
+      </div>
+    </div>
+    <div class="layer"></div>
+
+    <div class="center">
+      <div class="stage-track">
+        <span class="label">Confident</span>
+        <span class="arrow">→</span>
+        <span class="label cur">Advanced</span>
+      </div>
+
+      <div class="glyph">
+        <svg viewBox="0 0 56 56" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" style="color: var(--brand-600);">
+          <rect x="8" y="8" width="16" height="16" rx="2"/>
+          <rect x="32" y="8" width="16" height="16" rx="2"/>
+          <rect x="8" y="32" width="16" height="16" rx="2"/>
+          <rect x="32" y="32" width="16" height="16" rx="2"/>
+          <line x1="24" y1="16" x2="32" y2="16"/>
+          <line x1="16" y1="24" x2="16" y2="32"/>
+          <line x1="40" y1="24" x2="40" y2="32"/>
+          <line x1="24" y1="40" x2="32" y2="40"/>
+        </svg>
+      </div>
+
+      <div class="h">You're an <em>Advanced</em><br>player now.</div>
+
+      <div class="body">Hard puzzles are unlocked. <strong>Hard asks you to read a cell's neighborhood</strong> — what other cells force this one.</div>
+    </div>
+
+    <div class="footer">
+      <div class="chev"><i></i><i></i><i></i><i></i></div>
+      <div class="label">Swipe in any direction to continue</div>
+    </div>
+
+    <div class="safe-bottom"><div class="home-indicator"></div></div>
+
+    <div class="annot tr">no button by design</div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,164 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Sign in</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+    --text-on-brand:#ffffff;
+    --shadow-card:0 2px 8px rgba(0,0,0,0.06);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+      --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;
+    color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;
+    background:var(--surface);
+    overflow-y:auto;
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+    position:relative;
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:env(safe-area-inset-top,44px);min-height:44px}
+  .safe-bottom{height:env(safe-area-inset-bottom,34px);min-height:34px}
+  .page{padding:0 32px}
+  .masthead{
+    padding-top:24px;
+    display:flex;justify-content:space-between;align-items:baseline;
+    border-bottom:1px solid var(--border);
+    padding-bottom:16px;
+    margin-bottom:48px;
+  }
+  .masthead .vol{
+    font-size:11px;letter-spacing:0.14em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .wordmark{
+    font-size:48px;line-height:1;font-weight:600;
+    letter-spacing:-0.04em;
+    margin-bottom:8px;
+  }
+  .kicker{
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:40px;
+  }
+  .lede{
+    font-size:18px;line-height:1.55;font-weight:400;
+    color:var(--text-primary);
+    margin-bottom:24px;
+    max-width:50ch;
+  }
+  .lede.first::first-line{
+    /* no drop caps — but slightly heavier opening */
+  }
+  .body{
+    font-size:16px;line-height:1.65;font-weight:400;
+    color:var(--text-secondary);
+    margin-bottom:20px;
+    max-width:55ch;
+  }
+  .divider{
+    border:0;border-top:1px solid var(--border);
+    margin:40px 0 28px;
+  }
+  .auth-label{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:20px;
+  }
+  .auth-list{list-style:none}
+  .auth-item{
+    display:flex;align-items:center;justify-content:space-between;
+    padding:18px 0;
+    border-bottom:1px solid var(--border);
+    cursor:pointer;
+  }
+  .auth-item:last-child{border-bottom:0}
+  .auth-item .name{
+    font-size:17px;font-weight:500;color:var(--text-primary);
+    letter-spacing:-0.01em;
+  }
+  .auth-item .arrow{
+    color:var(--text-tertiary);font-size:18px;
+  }
+  .foot{
+    padding:32px 0 24px;
+    border-top:1px solid var(--border);
+    margin-top:40px;
+  }
+  .foot p{
+    font-size:13px;line-height:1.6;color:var(--text-tertiary);
+    font-style:italic;
+  }
+  .foot a{color:var(--text-secondary);text-decoration:underline;text-underline-offset:2px}
+</style>
+</head>
+<body>
+  <div class="frame" role="region" aria-label="Auth screen">
+    <div class="safe-top"></div>
+    <div class="page">
+      <header class="masthead">
+        <span class="vol">Vol. I · Issue 01</span>
+        <span class="vol">Sat · May 14</span>
+      </header>
+
+      <p class="kicker">An invitation</p>
+      <h1 class="wordmark">Tectonic</h1>
+
+      <p class="lede">A puzzle for people who like to think slowly.</p>
+
+      <p class="body">Each day, a small grid that asks for patience more than speed. We begin with the simple cases — a cell with only one possible value — and grow harder as you grow better.</p>
+
+      <p class="body">There is no streak to defend, no rank to chase. Only the puzzle, and what it reveals once you've sat with it long enough.</p>
+
+      <hr class="divider" />
+
+      <p class="auth-label">Continue with</p>
+      <ul class="auth-list">
+        <li class="auth-item">
+          <span class="name">Apple</span>
+          <span class="arrow">→</span>
+        </li>
+        <li class="auth-item">
+          <span class="name">Google</span>
+          <span class="arrow">→</span>
+        </li>
+        <li class="auth-item">
+          <span class="name">Email</span>
+          <span class="arrow">→</span>
+        </li>
+      </ul>
+
+      <footer class="foot">
+        <p>By continuing you agree to our <a href="#">terms</a> and <a href="#">privacy notice</a>. We do not sell your data. We do not need it.</p>
+      </footer>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

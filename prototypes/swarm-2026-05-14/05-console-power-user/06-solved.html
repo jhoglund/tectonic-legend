@@ -1,0 +1,305 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<meta name="color-scheme" content="light dark" />
+<title>Tectonic · Solved</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff; --surface-cell:#ffffff;
+    --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#fff;
+    --success:#10b981; --warning:#f59e0b; --danger:#dc2626;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419; --surface-cell:#1a1f24;
+      --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --success:#34d399; --warning:#fbbf24; --danger:#f87171;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{font-family:'Inter',system-ui,sans-serif;background:#111;color:var(--text-primary);min-height:100vh;display:flex;align-items:center;justify-content:center;-webkit-font-smoothing:antialiased}
+  .device{width:390px;height:844px;background:var(--surface);border-radius:40px;overflow:hidden;position:relative;display:flex;flex-direction:column;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+  .status-os{height:54px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 24px 8px;font-size:14px;font-weight:600;font-variant-numeric:tabular-nums}
+  .screen{flex:1;display:flex;flex-direction:column;padding:4px 20px 0;overflow:hidden}
+  .home-bar{height:34px;display:flex;align-items:center;justify-content:center}
+  .home-bar::after{content:"";width:134px;height:5px;background:var(--text-primary);opacity:.85;border-radius:3px}
+  .mono{font-family:'JetBrains Mono',ui-monospace,monospace;font-variant-numeric:tabular-nums}
+  .kbd{display:inline-flex;align-items:center;justify-content:center;min-width:18px;height:18px;padding:0 5px;font-family:'JetBrains Mono',ui-monospace,monospace;font-size:10.5px;font-weight:500;line-height:1;color:var(--text-secondary);background:var(--surface-elevated);border:1px solid var(--border);border-bottom-width:2px;border-radius:4px;font-variant-numeric:tabular-nums}
+  .statusbar{border-top:1px solid var(--border);padding:8px 20px 12px;display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:11px;color:var(--text-tertiary);background:var(--surface)}
+  .statusbar .left,.statusbar .right{display:flex;align-items:center;gap:6px}
+  .statusbar .dot{width:3px;height:3px;border-radius:50%;background:var(--text-tertiary)}
+  .statusbar .sb-mono{font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;color:var(--text-secondary)}
+  .statusbar .ok{color:var(--success)}
+
+  .topbar{display:flex;align-items:center;justify-content:space-between;height:36px}
+  .crumbs{display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-tertiary)}
+  .crumbs .sep{color:var(--text-tertiary)}
+  .crumbs .here{color:var(--text-primary);font-weight:500}
+  .crumbs .mono{font-size:11px}
+  .badge{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:2px 8px;border-radius:99px;
+    background:rgba(16,185,129,.14);color:var(--success);
+    font-size:11px;font-weight:500;
+  }
+  .badge .dot{width:6px;height:6px;border-radius:50%;background:var(--success)}
+
+  /* hero summary line */
+  .hero{
+    margin:10px 0 14px;
+    display:flex;align-items:baseline;gap:10px;
+  }
+  .hero .time{
+    font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
+    font-size:32px;line-height:1;font-weight:500;
+    letter-spacing:-.01em;
+  }
+  .hero .delta{
+    font-family:'JetBrains Mono',monospace;
+    color:var(--success);font-size:12px;font-weight:500;
+  }
+  .hero .label{
+    color:var(--text-tertiary);font-size:11px;
+    margin-left:auto;
+    font-family:'JetBrains Mono',monospace;
+    letter-spacing:.04em;text-transform:uppercase;
+  }
+  .spark{margin-bottom:8px}
+
+  /* tabular summary */
+  .table{
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:10px;
+    overflow:hidden;
+  }
+  .trow{
+    display:grid;
+    grid-template-columns:1fr 60px 60px;
+    align-items:center;
+    gap:8px;
+    padding:9px 12px;
+    border-bottom:1px solid var(--border);
+    font-size:12.5px;
+  }
+  .trow:last-child{border-bottom:0}
+  .trow.h{
+    background:var(--surface);
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-tertiary);
+    padding:6px 12px;
+  }
+  .trow .num{
+    text-align:right;font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
+    color:var(--text-secondary);
+  }
+  .trow .num b{color:var(--text-primary);font-weight:500}
+  .trow .name{display:flex;align-items:center;gap:6px}
+  .trow .name .sw{width:6px;height:6px;border-radius:50%;background:var(--text-tertiary)}
+  .trow .name.brand .sw{background:var(--brand-600)}
+  .trow .name.ok .sw{background:var(--success)}
+  .trow .name.warn .sw{background:var(--warning)}
+  .trow .name.muted{color:var(--text-tertiary)}
+  .trow.total{background:var(--surface)}
+  .trow.total .num b{font-weight:600}
+
+  .sect-label{
+    display:flex;align-items:center;justify-content:space-between;
+    font-size:10px;text-transform:uppercase;letter-spacing:.08em;
+    color:var(--text-tertiary);
+    margin:12px 0 6px;
+  }
+  .sect-label .r{text-transform:none;letter-spacing:0;font-family:'JetBrains Mono',monospace;color:var(--text-secondary);font-size:11px}
+
+  /* mastery chips */
+  .chips{display:flex;flex-wrap:wrap;gap:4px}
+  .chip{
+    display:inline-flex;align-items:center;gap:4px;
+    padding:3px 7px;border-radius:99px;
+    background:var(--brand-50);color:var(--brand-600);
+    font-size:11px;
+    border:1px solid var(--brand-100);
+  }
+  .chip.new{background:rgba(16,185,129,.14);color:var(--success);border-color:transparent}
+  .chip .mono{font-size:10px}
+
+  /* foot CTA */
+  .foot{
+    margin-top:auto;margin-bottom:8px;
+    display:flex;gap:6px;align-items:stretch;
+  }
+  .btn{
+    border:1px solid var(--border);
+    background:var(--surface-elevated);
+    color:var(--text-primary);
+    border-radius:8px;
+    display:flex;align-items:center;justify-content:center;
+    cursor:pointer;font:inherit;
+  }
+  .btn.primary{
+    flex:1;height:44px;
+    background:var(--text-primary);color:var(--text-on-brand);border-color:transparent;
+    gap:8px;font-size:13px;font-weight:500;
+  }
+  .btn.primary .kbd{background:rgba(255,255,255,.12);border-color:rgba(255,255,255,.2);color:#fff}
+  @media (prefers-color-scheme: dark){.btn.primary .kbd{background:rgba(0,0,0,.18);border-color:rgba(0,0,0,.3);color:#0a0a0a}}
+  .btn.icon{width:44px;height:44px;flex:0 0 auto}
+  .btn.icon svg{color:var(--text-secondary)}
+
+  .review-line{
+    display:flex;align-items:center;justify-content:space-between;
+    margin-top:6px;
+    font-size:11px;color:var(--text-tertiary);
+  }
+  .review-line .kbd{font-size:9.5px}
+
+  /* solve detail line (puzzle id + seed) */
+  .meta-strip{
+    display:flex;flex-wrap:wrap;gap:8px;align-items:center;
+    margin-bottom:6px;
+    font-size:11px;color:var(--text-tertiary);
+  }
+  .meta-strip .pill{
+    font-family:'JetBrains Mono',monospace;font-size:10.5px;
+    padding:1px 6px;border-radius:4px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    color:var(--text-secondary);
+  }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-os"><span>9:41</span><span class="right mono">5G · 100%</span></div>
+
+    <div class="screen">
+      <div class="topbar">
+        <div class="crumbs">
+          <span class="mono">tectonic</span><span class="sep">/</span>
+          <span class="mono">play</span><span class="sep">/</span>
+          <span class="here">solved</span>
+        </div>
+        <span class="badge"><span class="dot"></span>solved</span>
+      </div>
+
+      <div class="meta-strip">
+        <span class="pill">5×5 · Hard</span>
+        <span class="pill">daily · #240514</span>
+        <span>14:32 local</span>
+      </div>
+
+      <div class="hero">
+        <span class="time">04:18</span>
+        <span class="delta">−0:54 vs avg</span>
+        <span class="label">solve · t.04:18.331</span>
+      </div>
+
+      <div class="spark" aria-hidden="true">
+        <svg width="100%" height="36" viewBox="0 0 350 36" preserveAspectRatio="none">
+          <defs>
+            <linearGradient id="g" x1="0" x2="0" y1="0" y2="1">
+              <stop offset="0" stop-color="#06b6d4" stop-opacity=".25"/>
+              <stop offset="1" stop-color="#06b6d4" stop-opacity="0"/>
+            </linearGradient>
+          </defs>
+          <path d="M0 24 L20 22 L40 26 L60 18 L80 20 L100 14 L120 18 L140 16 L160 12 L180 18 L200 14 L220 10 L240 16 L260 8 L280 12 L300 6 L320 10 L340 4 L350 8 L350 36 L0 36 Z" fill="url(#g)"/>
+          <path d="M0 24 L20 22 L40 26 L60 18 L80 20 L100 14 L120 18 L140 16 L160 12 L180 18 L200 14 L220 10 L240 16 L260 8 L280 12 L300 6 L320 10 L340 4 L350 8" fill="none" stroke="#0891b2" stroke-width="1.4"/>
+          <circle cx="340" cy="4" r="3" fill="#0891b2"/>
+        </svg>
+      </div>
+
+      <div class="sect-label"><span>Techniques used</span><span class="r">5 firings</span></div>
+      <div class="table" role="table" aria-label="Technique counts">
+        <div class="trow h">
+          <span>technique</span>
+          <span class="num">self</span>
+          <span class="num">hinted</span>
+        </div>
+        <div class="trow">
+          <span class="name brand"><span class="sw"></span>naked single</span>
+          <span class="num"><b>9</b></span>
+          <span class="num">0</span>
+        </div>
+        <div class="trow">
+          <span class="name brand"><span class="sw"></span>hidden single</span>
+          <span class="num"><b>4</b></span>
+          <span class="num">0</span>
+        </div>
+        <div class="trow">
+          <span class="name warn"><span class="sw"></span>forced move (pair)</span>
+          <span class="num"><b>2</b></span>
+          <span class="num">1</span>
+        </div>
+        <div class="trow">
+          <span class="name muted"><span class="sw"></span>contradiction · d2</span>
+          <span class="num">0</span>
+          <span class="num">1</span>
+        </div>
+        <div class="trow total">
+          <span class="name"><span class="sw" style="background:transparent"></span>total · errors <b style="color:var(--warning);font-weight:500">1</b></span>
+          <span class="num"><b>15</b></span>
+          <span class="num"><b>2</b></span>
+        </div>
+      </div>
+
+      <div class="sect-label"><span>Percentile</span><span class="r">solve time · global</span></div>
+      <div class="table">
+        <div class="trow" style="grid-template-columns:1fr auto">
+          <span class="name"><span class="sw" style="background:var(--brand-600)"></span>Hard · 5×5 · all-time</span>
+          <span class="num mono"><b>p38</b> · top <b>62%</b></span>
+        </div>
+        <div class="trow" style="grid-template-columns:1fr auto">
+          <span class="name"><span class="sw" style="background:var(--text-tertiary)"></span>Hard · 5×5 · last 7d</span>
+          <span class="num mono"><b>p22</b> · top <b>78%</b></span>
+        </div>
+      </div>
+
+      <div class="sect-label"><span>Mastery earned</span><span class="r">+2 firings</span></div>
+      <div class="chips">
+        <span class="chip new">forced (pair) <span class="mono">6→7/8</span></span>
+        <span class="chip">hidden single <span class="mono">11/8 ✓</span></span>
+      </div>
+
+      <div class="review-line">
+        <span>Review the contradiction · <span class="kbd">R</span></span>
+        <span class="mono">share <span class="kbd">⌘S</span></span>
+      </div>
+
+      <div class="foot">
+        <button class="btn primary">Next puzzle <span class="kbd">⏎</span></button>
+        <button class="btn icon" aria-label="Share">
+          <svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M8 2v9M5 5l3-3 3 3M3 11v2a1 1 0 001 1h8a1 1 0 001-1v-2"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <footer class="statusbar">
+      <div class="left">
+        <span class="sb-mono">jonas</span>
+        <span class="dot"></span>
+        <span>Stage: <b style="color:var(--text-primary);font-weight:500">Confident</b></span>
+        <span class="dot"></span>
+        <span>Streak: <span class="sb-mono">13</span></span>
+      </div>
+      <div class="right">
+        <span>Today <span class="sb-mono ok">1/1 ✓</span></span>
+        <span class="dot"></span>
+        <span class="kbd" style="font-size:9.5px">⌘K</span>
+      </div>
+    </footer>
+
+    <div class="home-bar"></div>
+  </div>
+</body>
+</html>

@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage-Up Moments — Variant C: Editorial Monocle</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fafafa;
+    --fg: #1a1a1a;
+    --muted: #6b6b6b;
+    --border: #e0e0e0;
+    --brand: #0891b2;
+    --brand-subtle: rgba(8, 145, 178, 0.06);
+    --surface: #ffffff;
+    --rule: #1a1a1a;
+    --rule-light: #d4d4d4;
+    --radius-card: 12px;
+    --radius-chip: 999px;
+    --motion-base: 200ms;
+    --motion-slow: 400ms;
+    --font-display: 'Iowan Old Style', Charter, 'Bitstream Charter', Georgia, serif;
+    --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'SF Pro Text', system-ui, sans-serif;
+    --font-mono: ui-monospace, 'SF Mono', Menlo, monospace;
+  }
+
+  :root.dark {
+    --bg: #0a0a0a;
+    --fg: #f0f0f0;
+    --muted: #999999;
+    --border: #2a2a2a;
+    --brand: #06b6d4;
+    --brand-subtle: rgba(6, 182, 212, 0.08);
+    --surface: #151515;
+    --rule: #f0f0f0;
+    --rule-light: #333333;
+  }
+
+  html, body {
+    height: 100%;
+    font-family: var(--font-body);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+    transition: background var(--motion-base) ease, color var(--motion-base) ease;
+  }
+
+  /* ── Controls bar ── */
+  .controls {
+    position: fixed;
+    top: 0; left: 0; right: 0;
+    z-index: 100;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 16px;
+    background: var(--bg);
+    border-bottom: 1px solid var(--border);
+    transition: background var(--motion-base) ease, border-color var(--motion-base) ease;
+  }
+
+  .controls button {
+    font-family: var(--font-body);
+    font-size: 13px;
+    font-weight: 500;
+    letter-spacing: -0.01em;
+    padding: 6px 14px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-chip);
+    background: transparent;
+    color: var(--muted);
+    cursor: pointer;
+    transition: all var(--motion-base) ease;
+  }
+  .controls button:hover { color: var(--fg); border-color: var(--fg); }
+  .controls button.active { background: var(--fg); color: var(--bg); border-color: var(--fg); }
+  .controls .separator { width: 1px; height: 20px; background: var(--border); margin: 0 4px; }
+  .controls .theme-toggle {
+    font-size: 14px; width: 32px; height: 32px; padding: 0;
+    display: flex; align-items: center; justify-content: center; border-radius: 50%;
+  }
+
+  /* ── Card viewport ── */
+  .card-viewport {
+    position: fixed;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 24px 24px;
+  }
+
+  /* ── Stage-up card ── */
+  .stage-card {
+    display: none;
+    flex-direction: column;
+    align-items: center;
+    text-align: center;
+    width: 100%;
+    max-width: 390px;
+    height: 100%;
+    max-height: 844px;
+    padding: 48px 36px 40px;
+    position: relative;
+  }
+  .stage-card.visible {
+    display: flex;
+    animation: cardFadeIn var(--motion-slow) cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+
+  @keyframes cardFadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── Editorial structure ── */
+  .card-spacer { flex: 1; }
+
+  .kicker {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    font-weight: 400;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+    margin-bottom: 20px;
+  }
+
+  .top-rule {
+    width: 40px;
+    height: 1.5px;
+    background: var(--brand);
+    margin-bottom: 28px;
+  }
+
+  .card-title {
+    font-family: var(--font-display);
+    font-size: 32px;
+    font-weight: normal;
+    letter-spacing: -0.01em;
+    line-height: 1.2;
+    margin-bottom: 24px;
+  }
+
+  .card-body {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 400;
+    line-height: 1.6;
+    color: var(--muted);
+    max-width: 280px;
+  }
+  .card-body em {
+    font-style: italic;
+    color: var(--fg);
+  }
+
+  /* ── Unlock line ── */
+  .unlock-line {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-top: 28px;
+    font-family: var(--font-mono);
+    font-size: 11px;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--brand);
+  }
+  .unlock-line::before,
+  .unlock-line::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--rule-light);
+  }
+
+  /* ── Journey indicator (editorial style: labeled) ── */
+  .journey-label {
+    margin-top: auto;
+    padding-top: 48px;
+    margin-bottom: 8px;
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.1em;
+    text-transform: uppercase;
+    color: var(--muted);
+  }
+
+  .journey-bar {
+    display: flex;
+    gap: 4px;
+    width: 100%;
+    margin-bottom: 28px;
+  }
+  .journey-segment {
+    flex: 1;
+    height: 2px;
+    background: var(--rule-light);
+    border-radius: 1px;
+    transition: background var(--motion-base) ease;
+  }
+  .journey-segment.reached { background: var(--muted); }
+  .journey-segment.current { background: var(--brand); }
+
+  /* ── Continue button ── */
+  .continue-btn {
+    font-family: var(--font-body);
+    font-size: 15px;
+    font-weight: 500;
+    letter-spacing: 0.01em;
+    width: 100%;
+    padding: 15px 0;
+    border: 1.5px solid var(--fg);
+    border-radius: 8px;
+    background: transparent;
+    color: var(--fg);
+    cursor: pointer;
+    transition: all var(--motion-base) ease;
+  }
+  .continue-btn:hover {
+    background: var(--fg);
+    color: var(--bg);
+  }
+  .continue-btn:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<div class="controls">
+  <button class="card-tab active" data-card="0">Beginner</button>
+  <button class="card-tab" data-card="1">Confident</button>
+  <button class="card-tab" data-card="2">Advanced</button>
+  <button class="card-tab" data-card="3">Master</button>
+  <div class="separator"></div>
+  <button class="theme-toggle" aria-label="Toggle dark mode">
+    <span class="theme-icon">&#9789;</span>
+  </button>
+</div>
+
+<div class="card-viewport">
+
+  <!-- Card 1: Beginner -->
+  <div class="stage-card visible" data-index="0">
+    <div class="card-spacer"></div>
+    <div class="kicker">Stage 1 of 4</div>
+    <div class="top-rule"></div>
+    <h1 class="card-title">You're a Beginner now</h1>
+    <p class="card-body">Easy asks you to find what a cell <em>must</em> hold. One answer, no ambiguity.</p>
+    <div class="unlock-line">Easy puzzles unlocked</div>
+    <div class="journey-label">Your journey</div>
+    <div class="journey-bar">
+      <div class="journey-segment current"></div>
+      <div class="journey-segment"></div>
+      <div class="journey-segment"></div>
+      <div class="journey-segment"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 2: Confident -->
+  <div class="stage-card" data-index="1">
+    <div class="card-spacer"></div>
+    <div class="kicker">Stage 2 of 4</div>
+    <div class="top-rule"></div>
+    <h1 class="card-title">You're Confident now</h1>
+    <p class="card-body">Medium asks where a value <em>can</em> go, not just what a cell must hold.</p>
+    <div class="unlock-line">Medium puzzles unlocked</div>
+    <div class="journey-label">Your journey</div>
+    <div class="journey-bar">
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment current"></div>
+      <div class="journey-segment"></div>
+      <div class="journey-segment"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 3: Advanced -->
+  <div class="stage-card" data-index="2">
+    <div class="card-spacer"></div>
+    <div class="kicker">Stage 3 of 4</div>
+    <div class="top-rule"></div>
+    <h1 class="card-title">You're Advanced now</h1>
+    <p class="card-body">Hard asks you to read a cell's neighborhood — what other cells force this one.</p>
+    <div class="unlock-line">Hard puzzles unlocked</div>
+    <div class="journey-label">Your journey</div>
+    <div class="journey-bar">
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment current"></div>
+      <div class="journey-segment"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+  <!-- Card 4: Master -->
+  <div class="stage-card" data-index="3">
+    <div class="card-spacer"></div>
+    <div class="kicker">Stage 4 of 4</div>
+    <div class="top-rule"></div>
+    <h1 class="card-title">You're a Master now</h1>
+    <p class="card-body">Expert puzzles aren't solvable by direct logic alone — you'll need to follow a contradiction chain.</p>
+    <div class="unlock-line">Expert puzzles unlocked</div>
+    <div class="journey-label">Your journey</div>
+    <div class="journey-bar">
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment reached"></div>
+      <div class="journey-segment current"></div>
+    </div>
+    <button class="continue-btn">Continue</button>
+  </div>
+
+</div>
+
+<script>
+  const tabs = document.querySelectorAll('.card-tab');
+  const cards = document.querySelectorAll('.stage-card');
+
+  tabs.forEach(tab => {
+    tab.addEventListener('click', () => {
+      const idx = parseInt(tab.dataset.card);
+      tabs.forEach(t => t.classList.remove('active'));
+      tab.classList.add('active');
+      cards.forEach(c => c.classList.remove('visible'));
+      cards[idx].classList.add('visible');
+    });
+  });
+
+  const root = document.documentElement;
+  const themeBtn = document.querySelector('.theme-toggle');
+  const themeIcon = themeBtn.querySelector('.theme-icon');
+
+  themeBtn.addEventListener('click', () => {
+    root.classList.toggle('dark');
+    themeIcon.innerHTML = root.classList.contains('dark') ? '&#9788;' : '&#9789;';
+  });
+</script>
+</body>
+</html>

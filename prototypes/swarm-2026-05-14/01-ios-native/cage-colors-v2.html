@@ -1,0 +1,406 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Cage Colors v2</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2;
+    --surface:#fafafa;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root {
+      --brand-600:#06b6d4;
+      --surface:#0a0a0a;--surface-elevated:#171717;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--surface);color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 80px;
+  }
+
+  h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{font-size:13px;color:var(--text-secondary);margin:0 0 32px;line-height:1.5;max-width:600px}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
+    gap:28px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .variant{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    padding:20px 16px 16px;
+    border-radius:16px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .variant:hover{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .2)}
+  .variant.selected{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .3)}
+  .variant-header{display:flex;align-items:center;gap:10px;width:100%}
+  .variant-label{
+    font-size:14px;font-weight:600;letter-spacing:-.01em;flex:1;
+  }
+  .variant-desc{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400}
+  .swatch-row{display:flex;gap:3px}
+  .sw{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.08)}
+  @media (prefers-color-scheme: dark){.sw{border-color:rgba(255,255,255,.1)}}
+
+  /* Board */
+  .board{
+    --cell:56px;
+    display:grid;grid-template-columns:repeat(5,var(--cell));grid-template-rows:repeat(5,var(--cell));
+    background:var(--surface-board);
+    border:2px solid var(--border-cage);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .cell{
+    position:relative;
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:20px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+  }
+  .cell.empty{color:var(--text-tertiary);font-size:12px}
+  .cb-t{border-top:2px solid var(--border-cage)}
+  .cb-r{border-right:2px solid var(--border-cage)}
+  .cb-b{border-bottom:2px solid var(--border-cage)}
+  .cb-l{border-left:2px solid var(--border-cage)}
+
+  .cage-a{background:var(--cage-1)}
+  .cage-b{background:var(--cage-2)}
+  .cage-c{background:var(--cage-3)}
+  .cage-d{background:var(--cage-4)}
+  .cage-e{background:var(--cage-5)}
+  .cage-f{background:var(--cage-1)}
+  .cage-g{background:var(--cage-2)}
+  .cage-h{background:var(--cage-3)}
+
+  /* ═══════════════════════════════════════════════════
+     PALETTES — 6 distinct directions
+     Each uses 5 hues spread wide on the oklch wheel
+     ═══════════════════════════════════════════════════ */
+
+  /* 1. Neon Reef — vivid tropical, high chroma */
+  .palette-reef{
+    --cage-1: oklch(92% 0.08 185);  /* cyan-mint */
+    --cage-2: oklch(90% 0.09 310);  /* magenta-pink */
+    --cage-3: oklch(94% 0.07 95);   /* lime-yellow */
+    --cage-4: oklch(88% 0.08 265);  /* periwinkle */
+    --cage-5: oklch(91% 0.08 40);   /* peach-coral */
+  }
+
+  /* 2. Topo Map — earthy greens + browns, cartographic feel */
+  .palette-topo{
+    --cage-1: oklch(93% 0.06 145);  /* sage */
+    --cage-2: oklch(90% 0.05 65);   /* tan */
+    --cage-3: oklch(88% 0.06 220);  /* slate blue */
+    --cage-4: oklch(94% 0.04 30);   /* sand */
+    --cage-5: oklch(91% 0.05 175);  /* seafoam */
+  }
+
+  /* 3. Blueprint — all blue-indigo family, value-shifted */
+  .palette-blueprint{
+    --cage-1: oklch(94% 0.04 240);  /* ice */
+    --cage-2: oklch(89% 0.06 250);  /* steel */
+    --cage-3: oklch(92% 0.05 210);  /* sky */
+    --cage-4: oklch(87% 0.07 270);  /* indigo-tint */
+    --cage-5: oklch(95% 0.03 195);  /* pale cyan */
+  }
+
+  /* 4. Candy — bold pastels, playful, high chroma + high lightness */
+  .palette-candy{
+    --cage-1: oklch(90% 0.10 340);  /* hot pink */
+    --cage-2: oklch(92% 0.09 160);  /* mint green */
+    --cage-3: oklch(91% 0.10 280);  /* violet */
+    --cage-4: oklch(93% 0.08 80);   /* banana */
+    --cage-5: oklch(89% 0.09 210);  /* sky blue */
+  }
+
+  /* 5. Noir — near monochrome, ultra-subtle warm/cool tints */
+  .palette-noir{
+    --cage-1: oklch(93% 0.008 240); /* cool grey */
+    --cage-2: oklch(90% 0.010 40);  /* warm grey */
+    --cage-3: oklch(95% 0.006 150); /* green tint */
+    --cage-4: oklch(88% 0.008 310); /* pink tint */
+    --cage-5: oklch(92% 0.007 80);  /* yellow tint */
+  }
+
+  /* 6. Stained Glass — saturated jewel tones, rich & decorative */
+  .palette-glass{
+    --cage-1: oklch(85% 0.12 145);  /* emerald */
+    --cage-2: oklch(84% 0.11 30);   /* amber-gold */
+    --cage-3: oklch(82% 0.12 270);  /* amethyst */
+    --cage-4: oklch(87% 0.10 200);  /* teal */
+    --cage-5: oklch(83% 0.11 350);  /* ruby-rose */
+  }
+
+  /* Dark mode — lower lightness, preserve chroma ratios */
+  @media (prefers-color-scheme: dark){
+    .palette-reef{
+      --cage-1: oklch(24% 0.06 185);
+      --cage-2: oklch(22% 0.07 310);
+      --cage-3: oklch(26% 0.05 95);
+      --cage-4: oklch(20% 0.06 265);
+      --cage-5: oklch(23% 0.06 40);
+    }
+    .palette-topo{
+      --cage-1: oklch(24% 0.04 145);
+      --cage-2: oklch(22% 0.04 65);
+      --cage-3: oklch(20% 0.05 220);
+      --cage-4: oklch(25% 0.03 30);
+      --cage-5: oklch(23% 0.04 175);
+    }
+    .palette-blueprint{
+      --cage-1: oklch(24% 0.03 240);
+      --cage-2: oklch(20% 0.05 250);
+      --cage-3: oklch(22% 0.04 210);
+      --cage-4: oklch(18% 0.06 270);
+      --cage-5: oklch(26% 0.02 195);
+    }
+    .palette-candy{
+      --cage-1: oklch(22% 0.08 340);
+      --cage-2: oklch(24% 0.07 160);
+      --cage-3: oklch(21% 0.08 280);
+      --cage-4: oklch(25% 0.06 80);
+      --cage-5: oklch(20% 0.07 210);
+    }
+    .palette-noir{
+      --cage-1: oklch(21% 0.006 240);
+      --cage-2: oklch(19% 0.008 40);
+      --cage-3: oklch(23% 0.005 150);
+      --cage-4: oklch(17% 0.006 310);
+      --cage-5: oklch(20% 0.005 80);
+    }
+    .palette-glass{
+      --cage-1: oklch(20% 0.08 145);
+      --cage-2: oklch(19% 0.07 30);
+      --cage-3: oklch(17% 0.08 270);
+      --cage-4: oklch(22% 0.06 200);
+      --cage-5: oklch(18% 0.07 350);
+    }
+  }
+
+  /* Tweaks panel */
+  .tweaks{
+    position:fixed;bottom:16px;right:16px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.12);
+    font-size:12px;width:220px;z-index:10;
+  }
+  .tweaks h3{margin:0 0 10px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary)}
+  .range-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .range-row label{min-width:60px;font-weight:500}
+  .range-row input[type="range"]{flex:1;accent-color:var(--brand-600)}
+  .range-row span{min-width:48px;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary);text-align:right}
+</style>
+</head>
+<body>
+
+<h1>Cage background colors — v2</h1>
+<p class="sub">6 directions, spread wide. Click a card to select it, then fine-tune with chroma &amp; lightness sliders.</p>
+
+<div class="grid" id="grid">
+  <!-- 1 Neon Reef -->
+  <div class="variant" data-palette="reef">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">1 — Neon Reef</div>
+        <div class="variant-desc">Vivid tropical — high chroma, wide hue spread</div>
+      </div>
+      <div class="swatch-row" id="sw-reef"></div>
+    </div>
+    <div class="board palette-reef" id="board-reef"></div>
+  </div>
+
+  <!-- 2 Topo Map -->
+  <div class="variant" data-palette="topo">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">2 — Topo Map</div>
+        <div class="variant-desc">Earthy greens + browns, cartographic</div>
+      </div>
+      <div class="swatch-row" id="sw-topo"></div>
+    </div>
+    <div class="board palette-topo" id="board-topo"></div>
+  </div>
+
+  <!-- 3 Blueprint -->
+  <div class="variant" data-palette="blueprint">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">3 — Blueprint</div>
+        <div class="variant-desc">Monochromatic blue family, value-shifted</div>
+      </div>
+      <div class="swatch-row" id="sw-blueprint"></div>
+    </div>
+    <div class="board palette-blueprint" id="board-blueprint"></div>
+  </div>
+
+  <!-- 4 Candy -->
+  <div class="variant" data-palette="candy">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">4 — Candy</div>
+        <div class="variant-desc">Bold pastels, playful, high energy</div>
+      </div>
+      <div class="swatch-row" id="sw-candy"></div>
+    </div>
+    <div class="board palette-candy" id="board-candy"></div>
+  </div>
+
+  <!-- 5 Noir -->
+  <div class="variant" data-palette="noir">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">5 — Noir</div>
+        <div class="variant-desc">Near-monochrome, ultra-subtle warm/cool tints</div>
+      </div>
+      <div class="swatch-row" id="sw-noir"></div>
+    </div>
+    <div class="board palette-noir" id="board-noir"></div>
+  </div>
+
+  <!-- 6 Stained Glass -->
+  <div class="variant" data-palette="glass">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">6 — Stained Glass</div>
+        <div class="variant-desc">Saturated jewel tones, rich & decorative</div>
+      </div>
+      <div class="swatch-row" id="sw-glass"></div>
+    </div>
+    <div class="board palette-glass" id="board-glass"></div>
+  </div>
+</div>
+
+<!-- Tweaks panel -->
+<div class="tweaks">
+  <h3>Tweak</h3>
+  <div class="range-row">
+    <label for="chroma">Chroma</label>
+    <input type="range" id="chroma" min="0" max="100" value="50">
+    <span id="chroma-val">1.0x</span>
+  </div>
+  <div class="range-row">
+    <label for="lightness">Light</label>
+    <input type="range" id="lightness" min="0" max="100" value="50">
+    <span id="light-val">0</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Palette definitions: [hue, baseChroma, baseLightness] per color
+  const PALETTES = {
+    reef:      { hues:[185,310,95,265,40],   c:0.08,  l:0.91 },
+    topo:      { hues:[145,65,220,30,175],   c:0.052, l:0.912 },
+    blueprint: { hues:[240,250,210,270,195], c:0.05,  l:0.914 },
+    candy:     { hues:[340,160,280,80,210],  c:0.092, l:0.91 },
+    noir:      { hues:[240,40,150,310,80],   c:0.008, l:0.916 },
+    glass:     { hues:[145,30,270,200,350],  c:0.112, l:0.842 },
+  };
+
+  // Build board cells (same puzzle layout for all)
+  const CELLS = [
+    {v:'4',cls:'cb-t cb-l cb-r cb-b cage-a'},{v:'',cls:'cb-t cb-r cage-b'},{v:'3',cls:'cb-t cb-b cage-b'},{v:'1',cls:'cb-t cb-l cb-r cb-b cage-c'},{v:'5',cls:'cb-t cb-r cb-b cage-c'},
+    {v:'',cls:'cb-l cb-r cage-a'},{v:'5',cls:'cb-r cb-b cage-a'},{v:'2',cls:'cb-b cage-b'},{v:'4',cls:'cb-l cage-d'},{v:'1',cls:'cb-r cage-d'},
+    {v:'3',cls:'cb-l cb-r cb-b cage-a'},{v:'1',cls:'cb-b cage-e'},{v:'4',cls:'cb-r cb-b cage-e'},{v:'2',cls:'cage-d'},{v:'',cls:'cb-r cb-b cage-d'},
+    {v:'5',cls:'cb-l cb-r cage-f'},{v:'2',cls:'cb-r cage-f'},{v:'3',cls:'cb-r cb-b cage-e'},{v:'',cls:'cb-l cage-g'},{v:'4',cls:'cb-l cb-r cb-b cage-d'},
+    {v:'',cls:'cb-l cb-r cb-b cage-f'},{v:'3',cls:'cb-r cb-b cage-f'},{v:'',cls:'cb-b cage-g'},{v:'3',cls:'cb-l cb-r cb-b cage-g'},{v:'2',cls:'cb-l cb-r cb-b cage-h'},
+  ];
+
+  // Build boards and swatches
+  for (const [name, p] of Object.entries(PALETTES)){
+    const board = document.getElementById('board-' + name);
+    CELLS.forEach(function(c){
+      const d = document.createElement('div');
+      d.className = 'cell ' + c.cls;
+      d.textContent = c.v;
+      board.appendChild(d);
+    });
+    // Swatches
+    const sw = document.getElementById('sw-' + name);
+    p.hues.forEach(function(h, i){
+      const s = document.createElement('span');
+      s.className = 'sw';
+      s.style.background = 'oklch(' + (p.l * 100).toFixed(0) + '% ' + p.c.toFixed(3) + ' ' + h + ')';
+      sw.appendChild(s);
+    });
+  }
+
+  // Selection
+  document.querySelectorAll('.variant').forEach(function(v){
+    v.addEventListener('click', function(){
+      document.querySelectorAll('.variant').forEach(function(el){ el.classList.remove('selected') });
+      v.classList.add('selected');
+    });
+  });
+
+  // Tweaks
+  const chromaSlider = document.getElementById('chroma');
+  const lightnessSlider = document.getElementById('lightness');
+  const chromaVal = document.getElementById('chroma-val');
+  const lightVal = document.getElementById('light-val');
+
+  function update(){
+    const cMult = chromaSlider.value / 50;   // 0..2
+    const lShift = (lightnessSlider.value - 50) / 500; // -.1..+.1
+
+    chromaVal.textContent = cMult.toFixed(1) + 'x';
+    lightVal.textContent = (lShift >= 0 ? '+' : '') + (lShift * 100).toFixed(0);
+
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    for (const [name, p] of Object.entries(PALETTES)){
+      const board = document.getElementById('board-' + name);
+      const swRow = document.getElementById('sw-' + name);
+      const swatches = swRow.querySelectorAll('.sw');
+
+      p.hues.forEach(function(hue, i){
+        const c = p.c * cMult;
+        let l;
+        if (isDark) {
+          l = 0.21 + (lShift * 0.5);
+          // Preserve relative lightness offsets from base
+          const baseOffset = (p.l - 0.91) * 0.3;
+          l += baseOffset;
+        } else {
+          l = p.l + lShift;
+        }
+        l = Math.max(0.10, Math.min(0.98, l));
+        const color = 'oklch(' + (l*100).toFixed(1) + '% ' + c.toFixed(4) + ' ' + hue + ')';
+        board.style.setProperty('--cage-' + (i+1), color);
+        if (swatches[i]) swatches[i].style.background = color;
+      });
+    }
+  }
+
+  chromaSlider.addEventListener('input', update);
+  lightnessSlider.addEventListener('input', update);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', update);
+})();
+</script>
+</body>
+</html>

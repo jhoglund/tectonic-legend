@@ -1,0 +1,236 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Solved</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+    --success:#10b981;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+      --success:#34d399;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+  .page{padding:0 32px}
+
+  .nav{
+    padding:14px 0;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:1px solid var(--border);
+  }
+  .nav a{
+    font-size:13px;color:var(--text-secondary);text-decoration:none;
+  }
+  .nav .title{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+
+  .kicker{
+    margin-top:32px;
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--success);font-weight:500;margin-bottom:14px;
+  }
+  h1.hero{
+    font-size:36px;line-height:1.1;letter-spacing:-0.03em;
+    font-weight:600;margin-bottom:16px;
+  }
+  .byline{
+    font-size:13px;color:var(--text-tertiary);
+    font-style:italic;margin-bottom:32px;
+    padding-bottom:24px;border-bottom:1px solid var(--border);
+  }
+
+  .time-row{
+    display:flex;justify-content:space-between;align-items:baseline;
+    padding:18px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .time-row .label{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .time-row .val{
+    font-family:'JetBrains Mono',monospace;
+    font-size:32px;line-height:1;font-weight:500;
+    letter-spacing:-0.02em;color:var(--text-primary);
+    font-variant-numeric:tabular-nums;
+  }
+
+  p.body{
+    font-size:16px;line-height:1.7;color:var(--text-primary);
+    margin:24px 0 16px;max-width:55ch;
+  }
+  p.body.muted{color:var(--text-secondary)}
+  p.body em{font-style:italic;color:var(--brand-600);font-style:normal;font-weight:500}
+
+  .techniques{
+    padding:20px 0 4px;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    margin:24px 0;
+  }
+  .techniques .h{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:16px;
+  }
+  .tech{
+    display:flex;align-items:baseline;gap:12px;
+    padding:8px 0;
+  }
+  .tech .name{
+    font-size:14px;color:var(--text-primary);font-weight:500;
+    width:130px;flex-shrink:0;
+  }
+  .tech .bar{
+    flex:1;height:6px;background:var(--surface-elevated);
+    border:1px solid var(--border);border-radius:999px;overflow:hidden;
+    position:relative;
+  }
+  .tech .fill{
+    position:absolute;inset:0;
+    background:var(--brand-600);
+    border-radius:999px;
+  }
+  .tech .count{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--text-tertiary);
+    font-variant-numeric:tabular-nums;
+    width:28px;text-align:right;
+  }
+
+  .mastery{
+    margin:24px 0;
+    display:flex;flex-wrap:wrap;gap:8px;
+  }
+  .chip{
+    display:inline-flex;align-items:center;gap:6px;
+    padding:6px 12px;
+    background:var(--brand-50);
+    color:var(--brand-600);
+    font-size:12px;font-weight:500;
+    border-radius:999px;
+    border:1px solid var(--brand-100);
+  }
+  .chip::before{content:"●";font-size:8px}
+
+  .pull{
+    text-align:center;padding:32px 8px;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    margin:24px 0;
+  }
+  .pull q{
+    quotes:"\201C" "\201D";
+    font-size:22px;line-height:1.4;font-weight:400;
+    font-style:italic;letter-spacing:-0.01em;
+    color:var(--text-primary);
+  }
+  .pull q::before{content:open-quote}
+  .pull q::after{content:close-quote}
+
+  .footer-actions{
+    padding:24px 0;
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .footer-actions .share{
+    font-size:14px;color:var(--text-secondary);
+    text-decoration:underline;text-underline-offset:3px;
+  }
+  .footer-actions .next{
+    font-size:17px;font-weight:500;
+    color:var(--brand-600);text-decoration:none;
+  }
+  .footer-actions .next::after{content:" →"}
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+    <div class="page">
+      <nav class="nav">
+        <a href="#">Today</a>
+        <span class="title">An epilogue</span>
+        <span style="width:32px"></span>
+      </nav>
+
+      <p class="kicker">Solved</p>
+      <h1 class="hero">A clean read.</h1>
+      <p class="byline">Today's daily · Medium 5×5 · Sat May 14</p>
+
+      <div class="time-row">
+        <span class="label">Solve time</span>
+        <span class="val">02:14</span>
+      </div>
+
+      <p class="body">You moved through this one in <em>thirty-eight seconds</em> under your Medium average. You leaned on hidden singles four times, and once — patiently — on a forced move in the lower-right cage.</p>
+
+      <p class="body muted">No hints used. No corrections. The technique-mix is consistent with someone leaving Confident behind. Two more like this and Hard opens up.</p>
+
+      <section class="techniques">
+        <p class="h">Techniques used</p>
+        <div class="tech">
+          <span class="name">Naked single</span>
+          <span class="bar"><span class="fill" style="width:80%"></span></span>
+          <span class="count">8</span>
+        </div>
+        <div class="tech">
+          <span class="name">Hidden single</span>
+          <span class="bar"><span class="fill" style="width:40%"></span></span>
+          <span class="count">4</span>
+        </div>
+        <div class="tech">
+          <span class="name">Forced move</span>
+          <span class="bar"><span class="fill" style="width:10%"></span></span>
+          <span class="count">1</span>
+        </div>
+      </section>
+
+      <p class="body" style="margin-top:8px"><strong style="font-weight:500">Mastery earned today</strong></p>
+      <div class="mastery">
+        <span class="chip">Hidden single · 5 / 8</span>
+        <span class="chip">Forced move · 1 / 8</span>
+      </div>
+
+      <div class="pull">
+        <q>The puzzle revealed itself in layers.</q>
+      </div>
+
+      <div class="footer-actions">
+        <a class="share" href="#">Share this solve</a>
+        <a class="next" href="#">Next puzzle</a>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

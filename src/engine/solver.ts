@@ -172,7 +172,7 @@ export function solve(
     if (bestR === -1) return true;
     if (minSize === 0) return false;
 
-    let vals = [...candidates[bestR][bestC]];
+    const vals = [...candidates[bestR][bestC]];
     if (options.randomize) {
       for (let i = vals.length - 1; i > 0; i--) {
         const j = Math.floor(Math.random() * (i + 1));

@@ -33,7 +33,7 @@ function gridSizeDimensions(size: GridSize): [number, number] {
   return size === '8x8' ? [8, 8] : [5, 5];
 }
 
-export function useGame() {
+export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }) {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -42,6 +42,9 @@ export function useGame() {
   const [isGenerating, setIsGenerating] = useState(false);
   const [hint, setHint] = useState<Hint | null>(null);
   const [hintMode, setHintMode] = useState<HintMode>('logic');
+  // Logic-hint techniques surfaced this game, keyed by Hint.type. Reset
+  // per game; the Solved screen reads it for the per-solve breakdown.
+  const [techniquesUsed, setTechniquesUsed] = useState<Record<string, number>>({});
 
   const startNewGame = useCallback((diff: Difficulty, size?: GridSize) => {
     const actualSize = size ?? gridSize;
@@ -51,6 +54,7 @@ export function useGame() {
     setSelectedCell(null);
     setNotesMode(false);
     setHint(null);
+    setTechniquesUsed({});
 
     setTimeout(() => {
       const [rows, cols] = gridSizeDimensions(actualSize);
@@ -82,9 +86,18 @@ export function useGame() {
   }, []);
 
   useEffect(() => {
-    if (!loadFromUrl()) {
-      startNewGame('easy', '5x5');
-    }
+    // Mount bootstrap, deferred to a macrotask so it doesn't call
+    // setState synchronously within the effect (which would cascade an
+    // extra render). loadFromUrl() restores a shared-link game;
+    // otherwise generate a fresh Easy 5x5.
+    const t = setTimeout(() => {
+      if (!loadFromUrl()) {
+        startNewGame(initial?.difficulty ?? 'easy', initial?.gridSize ?? '5x5');
+      }
+    }, 0);
+    return () => clearTimeout(t);
+    // Mount-only: loadFromUrl / startNewGame are intentionally not deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCellClick = useCallback(
@@ -170,6 +183,7 @@ export function useGame() {
       if (h) {
         setHint(h);
         setSelectedCell([h.row, h.col]);
+        setTechniquesUsed((prev) => ({ ...prev, [h.type]: (prev[h.type] ?? 0) + 1 }));
       } else {
         // No logic deduction found — fall back to revealing a cell
         const { rows, cols } = gameState.puzzle.layout;
@@ -256,6 +270,7 @@ export function useGame() {
     isGenerating,
     hint,
     hintMode,
+    techniquesUsed,
     startNewGame,
     handleCellClick,
     handleNumberInput,

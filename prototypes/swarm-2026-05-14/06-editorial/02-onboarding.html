@@ -1,0 +1,216 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+    --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+      --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;
+    color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;
+    background:var(--surface);
+    overflow-y:auto;
+    box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+  .page{padding:0 32px}
+
+  .nav{
+    display:flex;justify-content:space-between;align-items:center;
+    padding:16px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .nav .crumb{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .nav .skip{
+    font-size:13px;color:var(--text-secondary);
+    text-decoration:underline;text-underline-offset:3px;
+  }
+
+  .kicker{
+    margin-top:32px;
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:16px;
+  }
+  h1.hero{
+    font-size:36px;line-height:1.1;letter-spacing:-0.03em;
+    font-weight:600;margin-bottom:24px;
+  }
+  .byline{
+    font-size:13px;color:var(--text-tertiary);
+    font-style:italic;margin-bottom:32px;
+    padding-bottom:24px;border-bottom:1px solid var(--border);
+  }
+
+  p.body{
+    font-size:16px;line-height:1.7;font-weight:400;
+    color:var(--text-primary);
+    margin-bottom:20px;max-width:58ch;
+  }
+  p.body.muted{color:var(--text-secondary)}
+
+  h2.section{
+    margin-top:40px;margin-bottom:20px;
+    font-size:22px;line-height:1.2;font-weight:600;
+    letter-spacing:-0.02em;color:var(--text-primary);
+  }
+
+  .aside{
+    margin:32px -8px;
+    padding:24px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;
+  }
+  .aside .label{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:12px;
+  }
+  .aside p{
+    font-size:14px;line-height:1.6;color:var(--text-secondary);
+    margin-bottom:16px;
+  }
+
+  /* Tiny demo grid */
+  .demo{
+    display:grid;grid-template-columns:repeat(3,1fr);
+    gap:0;
+    width:120px;
+    border:1px solid var(--border-cage);
+    border-radius:4px;overflow:hidden;
+    margin:0 auto;
+  }
+  .demo .c{
+    aspect-ratio:1;background:var(--surface-cell);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-size:18px;font-weight:500;
+    border-right:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    color:var(--text-primary);
+    font-variant-numeric:tabular-nums;
+  }
+  .demo .c:nth-child(3n){border-right:0}
+  .demo .c.cage{border-right:1px solid var(--border-cage)}
+  .demo .c.cage-b{border-bottom:1px solid var(--border-cage)}
+  .demo .c.hl{background:var(--brand-50);color:var(--brand-600)}
+  .demo .c.dim{color:var(--text-tertiary)}
+
+  .pullquote{
+    margin:48px 0;
+    text-align:center;
+    padding:0 8px;
+  }
+  .pullquote q{
+    quotes:"\201C" "\201D";
+    font-size:24px;line-height:1.4;
+    font-weight:400;font-style:italic;
+    letter-spacing:-0.01em;color:var(--text-primary);
+  }
+  .pullquote q::before{content:open-quote}
+  .pullquote q::after{content:close-quote}
+
+  .cta{
+    margin:48px 0 24px;
+    padding:24px 0;
+    border-top:1px solid var(--border);
+    border-bottom:1px solid var(--border);
+    display:flex;justify-content:space-between;align-items:center;
+  }
+  .cta .label{
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .cta a{
+    font-size:17px;font-weight:500;
+    color:var(--brand-600);
+    text-decoration:none;letter-spacing:-0.01em;
+  }
+  .cta a::after{content:" →"}
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+    <div class="page">
+      <div class="nav">
+        <span class="crumb">Welcome · Chapter One</span>
+        <a class="skip" href="#">Skip</a>
+      </div>
+
+      <p class="kicker">For the newcomer</p>
+      <h1 class="hero">How to read a Tectonic.</h1>
+      <p class="byline">A short guide. Reading time: about two minutes.</p>
+
+      <p class="body">A Tectonic is a small grid divided into <em>cages</em> — clusters of two to five cells outlined in heavier ink. Each cage holds the numbers <strong>1</strong> through <strong>N</strong>, where N is its size. A pair holds 1 and 2. A trio holds 1, 2, 3. And so on.</p>
+
+      <p class="body muted">There is a second rule, and it is the one that gives the puzzle its texture: cells that touch — including diagonally — cannot share a number. A cell sees its eight neighbours.</p>
+
+      <div class="aside">
+        <p class="label">A worked example</p>
+        <p>A three-cell cage. One value is given. The other two are forced by the no-touch rule with the cells above.</p>
+        <div class="demo" aria-hidden="true">
+          <div class="c dim">2</div>
+          <div class="c dim">3</div>
+          <div class="c dim">1</div>
+          <div class="c cage hl">1</div>
+          <div class="c cage">·</div>
+          <div class="c">·</div>
+          <div class="c cage-b">·</div>
+          <div class="c cage-b">·</div>
+          <div class="c">·</div>
+        </div>
+      </div>
+
+      <h2 class="section">Where to look first</h2>
+      <p class="body">Begin with cages that have the fewest empty cells. Then look for cells whose neighbours have already used most of the available numbers. The puzzle reveals itself in layers.</p>
+
+      <div class="pullquote">
+        <q>Patience is the first technique.</q>
+      </div>
+
+      <p class="body muted">We'll teach you the rest as you go — naked singles, hidden singles, forced moves, and eventually contradiction chains. You don't have to memorise the names. The names will arrive on their own.</p>
+
+      <div class="cta">
+        <span class="label">Begin</span>
+        <a href="#">Your first puzzle</a>
+      </div>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

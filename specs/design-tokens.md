@@ -2,7 +2,7 @@
 
 > Canonical visual values. Source of truth for both `src/index.css` and any Open Design brief.
 
-**Last updated:** 2026-05-14
+**Last updated:** 2026-05-15
 
 When changing a token:
 1. Update the value in `src/index.css` (both light and dark mode).
@@ -36,7 +36,45 @@ The product feels like a cool, focused puzzle space — not a warm consumer app.
 | `surface-cell-clue` | `#f5f5f5` | `#262626` |
 | `surface-cell-selected` | `#e0f7fa` | `#164e5b` |
 | `border` | `#e5e5e5` | `#2a2a2a` |
-| `border-cage` | `#a3a3a3` | `#525252` |
+
+> `border-cage` is defined under §2a (the board palette) — it is an OKLCH neutral.
+
+## 2a. Board & cage colors
+
+Finalized 2026-05-15 from Open Design palette exploration. The board's cells are tinted by **cage** — each cage (cell group) gets one of five fills, graph-coloured so no two adjacent cages share a colour. Values are OKLCH; dark mode is derived by **lightness −60, chroma ×0.7**. Bound in [`src/index.css`](../src/index.css); board cells set them per-cell via the `.cage-1`…`.cage-5` classes.
+
+### Cage fills
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `cage-1` | `oklch(96.5% 0.074 88)` | `oklch(36.5% 0.052 88)` |
+| `cage-2` | `oklch(92% 0.036 0)` | `oklch(32% 0.025 0)` |
+| `cage-3` | `oklch(88% 0.038 256)` | `oklch(28% 0.027 256)` |
+| `cage-4` | `oklch(88.5% 0.048 180)` | `oklch(28.5% 0.034 180)` |
+| `cage-5` | `oklch(96.5% 0.006 83)` | `oklch(36.5% 0.004 83)` |
+
+A cell's cage fill supersedes `surface-cell` on the board. `surface-cell` remains the cell background for non-board contexts (share-artifact thumbnails, etc.).
+
+### Borders
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `border-cage` | `oklch(54% 0 0)` | The 2px line between two different cages. Neutral — same in both modes. |
+| `border-cage-width` | `2px` | Cage-boundary line width |
+| `border-inner-width` | `1px` | Within-cage cell-to-cell line width |
+| `border-inner-target-l` | `0.66` | Lightness the inner border is pulled toward |
+| `border-inner-blend` | `0.40` | How far to pull (0 = invisible, 1 = full shift) |
+| `cage-N-inner` | derived | `cage-N` with lightness blended toward `border-inner-target-l` by `border-inner-blend`; hue + chroma preserved. Computed in CSS via relative color syntax, so it re-resolves per light/dark. |
+
+The board container paints the outer frame; each cell paints only its top + left edge, so every internal line is drawn exactly once at the intended width.
+
+### Cell value text
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `cell-text` | `oklch(4% 0 0)` | `oklch(96% 0 0)` |
+
+Clue vs. player-entered values are distinguished by weight (bold vs. medium), not colour — both use `cell-text`. Error values override to the danger colour.
 
 ## 3. Color — text
 

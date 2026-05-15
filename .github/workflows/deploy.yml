@@ -1,8 +1,16 @@
-name: Deploy to GitHub Pages
+name: Deploy prototype to GitHub Pages
+
+# Publishes the iOS-native clickable prototype (variant 01 of the
+# 2026-05-14 swarm) to GitHub Pages. The prototype is static HTML —
+# no build step. This replaces the earlier Vite-app deployment.
 
 on:
   push:
-    branches: [main, claude/tectonic-puzzle-research-m6afO]
+    branches: [main, feature/swarm-and-stage-up]
+    paths:
+      - 'prototypes/swarm-2026-05-14/01-ios-native/**'
+      - '.github/workflows/deploy.yml'
+  workflow_dispatch:
 
 permissions:
   contents: read
@@ -14,26 +22,15 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npm run build
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: dist
-
   deploy:
-    needs: build
     runs-on: ubuntu-latest
     environment:
       name: github-pages
       url: ${{ steps.deployment.outputs.page_url }}
     steps:
+      - uses: actions/checkout@v4
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: prototypes/swarm-2026-05-14/01-ios-native
       - id: deployment
         uses: actions/deploy-pages@v4

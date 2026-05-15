@@ -1,0 +1,171 @@
+
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Stage-Up Moments — Variant Comparison</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap');
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  :root {
+    --bg: #fafafa;
+    --fg: #0a0a0a;
+    --muted: #71717a;
+    --border: #e4e4e7;
+    --brand: #0891b2;
+    --surface: #ffffff;
+    --font: 'Inter', -apple-system, BlinkMacSystemFont, system-ui, sans-serif;
+  }
+
+  html, body {
+    min-height: 100vh;
+    font-family: var(--font);
+    background: var(--bg);
+    color: var(--fg);
+    -webkit-font-smoothing: antialiased;
+  }
+
+  .page {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 48px 32px 64px;
+  }
+
+  .page-header {
+    margin-bottom: 48px;
+  }
+
+  .page-header h1 {
+    font-size: 24px;
+    font-weight: 600;
+    letter-spacing: -0.025em;
+    margin-bottom: 8px;
+  }
+
+  .page-header p {
+    font-size: 15px;
+    color: var(--muted);
+    line-height: 1.5;
+    max-width: 600px;
+  }
+
+  .variants-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 24px;
+  }
+
+  @media (max-width: 1100px) {
+    .variants-grid { grid-template-columns: 1fr; max-width: 500px; }
+  }
+
+  .variant-card {
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    overflow: hidden;
+    background: var(--surface);
+    transition: box-shadow 200ms ease;
+  }
+  .variant-card:hover {
+    box-shadow: 0 4px 24px rgba(0, 0, 0, 0.06);
+  }
+
+  .variant-preview {
+    width: 100%;
+    aspect-ratio: 390 / 844;
+    border: none;
+    display: block;
+    background: var(--bg);
+    pointer-events: none;
+  }
+
+  .variant-info {
+    padding: 20px 24px;
+    border-top: 1px solid var(--border);
+  }
+
+  .variant-info h2 {
+    font-size: 16px;
+    font-weight: 600;
+    letter-spacing: -0.01em;
+    margin-bottom: 4px;
+  }
+
+  .variant-tag {
+    display: inline-block;
+    font-size: 11px;
+    font-weight: 500;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: var(--brand);
+    margin-bottom: 8px;
+  }
+
+  .variant-info p {
+    font-size: 13px;
+    color: var(--muted);
+    line-height: 1.5;
+  }
+
+  .variant-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    margin-top: 12px;
+    font-size: 13px;
+    font-weight: 500;
+    color: var(--brand);
+    text-decoration: none;
+  }
+  .variant-link:hover { text-decoration: underline; }
+  .variant-link::after { content: '\2192'; }
+</style>
+</head>
+<body>
+
+<div class="page">
+  <div class="page-header">
+    <h1>Stage-Up Moments</h1>
+    <p>Three variant directions for the stage-up celebration card. Each shows all four transitions (Beginner / Confident / Advanced / Master) with light + dark mode toggle. Click "Open full" to interact.</p>
+  </div>
+
+  <div class="variants-grid">
+
+    <div class="variant-card">
+      <iframe class="variant-preview" src="variant-a-minimal-type/index.html" loading="lazy" sandbox="allow-scripts"></iframe>
+      <div class="variant-info">
+        <div class="variant-tag">Modern Minimal</div>
+        <h2>A — Type Only</h2>
+        <p>Zero ornament. System sans, centered hierarchy. The quietest version — just typography and space.</p>
+        <a class="variant-link" href="variant-a-minimal-type/index.html">Open full</a>
+      </div>
+    </div>
+
+    <div class="variant-card">
+      <iframe class="variant-preview" src="variant-b-minimal-grid/index.html" loading="lazy" sandbox="allow-scripts"></iframe>
+      <div class="variant-info">
+        <div class="variant-tag">Modern Minimal</div>
+        <h2>B — Board Ghost</h2>
+        <p>Same clean base with a faint frozen Tectonic grid behind the text. The board anchors the celebration to the game.</p>
+        <a class="variant-link" href="variant-b-minimal-grid/index.html">Open full</a>
+      </div>
+    </div>
+
+    <div class="variant-card">
+      <iframe class="variant-preview" src="variant-c-editorial/index.html" loading="lazy" sandbox="allow-scripts"></iframe>
+      <div class="variant-info">
+        <div class="variant-tag">Editorial Monocle</div>
+        <h2>C — Editorial</h2>
+        <p>Serif display, monospace kicker, rule ornament. More ceremony — like a title card from a quiet film.</p>
+        <a class="variant-link" href="variant-c-editorial/index.html">Open full</a>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>

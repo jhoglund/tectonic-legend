@@ -1,0 +1,341 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Cage Color Palettes</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2;
+    --surface:#fafafa;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root {
+      --brand-600:#06b6d4;
+      --surface:#0a0a0a;--surface-elevated:#171717;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--surface);color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;
+    padding:32px 24px 64px;
+  }
+
+  h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{font-size:13px;color:var(--text-secondary);margin:0 0 28px;line-height:1.5}
+
+  .variants{display:flex;flex-wrap:wrap;gap:32px;justify-content:center}
+  .variant{
+    display:flex;flex-direction:column;align-items:center;gap:12px;
+  }
+  .variant-label{
+    font-size:14px;font-weight:600;letter-spacing:-.01em;
+    display:flex;align-items:center;gap:8px;
+  }
+  .variant-label .swatch-row{display:flex;gap:3px}
+  .variant-label .sw{width:14px;height:14px;border-radius:4px;border:1px solid rgba(0,0,0,.08)}
+
+  /* Board */
+  .board{
+    --cell:64px;
+    display:grid;grid-template-columns:repeat(5,var(--cell));grid-template-rows:repeat(5,var(--cell));
+    background:var(--surface-board);
+    border:2px solid var(--border-cage);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .cell{
+    position:relative;
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:22px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+  }
+  .cell.empty{color:var(--text-tertiary);font-size:13px}
+  .cb-t{border-top:2px solid var(--border-cage)}
+  .cb-r{border-right:2px solid var(--border-cage)}
+  .cb-b{border-bottom:2px solid var(--border-cage)}
+  .cb-l{border-left:2px solid var(--border-cage)}
+
+  /* Cage colors — each cage gets a CSS class */
+  .cage-a{background:var(--cage-1)}
+  .cage-b{background:var(--cage-2)}
+  .cage-c{background:var(--cage-3)}
+  .cage-d{background:var(--cage-4)}
+  .cage-e{background:var(--cage-5)}
+  .cage-f{background:var(--cage-1)}
+  .cage-g{background:var(--cage-2)}
+  .cage-h{background:var(--cage-3)}
+
+  /* --- PALETTE 1: Ocean Breeze (brand-aligned cool pastels) --- */
+  .palette-ocean{
+    --cage-1: oklch(94% 0.03 200);
+    --cage-2: oklch(93% 0.035 260);
+    --cage-3: oklch(95% 0.025 140);
+    --cage-4: oklch(92% 0.03 300);
+    --cage-5: oklch(94% 0.02 60);
+  }
+  /* --- PALETTE 2: Warm Sand (earthy, warm-neutral) --- */
+  .palette-sand{
+    --cage-1: oklch(94% 0.025 80);
+    --cage-2: oklch(93% 0.03 160);
+    --cage-3: oklch(92% 0.035 220);
+    --cage-4: oklch(94% 0.02 30);
+    --cage-5: oklch(93% 0.025 340);
+  }
+  /* --- PALETTE 3: Ink Wash (very desaturated, near-grey tints) --- */
+  .palette-ink{
+    --cage-1: oklch(93% 0.012 200);
+    --cage-2: oklch(90% 0.015 260);
+    --cage-3: oklch(95% 0.008 100);
+    --cage-4: oklch(91% 0.012 340);
+    --cage-5: oklch(93% 0.010 40);
+  }
+
+  /* Dark-mode adjustments — lower lightness, keep chroma */
+  @media (prefers-color-scheme: dark){
+    .palette-ocean{
+      --cage-1: oklch(22% 0.03 200);
+      --cage-2: oklch(21% 0.035 260);
+      --cage-3: oklch(23% 0.025 140);
+      --cage-4: oklch(20% 0.03 300);
+      --cage-5: oklch(22% 0.02 60);
+    }
+    .palette-sand{
+      --cage-1: oklch(22% 0.025 80);
+      --cage-2: oklch(21% 0.03 160);
+      --cage-3: oklch(20% 0.035 220);
+      --cage-4: oklch(22% 0.02 30);
+      --cage-5: oklch(21% 0.025 340);
+    }
+    .palette-ink{
+      --cage-1: oklch(21% 0.012 200);
+      --cage-2: oklch(19% 0.015 260);
+      --cage-3: oklch(23% 0.008 100);
+      --cage-4: oklch(20% 0.012 340);
+      --cage-5: oklch(21% 0.010 40);
+    }
+  }
+
+  /* Tweaks panel */
+  .tweaks{
+    position:fixed;bottom:16px;right:16px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.12);
+    font-size:12px;width:220px;z-index:10;
+  }
+  .tweaks h3{margin:0 0 10px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary)}
+  .tweaks label{display:flex;align-items:center;gap:6px;margin-bottom:6px;cursor:pointer;font-weight:500}
+  .tweaks input[type="range"]{flex:1;accent-color:var(--brand-600)}
+  .range-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .range-row span{min-width:48px;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary)}
+</style>
+</head>
+<body>
+
+<h1>Cage background colors</h1>
+<p class="sub">5 colors, graph-colored so no two adjacent cages share a color. Pick a direction, then fine-tune chroma and lightness.</p>
+
+<div class="variants">
+  <!-- Variant 1: Ocean Breeze -->
+  <div class="variant">
+    <div class="variant-label">
+      A — Ocean Breeze
+      <span class="swatch-row">
+        <span class="sw" style="background:oklch(94% 0.03 200)"></span>
+        <span class="sw" style="background:oklch(93% 0.035 260)"></span>
+        <span class="sw" style="background:oklch(95% 0.025 140)"></span>
+        <span class="sw" style="background:oklch(92% 0.03 300)"></span>
+        <span class="sw" style="background:oklch(94% 0.02 60)"></span>
+      </span>
+    </div>
+    <div class="board palette-ocean">
+      <div class="cell cb-t cb-l cb-r cb-b cage-a">4</div>
+      <div class="cell cb-t cb-r cage-b"></div>
+      <div class="cell cb-t cb-b cage-b">3</div>
+      <div class="cell cb-t cb-l cb-r cb-b cage-c">1</div>
+      <div class="cell cb-t cb-r cb-b cage-c">5</div>
+      <div class="cell cb-l cb-r cage-a"></div>
+      <div class="cell cb-r cb-b cage-a">5</div>
+      <div class="cell cb-b cage-b">2</div>
+      <div class="cell cb-l cage-d">4</div>
+      <div class="cell cb-r cage-d">1</div>
+      <div class="cell cb-l cb-r cb-b cage-a">3</div>
+      <div class="cell cb-b cage-e">1</div>
+      <div class="cell cb-r cb-b cage-e">4</div>
+      <div class="cell cage-d">2</div>
+      <div class="cell cb-r cb-b cage-d"></div>
+      <div class="cell cb-l cb-r cage-f">5</div>
+      <div class="cell cb-r cage-f">2</div>
+      <div class="cell cb-r cb-b cage-e">3</div>
+      <div class="cell cb-l cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-d">4</div>
+      <div class="cell cb-l cb-r cb-b cage-f"></div>
+      <div class="cell cb-r cb-b cage-f">3</div>
+      <div class="cell cb-b cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-g">3</div>
+      <div class="cell cb-l cb-r cb-b cage-h">2</div>
+    </div>
+  </div>
+
+  <!-- Variant 2: Warm Sand -->
+  <div class="variant">
+    <div class="variant-label">
+      B — Warm Sand
+      <span class="swatch-row">
+        <span class="sw" style="background:oklch(94% 0.025 80)"></span>
+        <span class="sw" style="background:oklch(93% 0.03 160)"></span>
+        <span class="sw" style="background:oklch(92% 0.035 220)"></span>
+        <span class="sw" style="background:oklch(94% 0.02 30)"></span>
+        <span class="sw" style="background:oklch(93% 0.025 340)"></span>
+      </span>
+    </div>
+    <div class="board palette-sand">
+      <div class="cell cb-t cb-l cb-r cb-b cage-a">4</div>
+      <div class="cell cb-t cb-r cage-b"></div>
+      <div class="cell cb-t cb-b cage-b">3</div>
+      <div class="cell cb-t cb-l cb-r cb-b cage-c">1</div>
+      <div class="cell cb-t cb-r cb-b cage-c">5</div>
+      <div class="cell cb-l cb-r cage-a"></div>
+      <div class="cell cb-r cb-b cage-a">5</div>
+      <div class="cell cb-b cage-b">2</div>
+      <div class="cell cb-l cage-d">4</div>
+      <div class="cell cb-r cage-d">1</div>
+      <div class="cell cb-l cb-r cb-b cage-a">3</div>
+      <div class="cell cb-b cage-e">1</div>
+      <div class="cell cb-r cb-b cage-e">4</div>
+      <div class="cell cage-d">2</div>
+      <div class="cell cb-r cb-b cage-d"></div>
+      <div class="cell cb-l cb-r cage-f">5</div>
+      <div class="cell cb-r cage-f">2</div>
+      <div class="cell cb-r cb-b cage-e">3</div>
+      <div class="cell cb-l cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-d">4</div>
+      <div class="cell cb-l cb-r cb-b cage-f"></div>
+      <div class="cell cb-r cb-b cage-f">3</div>
+      <div class="cell cb-b cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-g">3</div>
+      <div class="cell cb-l cb-r cb-b cage-h">2</div>
+    </div>
+  </div>
+
+  <!-- Variant 3: Ink Wash -->
+  <div class="variant">
+    <div class="variant-label">
+      C — Ink Wash
+      <span class="swatch-row">
+        <span class="sw" style="background:oklch(93% 0.012 200)"></span>
+        <span class="sw" style="background:oklch(90% 0.015 260)"></span>
+        <span class="sw" style="background:oklch(95% 0.008 100)"></span>
+        <span class="sw" style="background:oklch(91% 0.012 340)"></span>
+        <span class="sw" style="background:oklch(93% 0.010 40)"></span>
+      </span>
+    </div>
+    <div class="board palette-ink">
+      <div class="cell cb-t cb-l cb-r cb-b cage-a">4</div>
+      <div class="cell cb-t cb-r cage-b"></div>
+      <div class="cell cb-t cb-b cage-b">3</div>
+      <div class="cell cb-t cb-l cb-r cb-b cage-c">1</div>
+      <div class="cell cb-t cb-r cb-b cage-c">5</div>
+      <div class="cell cb-l cb-r cage-a"></div>
+      <div class="cell cb-r cb-b cage-a">5</div>
+      <div class="cell cb-b cage-b">2</div>
+      <div class="cell cb-l cage-d">4</div>
+      <div class="cell cb-r cage-d">1</div>
+      <div class="cell cb-l cb-r cb-b cage-a">3</div>
+      <div class="cell cb-b cage-e">1</div>
+      <div class="cell cb-r cb-b cage-e">4</div>
+      <div class="cell cage-d">2</div>
+      <div class="cell cb-r cb-b cage-d"></div>
+      <div class="cell cb-l cb-r cage-f">5</div>
+      <div class="cell cb-r cage-f">2</div>
+      <div class="cell cb-r cb-b cage-e">3</div>
+      <div class="cell cb-l cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-d">4</div>
+      <div class="cell cb-l cb-r cb-b cage-f"></div>
+      <div class="cell cb-r cb-b cage-f">3</div>
+      <div class="cell cb-b cage-g"></div>
+      <div class="cell cb-l cb-r cb-b cage-g">3</div>
+      <div class="cell cb-l cb-r cb-b cage-h">2</div>
+    </div>
+  </div>
+</div>
+
+<!-- Tweaks panel -->
+<div class="tweaks">
+  <h3>Tweak</h3>
+  <div class="range-row">
+    <label for="chroma">Chroma</label>
+    <input type="range" id="chroma" min="0" max="100" value="50">
+    <span id="chroma-val">0.030</span>
+  </div>
+  <div class="range-row">
+    <label for="lightness">Lightness</label>
+    <input type="range" id="lightness" min="0" max="100" value="50">
+    <span id="light-val">93%</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  // Base hue sets for each palette
+  const palettes = {
+    ocean:  [200, 260, 140, 300, 60],
+    sand:   [80, 160, 220, 30, 340],
+    ink:    [200, 260, 100, 340, 40],
+  };
+
+  // Base chroma per palette
+  const baseChroma = { ocean: 0.030, sand: 0.028, ink: 0.012 };
+  const baseLightness = { ocean: 0.935, sand: 0.932, ink: 0.924 };
+
+  const chromaSlider = document.getElementById('chroma');
+  const lightnessSlider = document.getElementById('lightness');
+  const chromaVal = document.getElementById('chroma-val');
+  const lightVal = document.getElementById('light-val');
+
+  function update(){
+    const cMult = chromaSlider.value / 50;   // 0..2 multiplier
+    const lShift = (lightnessSlider.value - 50) / 500; // -.1..+.1 shift
+
+    chromaVal.textContent = (0.030 * cMult).toFixed(3);
+    lightVal.textContent = Math.round((0.93 + lShift) * 100) + '%';
+
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    for (const [name, hues] of Object.entries(palettes)){
+      const boards = document.querySelectorAll('.palette-' + name);
+      boards.forEach(function(board){
+        hues.forEach(function(hue, i){
+          const c = baseChroma[name] * cMult;
+          let l = baseLightness[name] + lShift;
+          if (isDark) l = 0.22 + (lShift * 0.5);
+          board.style.setProperty('--cage-' + (i+1), 'oklch(' + (l*100).toFixed(1) + '% ' + c.toFixed(4) + ' ' + hue + ')');
+        });
+      });
+    }
+  }
+
+  chromaSlider.addEventListener('input', update);
+  lightnessSlider.addEventListener('input', update);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', update);
+})();
+</script>
+</body>
+</html>

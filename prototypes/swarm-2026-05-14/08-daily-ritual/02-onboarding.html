@@ -1,0 +1,150 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Welcome</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@500;600&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+    --surface-cell:#ffffff; --surface-cell-selected:#e0f7fa;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+    --brand-600-soft: rgba(8,145,178,0.08);
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+      --surface-cell:#1a1f24; --surface-cell-selected:#164e5b;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+      --brand-600-soft: rgba(6,182,212,0.16);
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{background:#222;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums}
+  body{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:24px}
+  .device{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:44px;overflow:hidden;position:relative;
+    box-shadow:0 24px 80px rgba(0,0,0,0.35);
+    display:flex;flex-direction:column;
+  }
+  .status-bar{
+    height:54px;padding:18px 32px 0;display:flex;justify-content:space-between;align-items:flex-start;
+    font-size:15px;font-weight:600;color:var(--text-primary);flex:0 0 auto;
+  }
+  .status-bar .dots{display:flex;gap:6px;align-items:center}
+  .status-bar .dot{width:4px;height:4px;border-radius:50%;background:var(--text-primary)}
+  .content{flex:1;display:flex;flex-direction:column;padding:24px 32px 40px;overflow:hidden}
+  .nav{display:flex;justify-content:space-between;align-items:center;margin-bottom:48px}
+  .step-dots{display:flex;gap:6px}
+  .step-dot{width:24px;height:3px;border-radius:2px;background:var(--border)}
+  .step-dot.on{background:var(--brand-600)}
+  .skip{font-size:13px;color:var(--text-tertiary);text-decoration:none;font-weight:500}
+
+  .eyebrow{
+    font-size:11px;font-weight:600;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--brand-600);margin-bottom:14px;
+  }
+  .h1{
+    font-size:28px;line-height:34px;font-weight:600;letter-spacing:-0.02em;
+    color:var(--text-primary);margin-bottom:16px;
+  }
+  .lede{
+    font-size:15px;line-height:22px;color:var(--text-secondary);margin-bottom:32px;
+  }
+
+  .ritual{
+    display:flex;flex-direction:column;gap:16px;margin-bottom:40px;
+  }
+  .ritual-row{
+    display:flex;gap:14px;align-items:flex-start;
+  }
+  .ritual-mark{
+    width:28px;height:28px;flex:0 0 28px;border-radius:8px;
+    background:var(--brand-600-soft);color:var(--brand-600);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;font-weight:600;font-size:13px;
+  }
+  .ritual-text{flex:1}
+  .ritual-title{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:2px}
+  .ritual-body{font-size:13px;line-height:19px;color:var(--text-secondary)}
+
+  .today-stub{
+    margin-bottom:32px;padding:16px;border:1px solid var(--border);border-radius:12px;
+    background:var(--surface-elevated);
+  }
+  .stub-eyebrow{font-size:11px;font-weight:600;color:var(--brand-600);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:6px}
+  .stub-title{font-size:17px;font-weight:600;color:var(--text-primary);margin-bottom:4px}
+  .stub-body{font-size:13px;line-height:19px;color:var(--text-secondary)}
+
+  .spacer{flex:1}
+  .btn{
+    height:48px;border-radius:8px;border:none;
+    background:var(--brand-600);color:var(--text-on-brand);
+    font-family:inherit;font-size:15px;font-weight:600;letter-spacing:0.01em;cursor:pointer;
+    width:100%;text-decoration:none;display:flex;align-items:center;justify-content:center;
+  }
+</style>
+</head>
+<body>
+<div class="device">
+  <div class="status-bar">
+    <span>9:41</span>
+    <div class="dots"><span class="dot"></span><span class="dot"></span><span class="dot"></span></div>
+  </div>
+  <div class="content">
+    <div class="nav">
+      <div class="step-dots">
+        <span class="step-dot on"></span>
+        <span class="step-dot"></span>
+      </div>
+      <a class="skip" href="03-home.html">Skip</a>
+    </div>
+
+    <div class="eyebrow">Welcome</div>
+    <div class="h1">Today's puzzle is your first one.</div>
+    <div class="lede">We'll walk you through it. Tectonic is a logic puzzle — every cage holds the numbers 1–N once, and no two neighboring cells share a value.</div>
+
+    <div class="ritual">
+      <div class="ritual-row">
+        <div class="ritual-mark">1</div>
+        <div class="ritual-text">
+          <div class="ritual-title">Open the app each day</div>
+          <div class="ritual-body">One puzzle. The same one for everyone.</div>
+        </div>
+      </div>
+      <div class="ritual-row">
+        <div class="ritual-mark">2</div>
+        <div class="ritual-text">
+          <div class="ritual-title">Solve at your pace</div>
+          <div class="ritual-body">No timers running you down. Times are tracked, not enforced.</div>
+        </div>
+      </div>
+      <div class="ritual-row">
+        <div class="ritual-mark">3</div>
+        <div class="ritual-text">
+          <div class="ritual-title">A new one tomorrow</div>
+          <div class="ritual-body">Difficulty grows with you as you master techniques.</div>
+        </div>
+      </div>
+    </div>
+
+    <div class="today-stub">
+      <div class="stub-eyebrow">Your first puzzle · Today</div>
+      <div class="stub-title">A guided walk-through</div>
+      <div class="stub-body">5×5 grid · About three minutes · We'll highlight the move at each step.</div>
+    </div>
+
+    <div class="spacer"></div>
+    <a class="btn" href="05-solving.html">Begin today's puzzle</a>
+  </div>
+</div>
+</body>
+</html>

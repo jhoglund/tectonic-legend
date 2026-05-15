@@ -1,0 +1,152 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>Tectonic · Variant 02 · Material 3 — Reviewer</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-100:#cffafe;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-100:#155057;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;padding:0;font-family:'Inter',system-ui,sans-serif;color:var(--text-primary);font-variant-numeric:tabular-nums;background:var(--surface)}
+  body{min-height:100vh;display:grid;grid-template-columns:260px 1fr}
+  aside{
+    position:sticky;top:0;align-self:start;height:100vh;background:var(--surface-elevated);border-right:1px solid var(--border);
+    padding:24px 16px;display:flex;flex-direction:column;gap:16px;overflow-y:auto;
+  }
+  aside .brand{display:flex;align-items:center;gap:10px;padding:0 8px 6px}
+  aside .brand .mk{width:32px;height:32px;border-radius:8px;background:var(--brand-100);color:var(--brand-600);display:grid;place-items:center}
+  aside .brand b{font-weight:500;letter-spacing:-.01em;font-size:15px}
+  aside .brand small{display:block;color:var(--text-secondary);font-size:11px;letter-spacing:.04em;text-transform:uppercase;margin-top:2px}
+  aside .label{font-size:11px;font-weight:500;color:var(--text-tertiary);letter-spacing:.08em;text-transform:uppercase;padding:8px 8px 4px}
+  aside ul{list-style:none;padding:0;margin:0;display:flex;flex-direction:column;gap:2px}
+  aside li a{
+    display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:10px;text-decoration:none;color:var(--text-secondary);font-size:13.5px;
+  }
+  aside li a:hover{background:var(--surface)}
+  aside li a.on{background:var(--brand-100);color:var(--brand-600);font-weight:500}
+  aside li a .n{font-family:'JetBrains Mono';font-size:11px;color:inherit;opacity:.7;width:18px}
+  aside li a .name{flex:1}
+  aside .foot{margin-top:auto;padding:12px 8px;font-size:11px;color:var(--text-tertiary);line-height:16px}
+  aside .foot a{color:var(--text-secondary);text-decoration:none;border-bottom:1px solid var(--border)}
+  main{padding:32px;display:flex;flex-direction:column;align-items:center;gap:18px;overflow:auto}
+  .header{width:100%;max-width:840px;display:flex;align-items:flex-end;justify-content:space-between;padding:0 4px}
+  .header h1{margin:0;font-size:18px;font-weight:500;letter-spacing:-.01em}
+  .header p{margin:2px 0 0;font-size:12.5px;color:var(--text-secondary)}
+  .header .meta{font-size:12px;color:var(--text-tertiary)}
+  .frame-wrap{
+    width:436px;height:892px;border-radius:48px;background:var(--surface-elevated);
+    border:1px solid var(--border);box-shadow:0 30px 80px rgba(0,0,0,.12);padding:0;overflow:hidden;
+    display:grid;place-items:center;
+  }
+  iframe{width:436px;height:892px;border:0;background:transparent}
+  .toolbar{
+    display:flex;gap:8px;flex-wrap:wrap;justify-content:center;padding:4px 8px;
+  }
+  .toolbar a{
+    text-decoration:none;color:var(--text-secondary);font:500 12px/1 'Inter';
+    padding:8px 12px;border-radius:999px;border:1px solid var(--border);background:var(--surface-elevated);
+  }
+  .toolbar a:hover{color:var(--text-primary)}
+</style>
+</head>
+<body>
+  <aside>
+    <div class="brand">
+      <div class="mk">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none"><rect x="3" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="3" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="3" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6"/><rect x="13" y="13" width="8" height="8" rx="1.5" stroke="currentColor" stroke-width="1.6" fill="currentColor" fill-opacity=".18"/></svg>
+      </div>
+      <div>
+        <b>Tectonic</b>
+        <small>Variant 02 · Material 3</small>
+      </div>
+    </div>
+
+    <div>
+      <div class="label">Screens</div>
+      <ul id="nav">
+        <li><a href="#" data-src="01-auth.html" class="on"><span class="n">01</span><span class="name">Auth</span></a></li>
+        <li><a href="#" data-src="02-onboarding.html"><span class="n">02</span><span class="name">Onboarding</span></a></li>
+        <li><a href="#" data-src="03-home.html"><span class="n">03</span><span class="name">Home</span></a></li>
+        <li><a href="#" data-src="04-new-game.html"><span class="n">04</span><span class="name">New game</span></a></li>
+        <li><a href="#" data-src="05-solving.html"><span class="n">05</span><span class="name">Solving</span></a></li>
+        <li><a href="#" data-src="06-solved.html"><span class="n">06</span><span class="name">Solved</span></a></li>
+        <li><a href="#" data-src="07-stats.html"><span class="n">07</span><span class="name">Stats</span></a></li>
+        <li><a href="#" data-src="08-stage-up.html"><span class="n">08</span><span class="name">Stage up</span></a></li>
+      </ul>
+    </div>
+
+    <div class="foot">
+      Cross-platform Material 3 read of the Tectonic interaction model.
+      See <a href="STATUS.md">STATUS.md</a> for direction notes.
+    </div>
+  </aside>
+
+  <main>
+    <div class="header">
+      <div>
+        <h1 id="title">01 · Auth</h1>
+        <p id="subtitle">Material full-page auth with weighted button stack</p>
+      </div>
+      <div class="meta">390 × 844 · Material 3</div>
+    </div>
+    <div class="frame-wrap">
+      <iframe id="stage" src="01-auth.html" title="Screen preview"></iframe>
+    </div>
+    <div class="toolbar">
+      <a href="#" id="prev">← Previous</a>
+      <a href="#" id="next">Next →</a>
+      <a id="open-direct" href="01-auth.html" target="_blank">Open in new tab</a>
+    </div>
+  </main>
+
+<script>
+  const screens = [
+    ['01-auth.html', 'Auth', 'Material full-page auth with weighted button stack'],
+    ['02-onboarding.html', 'Onboarding', 'Three-page pager with horizontal indicator and FAB-style next'],
+    ['03-home.html', 'Home', 'Centered top app bar, tonal Daily card, FAB and bottom nav'],
+    ['04-new-game.html', 'New game', 'Modal bottom sheet · Material list with leading icons'],
+    ['05-solving.html', 'Solving', 'Real 5×5 Tectonic · contradiction stepper in a peek bottom sheet'],
+    ['06-solved.html', 'Solved', 'Branded celebration app bar at low elevation · result cards'],
+    ['07-stats.html', 'Stats', 'Tonal cards with leading accent stripes · mastery chips'],
+    ['08-stage-up.html', 'Stage up', 'Material full-screen dialog · Confident → Advanced'],
+  ];
+  const stage = document.getElementById('stage');
+  const navItems = document.querySelectorAll('#nav a');
+  const title = document.getElementById('title');
+  const subtitle = document.getElementById('subtitle');
+  const openDirect = document.getElementById('open-direct');
+  let idx = 0;
+
+  function activate(i) {
+    idx = (i + screens.length) % screens.length;
+    const [src, name, sub] = screens[idx];
+    stage.src = src;
+    title.textContent = String(idx + 1).padStart(2, '0') + ' · ' + name;
+    subtitle.textContent = sub;
+    openDirect.href = src;
+    navItems.forEach((a, j) => a.classList.toggle('on', j === idx));
+  }
+  navItems.forEach((a, i) => a.addEventListener('click', (e) => { e.preventDefault(); activate(i); }));
+  document.getElementById('prev').addEventListener('click', (e) => { e.preventDefault(); activate(idx - 1); });
+  document.getElementById('next').addEventListener('click', (e) => { e.preventDefault(); activate(idx + 1); });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'ArrowLeft') activate(idx - 1);
+    if (e.key === 'ArrowRight') activate(idx + 1);
+  });
+</script>
+</body>
+</html>

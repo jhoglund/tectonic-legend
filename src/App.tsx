@@ -1,168 +1,41 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Board } from './components/Board';
-import type { CellOverlay } from './components/Board';
-import { GameControls } from './components/GameControls';
-import { useGame } from './hooks/useGame';
-import { posKey } from './engine/types';
+import { useState } from 'react';
+import { TabBar } from './components/TabBar';
+import type { Tab } from './components/TabBar';
+import { HomeTab } from './screens/HomeTab';
+import { StatsScreen } from './screens/StatsScreen';
+import { SettingsScreen } from './screens/SettingsScreen';
 
+/**
+ * App shell — v1 Phase 0. A phone-width column with a three-tab
+ * bottom bar (Home / Stats / Settings, per ADR-0011). Navigation is
+ * plain tab state — no URL router; the location hash is reserved for
+ * shareable-puzzle links (src/engine/urlCodec.ts).
+ *
+ * The Home tab currently renders the existing game; Phase 1 splits it
+ * into a Home landing screen and a dedicated Solving screen.
+ */
 function App() {
-  const {
-    gameState,
-    difficulty,
-    gridSize,
-    selectedCell,
-    hint,
-    hintMode,
-    notesMode,
-    isGenerating,
-    startNewGame,
-    handleCellClick,
-    handleNumberInput,
-    handleClear,
-    handleHint,
-    setHintMode,
-    toggleNotes,
-    getShareUrl,
-  } = useGame();
-
-  const [chainStepIndex, setChainStepIndex] = useState(0);
-
-  const chain = hint?.chain ?? null;
-  const chainLength = chain?.length ?? 0;
-
-  useEffect(() => {
-    setChainStepIndex(0);
-  }, [hint]);
-
-  const handleChainStep = useCallback((delta: number) => {
-    setChainStepIndex((prev) => {
-      const next = prev + delta;
-      return Math.max(0, Math.min(next, chainLength - 1));
-    });
-  }, [chainLength]);
-
-  const cellOverlays = useMemo((): Map<string, CellOverlay> | null => {
-    if (!chain || chainLength === 0) return null;
-
-    const overlays = new Map<string, CellOverlay>();
-
-    for (let i = 0; i <= chainStepIndex; i++) {
-      const entry = chain[i];
-      const key = posKey(entry.row, entry.col);
-      const highlight = i === chainStepIndex
-        ? (entry.role === 'info' ? 'conclusion' : entry.role === 'target' ? 'assumption' : entry.role)
-        : null;
-      const prev = overlays.get(key);
-      overlays.set(key, {
-        highlight: highlight ?? prev?.highlight ?? null,
-        ghostValue: entry.value > 0 && entry.role !== 'target' ? entry.value : prev?.ghostValue ?? 0,
-      });
-    }
-
-    return overlays;
-  }, [chain, chainStepIndex, chainLength]);
-
-  const handleShare = useCallback(() => {
-    const url = getShareUrl();
-    if (url) {
-      navigator.clipboard.writeText(url);
-    }
-  }, [getShareUrl]);
-
-  const maxNumber = gameState
-    ? Math.max(...gameState.puzzle.layout.groups.map((g) => g.cells.length))
-    : 5;
-
-  useEffect(() => {
-    function handleKeyDown(e: KeyboardEvent) {
-      if (!gameState || !selectedCell) return;
-
-      const num = parseInt(e.key);
-      if (num >= 1 && num <= maxNumber) {
-        handleNumberInput(num);
-        return;
-      }
-
-      if (e.key === 'Backspace' || e.key === 'Delete') {
-        handleClear();
-        return;
-      }
-
-      if (e.key === 'n' || e.key === 'N') {
-        toggleNotes();
-        return;
-      }
-
-      if (e.key === 'h' || e.key === 'H') {
-        handleHint();
-        return;
-      }
-
-      const [r, c] = selectedCell;
-      const { rows, cols } = gameState.puzzle.layout;
-      let newR = r;
-      let newC = c;
-
-      if (e.key === 'ArrowUp') newR = Math.max(0, r - 1);
-      else if (e.key === 'ArrowDown') newR = Math.min(rows - 1, r + 1);
-      else if (e.key === 'ArrowLeft') newC = Math.max(0, c - 1);
-      else if (e.key === 'ArrowRight') newC = Math.min(cols - 1, c + 1);
-
-      if (newR !== r || newC !== c) {
-        e.preventDefault();
-        handleCellClick(newR, newC);
-      }
-    }
-
-    window.addEventListener('keydown', handleKeyDown);
-    return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [gameState, selectedCell, maxNumber, handleNumberInput, handleClear, toggleNotes, handleHint, handleCellClick]);
+  const [tab, setTab] = useState<Tab>('home');
 
   return (
-    <div className="min-h-screen bg-slate-50 flex flex-col items-center py-8 px-4">
-      <h1 className="text-3xl font-bold text-slate-800 mb-2">Tectonic</h1>
-      <p className="text-slate-500 text-sm mb-6">
-        Fill each group with 1..N. No equal neighbors (including diagonals).
-      </p>
-
-      {isGenerating ? (
-        <div className="flex items-center justify-center h-64">
-          <p className="text-slate-400 text-lg">Generating puzzle...</p>
-        </div>
-      ) : gameState ? (
-        <div className="flex flex-col items-center gap-6">
-          <Board
-            gameState={gameState}
-            selectedCell={selectedCell}
-            hint={hint}
-            cellOverlays={cellOverlays}
-            onCellClick={handleCellClick}
-          />
-          <GameControls
-            difficulty={difficulty}
-            gridSize={gridSize}
-            hint={hint}
-            hintMode={hintMode}
-            chainStepIndex={chainStepIndex}
-            chainLength={chainLength}
-            onNewGame={startNewGame}
-            onNumberInput={handleNumberInput}
-            onClear={handleClear}
-            onToggleNotes={toggleNotes}
-            onHint={handleHint}
-            onHintModeChange={setHintMode}
-            onShare={handleShare}
-            onChainStep={handleChainStep}
-            notesMode={notesMode}
-            maxNumber={maxNumber}
-            isSolved={gameState.isSolved}
-          />
-        </div>
-      ) : null}
-
-      <p className="text-slate-400 text-xs mt-8">
-        Arrow keys to navigate. Press N for notes, H for hint.
-      </p>
+    <div style={{ background: 'var(--surface)', minHeight: '100dvh' }}>
+      {/* Phone-width column, centred via margin auto. Not a flex child —
+          flex items default to min-width:auto and would refuse to cap. */}
+      <div
+        className="mx-auto flex flex-col"
+        style={{ maxWidth: '430px', minHeight: '100dvh' }}
+      >
+        <main className="flex-1 overflow-auto">
+          {tab === 'home' ? (
+            <HomeTab />
+          ) : tab === 'stats' ? (
+            <StatsScreen />
+          ) : (
+            <SettingsScreen />
+          )}
+        </main>
+        <TabBar active={tab} onChange={setTab} />
+      </div>
     </div>
   );
 }

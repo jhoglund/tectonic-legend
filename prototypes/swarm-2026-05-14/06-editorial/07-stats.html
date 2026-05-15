@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>Tectonic — Stats</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#1a1a1a;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    -webkit-font-smoothing:antialiased;
+    font-variant-numeric:tabular-nums;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    overflow-y:auto;box-shadow:0 30px 80px rgba(0,0,0,0.4);
+  }
+  .frame::-webkit-scrollbar{display:none}
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+  .page{padding:0 28px}
+
+  .nav{
+    padding:14px 0;
+    display:flex;justify-content:space-between;align-items:center;
+    border-bottom:2px solid var(--text-primary);
+  }
+  .nav a{font-size:13px;color:var(--text-secondary);text-decoration:none}
+  .nav .title{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+
+  .kicker{
+    margin-top:28px;
+    font-size:12px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:12px;
+  }
+  h1.hero{
+    font-size:32px;line-height:1.1;letter-spacing:-0.03em;
+    font-weight:600;margin-bottom:12px;
+  }
+  .byline{
+    font-size:13px;color:var(--text-tertiary);
+    font-style:italic;margin-bottom:24px;
+    padding-bottom:20px;border-bottom:1px solid var(--border);
+  }
+
+  .section{
+    padding:24px 0;border-bottom:1px solid var(--border);
+  }
+  .section h2{
+    font-size:11px;letter-spacing:0.16em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;margin-bottom:14px;
+  }
+  .section p{
+    font-size:15px;line-height:1.65;color:var(--text-primary);
+    max-width:54ch;margin-bottom:14px;
+  }
+  .section p.muted{color:var(--text-secondary)}
+  .section p strong{font-weight:500;color:var(--text-primary)}
+  .section p em.brand{
+    color:var(--brand-600);font-style:normal;font-weight:500;
+  }
+
+  /* Inline sparkline */
+  .spark{
+    margin:12px 0 8px;
+    display:flex;align-items:flex-end;gap:3px;
+    height:36px;
+  }
+  .spark span{
+    flex:1;background:var(--brand-600);
+    border-radius:1px;opacity:0.85;
+  }
+
+  .times-table{
+    width:100%;
+    border-collapse:collapse;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:13px;
+    margin-top:8px;
+  }
+  .times-table th, .times-table td{
+    text-align:left;padding:10px 0;
+    border-bottom:1px solid var(--border);
+  }
+  .times-table th{
+    font-family:'Inter',system-ui,sans-serif;
+    font-size:11px;letter-spacing:0.12em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .times-table td.diff{font-family:'Inter';font-size:14px;font-weight:500}
+  .times-table td.r{text-align:right;color:var(--text-secondary)}
+  .times-table td.best{color:var(--brand-600);text-align:right}
+
+  .mastery-list{
+    list-style:none;margin-top:8px;
+  }
+  .mastery-list li{
+    display:flex;align-items:center;gap:12px;
+    padding:10px 0;
+    border-bottom:1px solid var(--border);
+    font-size:14px;
+  }
+  .mastery-list li:last-child{border-bottom:0}
+  .mastery-list .name{flex:1;color:var(--text-primary);font-weight:500}
+  .mastery-list .progress{
+    width:90px;height:4px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:999px;overflow:hidden;position:relative;
+  }
+  .mastery-list .fill{
+    position:absolute;inset:0;background:var(--brand-600);
+  }
+  .mastery-list .num{
+    font-family:'JetBrains Mono',monospace;
+    font-size:12px;color:var(--text-tertiary);
+    font-variant-numeric:tabular-nums;
+    width:42px;text-align:right;
+  }
+  .mastery-list li.done .name{color:var(--brand-600)}
+
+  .foot{
+    padding:24px 0;font-size:12px;color:var(--text-tertiary);
+    font-style:italic;text-align:center;
+  }
+</style>
+</head>
+<body>
+  <div class="frame">
+    <div class="safe-top"></div>
+    <div class="page">
+      <nav class="nav">
+        <a href="#">← Today</a>
+        <span class="title">Stats</span>
+        <span style="width:32px"></span>
+      </nav>
+
+      <p class="kicker">A reading on your play</p>
+      <h1 class="hero">Where you are.</h1>
+      <p class="byline">Updated Sat May 14, 7:42am</p>
+
+      <section class="section">
+        <h2>I. Solve performance</h2>
+        <p>You've solved <strong>47 Medium puzzles</strong>. Your average time has come down <em class="brand">38 seconds</em> over the past month — a quiet, steady improvement.</p>
+        <div class="spark" aria-hidden="true">
+          <span style="height:60%"></span><span style="height:72%"></span><span style="height:68%"></span>
+          <span style="height:80%"></span><span style="height:64%"></span><span style="height:74%"></span>
+          <span style="height:58%"></span><span style="height:62%"></span><span style="height:50%"></span>
+          <span style="height:55%"></span><span style="height:46%"></span><span style="height:48%"></span>
+          <span style="height:40%"></span><span style="height:36%"></span>
+        </div>
+        <table class="times-table">
+          <thead><tr><th>Difficulty</th><th style="text-align:right">Avg</th><th style="text-align:right">Best</th></tr></thead>
+          <tbody>
+            <tr><td class="diff">Easy</td><td class="r">1:42</td><td class="best">0:58</td></tr>
+            <tr><td class="diff">Medium</td><td class="r">4:02</td><td class="best">2:14</td></tr>
+            <tr><td class="diff" style="color:var(--text-tertiary)">Hard</td><td class="r">—</td><td class="best" style="color:var(--text-tertiary)">—</td></tr>
+          </tbody>
+        </table>
+      </section>
+
+      <section class="section">
+        <h2>II. Technique mastery</h2>
+        <p class="muted">Hidden singles are now familiar — you self-apply them in <strong>4 out of 5 puzzles</strong>. Forced moves are still new. We'll keep nudging them up until they're second nature.</p>
+        <ul class="mastery-list">
+          <li class="done">
+            <span class="name">Naked single</span>
+            <span class="progress"><span class="fill" style="width:100%"></span></span>
+            <span class="num">8/8</span>
+          </li>
+          <li class="done">
+            <span class="name">Hidden single</span>
+            <span class="progress"><span class="fill" style="width:100%"></span></span>
+            <span class="num">8/8</span>
+          </li>
+          <li>
+            <span class="name">Forced move</span>
+            <span class="progress"><span class="fill" style="width:62%"></span></span>
+            <span class="num">5/8</span>
+          </li>
+          <li>
+            <span class="name">Contradiction</span>
+            <span class="progress"><span class="fill" style="width:0%"></span></span>
+            <span class="num">0/8</span>
+          </li>
+        </ul>
+      </section>
+
+      <section class="section" style="border-bottom:0">
+        <h2>III. Streak</h2>
+        <p>You've sat with a puzzle <strong>6 days running</strong>. Your longest stretch was 22 days, last December. If you miss a day, nothing breaks — we just stop counting until you're back.</p>
+      </section>
+
+      <p class="foot">The numbers above are for you, not for anyone else.</p>
+    </div>
+    <div class="safe-bottom"></div>
+  </div>
+</body>
+</html>

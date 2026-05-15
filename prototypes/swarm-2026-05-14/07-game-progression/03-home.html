@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="color-scheme" content="light dark">
+<title>Tectonic — Home</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2; --brand-500:#06b6d4; --brand-100:#cffafe; --brand-50:#ecfeff;
+    --surface:#fafafa; --surface-elevated:#ffffff;
+    --border:#e5e5e5; --border-cage:#a3a3a3;
+    --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3; --text-on-brand:#ffffff;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600:#06b6d4; --brand-500:#22d3ee; --brand-100:#155057; --brand-50:#0e2a30;
+      --surface:#0a0a0a; --surface-elevated:#171717;
+      --border:#2a2a2a; --border-cage:#525252;
+      --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373; --text-on-brand:#0a0a0a;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:#222;color:var(--text-primary);
+    display:flex;align-items:center;justify-content:center;
+    min-height:100vh;padding:24px;font-variant-numeric:tabular-nums;
+    -webkit-font-smoothing:antialiased;
+  }
+  .frame{
+    width:390px;height:844px;background:var(--surface);
+    border-radius:40px;overflow:hidden;position:relative;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);
+    display:flex;flex-direction:column;
+  }
+  .safe-top{height:44px}
+  .safe-bottom{height:34px}
+
+  /* Stage chip — omnipresent */
+  .topbar{
+    padding:6px 20px 10px;display:flex;align-items:center;gap:12px;
+  }
+  .stage-chip{
+    flex:1;display:flex;align-items:center;gap:10px;
+    padding:6px 12px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary);
+  }
+  .stage-chip .stage-name{color:var(--text-primary);font-weight:500}
+  .stage-chip .stage-bar{
+    flex:1;height:2px;background:var(--border);border-radius:1px;
+    position:relative;overflow:hidden;min-width:60px;
+  }
+  .stage-chip .stage-bar::after{
+    content:"";position:absolute;left:0;top:0;bottom:0;
+    width:62%;background:var(--brand-600);
+  }
+  .stage-chip .stage-next{color:var(--text-tertiary);font-size:11px}
+  .avatar{
+    width:32px;height:32px;border-radius:999px;
+    background:var(--brand-100);color:var(--brand-600);
+    display:flex;align-items:center;justify-content:center;
+    font-size:13px;font-weight:500;border:1px solid var(--border);
+  }
+
+  .greeting{padding:16px 24px 8px}
+  .greeting h1{
+    font-weight:500;font-size:24px;line-height:30px;letter-spacing:-0.01em;
+  }
+  .greeting p{
+    font-size:13px;color:var(--text-secondary);margin-top:4px;
+  }
+
+  /* The map */
+  .map{
+    flex:1;position:relative;margin:8px 0 0;overflow:hidden;
+  }
+  .map svg{position:absolute;inset:0;width:100%;height:100%}
+  .stage-label{
+    position:absolute;font-size:11px;letter-spacing:0.04em;text-transform:uppercase;
+    color:var(--text-tertiary);font-weight:500;
+  }
+  .stage-label.current{color:var(--text-primary)}
+  .stage-label.future{color:var(--text-tertiary);opacity:0.5}
+  .stage-meta{
+    position:absolute;font-size:11px;color:var(--text-tertiary);
+  }
+
+  /* Side affordances anchored to current node */
+  .daily-card{
+    position:absolute;left:24px;top:298px;
+    width:148px;padding:12px;border-radius:12px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .daily-card .kicker{
+    font-size:10px;letter-spacing:0.06em;text-transform:uppercase;
+    color:var(--brand-600);font-weight:500;margin-bottom:4px;
+  }
+  .daily-card .title{font-size:14px;font-weight:500;margin-bottom:6px}
+  .daily-card .sub{font-size:11px;color:var(--text-secondary)}
+  .daily-card .play{
+    margin-top:10px;display:inline-flex;align-items:center;gap:4px;
+    font-size:12px;color:var(--brand-600);font-weight:500;
+  }
+
+  .resume-pill{
+    position:absolute;right:24px;top:380px;
+    padding:8px 12px;border-radius:999px;
+    background:var(--surface-elevated);border:1px solid var(--border);
+    font-size:12px;color:var(--text-secondary);
+    display:flex;align-items:center;gap:6px;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .resume-pill .dot{
+    width:6px;height:6px;border-radius:999px;background:var(--brand-600);
+  }
+  .resume-pill strong{color:var(--text-primary);font-weight:500}
+
+  /* Bottom nav */
+  .tabbar{
+    border-top:1px solid var(--border);background:var(--surface);
+    display:flex;justify-content:space-around;padding:8px 16px 4px;
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    padding:6px 4px;color:var(--text-tertiary);font-size:10px;font-weight:500;
+    background:none;border:none;cursor:pointer;
+  }
+  .tab.active{color:var(--text-primary)}
+  .tab svg{display:block}
+</style>
+</head>
+<body>
+<div class="frame">
+  <div class="safe-top"></div>
+
+  <div class="topbar">
+    <div class="stage-chip" aria-label="Stage progress">
+      <span class="stage-name">Confident</span>
+      <span class="stage-bar" aria-hidden="true"></span>
+      <span class="stage-next">→ Advanced</span>
+    </div>
+    <div class="avatar">JH</div>
+  </div>
+
+  <div class="greeting">
+    <h1>Good afternoon, Jonas.</h1>
+    <p>Wednesday · 14 May</p>
+  </div>
+
+  <div class="map" aria-label="Your journey">
+    <svg viewBox="0 0 390 480" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+      <defs>
+        <!-- subtle topographic faint contours -->
+        <linearGradient id="trail" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stop-color="var(--brand-600)" stop-opacity="0.95"/>
+          <stop offset="55%" stop-color="var(--brand-600)" stop-opacity="0.95"/>
+          <stop offset="56%" stop-color="var(--brand-600)" stop-opacity="0.25"/>
+          <stop offset="100%" stop-color="var(--brand-600)" stop-opacity="0.18"/>
+        </linearGradient>
+      </defs>
+
+      <!-- background contour lines -->
+      <g stroke="var(--brand-600)" stroke-opacity="0.08" fill="none" stroke-width="0.75">
+        <path d="M 30 60 Q 200 30 360 80"/>
+        <path d="M 20 110 Q 210 80 370 130"/>
+        <path d="M 25 180 Q 200 140 365 195"/>
+        <path d="M 30 260 Q 200 220 360 280"/>
+        <path d="M 28 340 Q 200 300 362 360"/>
+        <path d="M 30 410 Q 200 380 360 430"/>
+      </g>
+
+      <!-- the main path -->
+      <path
+        d="M 230 60
+           C 260 110, 130 140, 160 195
+           C 185 240, 280 240, 250 310
+           C 220 380, 110 380, 140 440"
+        fill="none" stroke="url(#trail)" stroke-width="1.5"
+        stroke-linecap="round" stroke-linejoin="round"/>
+
+      <!-- past nodes (filled, brand-600) -->
+      <g>
+        <!-- Newcomer -->
+        <circle cx="230" cy="60" r="5" fill="var(--brand-600)"/>
+        <!-- Beginner -->
+        <circle cx="160" cy="195" r="5" fill="var(--brand-600)"/>
+        <!-- Confident (current, larger filled with halo) -->
+        <circle cx="250" cy="310" r="14" fill="none" stroke="var(--brand-600)" stroke-opacity="0.18" stroke-width="1"/>
+        <circle cx="250" cy="310" r="9" fill="none" stroke="var(--brand-600)" stroke-opacity="0.35" stroke-width="1"/>
+        <circle cx="250" cy="310" r="6" fill="var(--brand-600)"/>
+      </g>
+
+      <!-- future nodes (hollow rings, faint) -->
+      <g fill="var(--surface)" stroke="var(--brand-600)" stroke-opacity="0.4" stroke-width="1.25">
+        <!-- Advanced -->
+        <circle cx="140" cy="440" r="5"/>
+      </g>
+      <!-- Master implied beyond — small marker fading off frame -->
+      <g fill="none" stroke="var(--brand-600)" stroke-opacity="0.15" stroke-width="1" stroke-dasharray="2 3">
+        <path d="M 140 440 C 170 470, 220 480, 240 510"/>
+      </g>
+    </svg>
+
+    <span class="stage-label" style="left:248px;top:48px">Newcomer</span>
+    <span class="stage-meta"   style="left:248px;top:64px">Reached 1 May</span>
+
+    <span class="stage-label" style="left:50px;top:183px">Beginner</span>
+    <span class="stage-meta"   style="left:50px;top:199px">Reached 8 May</span>
+
+    <span class="stage-label current" style="left:270px;top:298px">Confident</span>
+    <span class="stage-meta"   style="left:270px;top:314px">You are here</span>
+
+    <span class="stage-label future" style="left:30px;top:428px">Advanced</span>
+    <span class="stage-meta"   style="left:30px;top:444px" >Master 2 more techniques</span>
+
+    <!-- Daily puzzle side-quest off Confident -->
+    <div class="daily-card">
+      <div class="kicker">Today</div>
+      <div class="title">Daily 5×5</div>
+      <div class="sub">Medium · Hidden singles</div>
+      <a class="play">Begin →</a>
+    </div>
+
+    <!-- Resume affordance -->
+    <div class="resume-pill">
+      <span class="dot"></span>
+      <span><strong>Resume</strong> · 6:12 in</span>
+    </div>
+  </div>
+
+  <nav class="tabbar">
+    <button class="tab active">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 10 L10 4 L17 10 M5 9 V16 H15 V9"/></svg>
+      Path
+    </button>
+    <button class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><rect x="3" y="3" width="14" height="14" rx="2"/><path d="M3 8 H17 M3 13 H17 M8 3 V17 M13 3 V17"/></svg>
+      Practice
+    </button>
+    <button class="tab">
+      <svg width="20" height="20" viewBox="0 0 20 20" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M3 16 V8 M8 16 V4 M13 16 V11 M3 16 H17"/></svg>
+      Stats
+    </button>
+  </nav>
+  <div class="safe-bottom"></div>
+</div>
+</body>
+</html>
