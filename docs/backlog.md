@@ -11,11 +11,18 @@
 
 Active work, in progress or paused awaiting input.
 
-### v1 implementation · 2026-05-15 — *Phase 0 in progress*
+### v1 implementation · 2026-05-15 — *Phases 0–1 done, Phase 2 next*
 
 The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design target. Scope was triaged against the PRD on 2026-05-15 — see [ADR-0011](decisions/ADR-0011-v1-scope-triage.md). The v1 build plan below is the result.
 
-**Phase 0 progress:** items 1 (design tokens — full set bound to `src/index.css`, Inter + JetBrains Mono loaded) and 2 (Vitest wired, 13 engine tests) are done. Item 3 (app shell + 3-tab nav) is next.
+**Done:** Phase 0 (design tokens, Vitest + 13 engine tests, 3-tab app shell) and Phase 1 (profile + progression layer with 26 tests; Home landing; difficulty picker; the iOS-native Solving screen + states; Solved screen). 39 tests, lint + build green.
+
+**Deferred slices** (carried forward, not blocking Phase 2):
+- Profile wiring — nothing calls `recordSolve()` yet. Needs a shared profile store so Home / Solving / Stats agree. Slot before Phase 2's stage-gating + mastery work, which depend on it.
+- Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
+- Undo, and the hint-mode options (candidates/reveal/check), dropped from the v1 Solving UI.
+
+**Phase 2 is next.**
 
 **Decisions still blocked on Jonas:**
 - App name (ADR-0006) — needed before App Store submission.
