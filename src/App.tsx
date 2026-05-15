@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { TabBar } from './components/TabBar';
 import type { Tab } from './components/TabBar';
-import { GameScreen } from './screens/GameScreen';
+import { HomeTab } from './screens/HomeTab';
 import { StatsScreen } from './screens/StatsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 
@@ -27,7 +27,7 @@ function App() {
       >
         <main className="flex-1 overflow-auto">
           {tab === 'home' ? (
-            <GameScreen />
+            <HomeTab />
           ) : tab === 'stats' ? (
             <StatsScreen />
           ) : (

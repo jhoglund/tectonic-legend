@@ -4,13 +4,22 @@ import type { CellOverlay } from '../components/Board';
 import { GameControls } from '../components/GameControls';
 import { useGame } from '../hooks/useGame';
 import { posKey } from '../engine/types';
+import type { Difficulty, GridSize } from '../engine/types';
+
+interface GameScreenProps {
+  /** Difficulty + size to start at; omitted = Easy 5x5 (or a share URL). */
+  initialDifficulty?: Difficulty;
+  initialGridSize?: GridSize;
+  /** When provided, a back control returns to the Home landing. */
+  onExit?: () => void;
+}
 
 /**
- * The playable game — board + controls. For v1 Phase 0 this is the
- * content of the Home tab. Phase 1 splits it into a Home landing
- * screen and a dedicated Solving screen per the prototype.
+ * The playable game — board + controls. Interim Solving surface for
+ * Phase 1: it works and is wired into the Home flow, but the proper
+ * iOS-native Solving screen rebuild is backlog item 7.
  */
-export function GameScreen() {
+export function GameScreen({ initialDifficulty, initialGridSize, onExit }: GameScreenProps) {
   const {
     gameState,
     difficulty,
@@ -28,7 +37,11 @@ export function GameScreen() {
     setHintMode,
     toggleNotes,
     getShareUrl,
-  } = useGame();
+  } = useGame(
+    initialDifficulty && initialGridSize
+      ? { difficulty: initialDifficulty, gridSize: initialGridSize }
+      : undefined,
+  );
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
 
@@ -130,6 +143,16 @@ export function GameScreen() {
 
   return (
     <div className="flex flex-col items-center py-8 px-4">
+      {onExit && (
+        <button
+          type="button"
+          onClick={onExit}
+          className="self-start mb-4 text-sm font-medium cursor-pointer"
+          style={{ color: 'var(--brand-600)' }}
+        >
+          ‹ Home
+        </button>
+      )}
       <h1 className="text-3xl font-semibold mb-2" style={{ color: 'var(--text-primary)' }}>Tectonic</h1>
       <p className="text-sm mb-6" style={{ color: 'var(--text-secondary)' }}>
         Fill each group with 1..N. No equal neighbors (including diagonals).

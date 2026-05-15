@@ -33,7 +33,7 @@ function gridSizeDimensions(size: GridSize): [number, number] {
   return size === '8x8' ? [8, 8] : [5, 5];
 }
 
-export function useGame() {
+export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }) {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -88,7 +88,7 @@ export function useGame() {
     // otherwise generate a fresh Easy 5x5.
     const t = setTimeout(() => {
       if (!loadFromUrl()) {
-        startNewGame('easy', '5x5');
+        startNewGame(initial?.difficulty ?? 'easy', initial?.gridSize ?? '5x5');
       }
     }, 0);
     return () => clearTimeout(t);
