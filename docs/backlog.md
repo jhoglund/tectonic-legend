@@ -79,7 +79,7 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 
 ### Phase 5 — Ship
 
-20. **Analytics integration** — lightweight event tracking (puzzles started/completed, hints by technique, share taps, paywall views, IAP taps). Pre-soft-launch requirement.
+20. **◑ Analytics integration** — Mimir wired in (2026-05-15): the SDK is injected by a `vite.config` plugin when `VITE_MIMIR_*` is set; `src/lib/analytics.ts` emits semantic events (puzzle started/solved/shared, hint used, tutorial completed/skipped, stage reached); pageviews + click autocapture come free. Verified end-to-end in dev (event → `/_m/api/ingest` → 202). **Remaining:** paywall / IAP events (Phase 4), and — to capture anything from the *deployed* app — Mimir must be hosted at a public URL and `VITE_MIMIR_SCRIPT_URL` / `VITE_MIMIR_ENDPOINT` / `VITE_MIMIR_TOKEN` set as repo variables/secret. `mimir.test` is local-only, so prod analytics is dormant until then.
 21. **Capacitor iOS scaffolding** — wrap the web build. StatusBar / SafeArea. ADR-pending: Capacitor vs native shell.
 22. **App Store assets** — icon, screenshots (5–8), description, keywords. Built in Open Design.
 23. **TestFlight beta** — 10–20 testers. Two-week cycle before soft launch.

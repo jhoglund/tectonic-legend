@@ -11,13 +11,8 @@
       href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap"
       rel="stylesheet"
     />
-    <script
-      src="/_m/script.js"
-      data-token="%VITE_MIMIR_TOKEN%"
-      data-endpoint="/_m/api/ingest"
-      data-app-version="%VITE_MIMIR_APP_VERSION%"
-      defer
-    ></script>
+    <!-- The Mimir analytics SDK <script> is injected here by the
+         `mimir-sdk` plugin in vite.config.ts when VITE_MIMIR_* is set. -->
   </head>
   <body>
     <div id="root"></div>

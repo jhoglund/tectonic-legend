@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useProfile } from '../lib/profileContext';
+import { analytics } from '../lib/analytics';
 import { NEWCOMER_TUTORIALS } from '../data/tutorials';
 import { WelcomeScreen } from './WelcomeScreen';
 import { TutorialScreen } from './TutorialScreen';
@@ -17,11 +18,16 @@ export function TutorialFlow() {
     profile.tutorialsCompleted === 0,
   );
 
+  const handleSkip = () => {
+    analytics.tutorialSkipped();
+    skipTutorials();
+  };
+
   if (showWelcome) {
     return (
       <WelcomeScreen
         onStart={() => setShowWelcome(false)}
-        onSkip={skipTutorials}
+        onSkip={handleSkip}
       />
     );
   }
@@ -38,8 +44,11 @@ export function TutorialFlow() {
       tutorial={tutorial}
       index={idx + 1}
       total={NEWCOMER_TUTORIALS.length}
-      onComplete={() => recordTutorial()}
-      onSkip={skipTutorials}
+      onComplete={() => {
+        analytics.tutorialCompleted(idx + 1, tutorial.id);
+        recordTutorial();
+      }}
+      onSkip={handleSkip}
     />
   );
 }

@@ -5,6 +5,7 @@ import { TutorialFlow } from './TutorialFlow';
 import { DifficultyPicker } from '../components/DifficultyPicker';
 import { StageUpCard } from '../components/StageUpCard';
 import { useProfile } from '../lib/profileContext';
+import { analytics } from '../lib/analytics';
 import type { Difficulty, GridSize } from '../engine/types';
 
 /**
@@ -24,6 +25,7 @@ export function HomeTab() {
   const [gameKey, setGameKey] = useState(0);
 
   function handleStart(difficulty: Difficulty, gridSize: GridSize) {
+    analytics.puzzleStarted(difficulty, gridSize);
     setGame({ difficulty, gridSize });
     setGameKey((k) => k + 1);
     setPickerOpen(false);

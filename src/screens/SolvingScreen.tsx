@@ -8,6 +8,7 @@ import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
 import { SolvedScreen } from './SolvedScreen';
 import { useGame } from '../hooks/useGame';
+import { analytics } from '../lib/analytics';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
 
@@ -391,7 +392,10 @@ export function SolvingScreen({
       <HintMenu
         open={hintMenuOpen}
         onClose={() => setHintMenuOpen(false)}
-        onPick={(mode) => handleHint(mode)}
+        onPick={(mode) => {
+          analytics.hintUsed(mode);
+          handleHint(mode);
+        }}
       />
       <PauseSheet
         open={paused}

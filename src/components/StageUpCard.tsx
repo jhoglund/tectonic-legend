@@ -1,4 +1,6 @@
-import type { PlayerStage } from '../lib/progression';
+import { useEffect } from 'react';
+import { type PlayerStage, STAGE_NAMES } from '../lib/progression';
+import { analytics } from '../lib/analytics';
 
 /**
  * One card per stage transition (progression.md §5). The headline names
@@ -36,6 +38,11 @@ interface StageUpCardProps {
  * by Continue; `celebratedStage` then keeps it from repeating.
  */
 export function StageUpCard({ stage, onContinue }: StageUpCardProps) {
+  // The card showing means the player just reached this stage.
+  useEffect(() => {
+    if (stage !== 0) analytics.stageReached(stage, STAGE_NAMES[stage]);
+  }, [stage]);
+
   if (stage === 0) return null;
   const card = CARDS[stage];
 

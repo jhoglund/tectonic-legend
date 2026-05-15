@@ -3,6 +3,7 @@ import { Board } from '../components/Board';
 import { MasteryChip } from '../components/MasteryChip';
 import type { GameState, Difficulty, GridSize } from '../engine/types';
 import { useProfile } from '../lib/profileContext';
+import { analytics } from '../lib/analytics';
 import type { SolveTechniqueTally } from '../lib/profile';
 import { TECHNIQUE_NAMES, type TechniqueName } from '../lib/progression';
 
@@ -96,6 +97,16 @@ export function SolvedScreen({
       isDailyPuzzle: false,
       techniques,
     });
+
+    const sum = (r: Record<string, number>) =>
+      Object.values(r).reduce((a, b) => a + b, 0);
+    analytics.puzzleSolved({
+      difficulty,
+      gridSize,
+      timeMs: elapsedSeconds * 1000,
+      hintCount: sum(techniquesUsed),
+      selfAppliedCount: sum(selfAppliedMoves),
+    });
     // Mount-once: inputs are captured at solve time and don't change.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -104,6 +115,7 @@ export function SolvedScreen({
     const url = getShareUrl();
     if (!url) return;
     navigator.clipboard.writeText(url);
+    analytics.puzzleShared(difficulty, gridSize);
     setCopied(true);
     setTimeout(() => setCopied(false), 2000);
   }
