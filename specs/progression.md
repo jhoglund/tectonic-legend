@@ -88,13 +88,15 @@ Mastery is never expressed as a raw number to the player. The chip is the entire
 
 ## 4. Tutorial puzzles
 
-Three curated puzzles for Newcomer, plus one per stage-up. Stored as JSON fixtures under `src/data/tutorials/` (path TBD).
+Three curated puzzles for Newcomer, plus one per stage-up. Stored as typed fixtures in `src/data/tutorials/` (`fixtures.ts` — `cellGroups` + `solution` come from the engine generator, so every board is provably valid).
 
 ### Newcomer tutorials (sequence)
 
-1. **Reading the board.** A 5×5 with the solution mostly filled. The player completes 3 specific cells. Forced overlay walks through cage / row / orthogonal-neighbor rules.
-2. **Naked singles.** A 5×5 solvable using only naked singles. The first 3 moves get a forced hint overlay; the rest is unaided.
-3. **Cage completion.** A 5×5 where every move is "this cage has one cell left." Demonstrates the cage-completion shortcut.
+Each is a short, **fully guided** 5×5 — the player taps the one highlighted cell's value, step by step, with a per-step explanation. Wrong taps are nudged, never recorded. (First-draft scope: tutorials are entirely scripted rather than mixing guided and free play — simpler to build and a tighter onboarding beat. Revisit with soft-launch data.)
+
+1. **Reading the board.** Solution mostly filled; the player completes 3 cells. The steps walk through the cage rule and the no-touching-neighbors rule.
+2. **Naked singles.** 5 guided cells, each framed as ruling every value but one out by cage + neighbors.
+3. **Cage completion.** 5 guided cells, each the last empty cell of its cage.
 
 ### Stage-up tutorials
 
@@ -106,7 +108,7 @@ Each stage-up introduces a single tutorial puzzle that demonstrates the new tech
 | Advanced (Hard unlocked) | Forced moves + pair eliminations |
 | Master (Expert unlocked) | Reading a contradiction chain end-to-end |
 
-Tutorial puzzles bypass the procedural generator. They are deterministic — every player gets the same sequence. The component that walks the player through is `TutorialOverlay` (to be written) and uses the same engine state model as the main solve view.
+Tutorial puzzles bypass the procedural generator. They are deterministic — every player gets the same sequence. `TutorialScreen` walks the player through, rendering the shared `Board` over an engine `GameState`; `TutorialFlow` owns the funnel (welcome card → the three tutorials → Beginner). Stage-up tutorials are not yet built.
 
 ---
 
