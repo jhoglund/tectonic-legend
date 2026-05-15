@@ -17,10 +17,10 @@ The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design targ
 
 **Done:** Phase 0 (design tokens, Vitest + 13 engine tests, 3-tab app shell) and Phase 1 (profile + progression layer with 26 tests; Home landing; difficulty picker; the iOS-native Solving screen + states; Solved screen). 39 tests, lint + build green.
 
-**Deferred slices** (carried forward, not blocking Phase 2):
-- Profile wiring — nothing calls `recordSolve()` yet. Needs a shared profile store so Home / Solving / Stats agree. Slot before Phase 2's stage-gating + mastery work, which depend on it.
+**Deferred slices** (carried forward):
 - Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
-- Undo, and the hint-mode options (candidates/reveal/check), dropped from the v1 Solving UI.
+- Mid-solve mastery-crossing moment — self-applied detection now feeds real data (`classifyMove` + useGame tracking, 2026-05-15), so `mastered` is reachable; the live "you just mastered X" beat during a solve is still not built.
+- Self-applied credit covers naked / hidden singles only — the engine never emits `forced-move` or `pair-elimination`, so the Master gate (forced-move mastery) stays unreachable until the hint engine grows those techniques.
 
 **Phase 2 is next.**
 
@@ -61,7 +61,7 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 
 9. **✅ Stage gating** — difficulty picker is stage-aware; locked difficulties show the requirement to unlock them. Done 2026-05-15 (`b290627`).
 10. **✅ Tutorial pipeline + onboarding** — 3 curated Newcomer tutorials (typed fixtures in `src/data/tutorials/`, generator-validated boards), `TutorialScreen` guided play, `WelcomeScreen`, and the `TutorialFlow` funnel routing Newcomers from stage 0 to Beginner. Done 2026-05-15. Stage-up tutorials deferred (fold into item 11).
-11. **Stage-up celebration cards** — four tailored full-screen cards, one per transition. `specs/progression.md` §5. Deferred — needs an Open Design pass first.
+11. **✅ Stage-up celebration cards** — `StageUpCard`, four full-screen cards (one per transition), shown on Home when `profile.stage` outruns `profile.celebratedStage`. Done 2026-05-15. The Open Design pass was skipped by decision; stage-up tutorial puzzles remain unbuilt (dismissal returns to Home).
 12. **✅ Mastery chip + mastery moments** — `MasteryChip` (`learning · familiar · mastered`), surfaced in Stats and on the Solved screen. Done 2026-05-15. The mid-solve crossing moment is deferred — it depends on self-applied detection (deferred slice below); until that lands, `mastered` is unreachable.
 13. **✅ Stats surface** — solve performance / technique mastery / streaks, empty-state until ≥5 solves. Done 2026-05-15. Percentile band and contradiction-chain record omitted (no backend / not tracked); the premium gate on technique mastery lands with the Phase 4 paywall.
 

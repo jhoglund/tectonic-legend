@@ -34,6 +34,8 @@ interface SolvedScreenProps {
   gridSize: GridSize;
   /** Logic-hint techniques surfaced this solve, keyed by Hint.type. */
   techniquesUsed: Record<string, number>;
+  /** Unaided technique applications this solve, keyed by Hint.type. */
+  selfAppliedMoves: Record<string, number>;
   getShareUrl: () => string | null;
   onExit: () => void;
 }
@@ -50,6 +52,7 @@ export function SolvedScreen({
   difficulty,
   gridSize,
   techniquesUsed,
+  selfAppliedMoves,
   getShareUrl,
   onExit,
 }: SolvedScreenProps) {
@@ -71,10 +74,19 @@ export function SolvedScreen({
   useEffect(() => {
     if (recorded.current) return;
     recorded.current = true;
-    const techniques: SolveTechniqueTally[] = Object.entries(techniquesUsed)
-      .map(([type, count]) => {
+    // Merge assisted (hint) and self-applied counts per technique:
+    // used = assisted + selfApplied, selfApplied = the unaided subset.
+    const types = new Set([
+      ...Object.keys(techniquesUsed),
+      ...Object.keys(selfAppliedMoves),
+    ]);
+    const techniques: SolveTechniqueTally[] = [...types]
+      .map((type) => {
         const technique = HINT_TO_TECHNIQUE[type];
-        return technique ? { technique, used: count, selfApplied: 0 } : null;
+        if (!technique) return null;
+        const self = selfAppliedMoves[type] ?? 0;
+        const assisted = techniquesUsed[type] ?? 0;
+        return { technique, used: assisted + self, selfApplied: self };
       })
       .filter((t): t is SolveTechniqueTally => t !== null);
     recordSolve({

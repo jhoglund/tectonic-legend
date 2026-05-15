@@ -52,6 +52,7 @@ export function SolvingScreen({
     notesMode,
     isGenerating,
     techniquesUsed,
+    selfAppliedMoves,
     canUndo,
     handleCellClick,
     handleNumberInput,
@@ -276,6 +277,7 @@ export function SolvingScreen({
           difficulty={initialDifficulty}
           gridSize={initialGridSize}
           techniquesUsed={techniquesUsed}
+          selfAppliedMoves={selfAppliedMoves}
           getShareUrl={getShareUrl}
           onExit={onExit}
         />

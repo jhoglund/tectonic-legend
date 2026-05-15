@@ -13,6 +13,8 @@ export interface ProfileContextValue {
   recordSolve: (outcome: SolveOutcome) => PlayerStage | null;
   /** Record one completed tutorial; returns the stage advanced into. */
   recordTutorial: () => PlayerStage | null;
+  /** Dismiss the pending stage-up card — marks the current stage seen. */
+  celebrateStage: () => void;
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);

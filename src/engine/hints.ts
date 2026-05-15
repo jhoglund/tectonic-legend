@@ -585,6 +585,41 @@ function buildHiddenSingleReason(
   return `${value} must go here — every other cell in this ${groupCellCount}-cell group is blocked from being ${value} by adjacent cells.`;
 }
 
+/**
+ * Classify a just-made move for self-applied mastery tracking
+ * (progression.md §3). Given the grid *before* the move, was placing
+ * `value` at (row, col) justified by a naked single (the cell's only
+ * candidate) or a hidden single (`value` fits only this cell of its
+ * group)? Returns null for moves a basic technique does not pin down —
+ * guesses, or forced-move / contradiction reasoning — which earn no
+ * self-applied credit.
+ */
+export function classifyMove(
+  grid: number[][],
+  layout: PuzzleLayout,
+  row: number,
+  col: number,
+  value: number,
+): 'naked_single' | 'hidden_single' | null {
+  if (grid[row][col] !== 0) return null;
+  const candidates = computeCandidates(grid, layout);
+  const cands = candidates[row][col];
+  if (!cands.has(value)) return null;
+  if (cands.size === 1) return 'naked_single';
+
+  const group = layout.groups[layout.cellGroup[row][col]];
+  let fits = 0;
+  for (const cell of group.cells) {
+    if (
+      grid[cell.row][cell.col] === 0 &&
+      candidates[cell.row][cell.col].has(value)
+    ) {
+      fits++;
+    }
+  }
+  return fits === 1 ? 'hidden_single' : null;
+}
+
 export function findCandidatesHint(
   grid: number[][],
   layout: PuzzleLayout,

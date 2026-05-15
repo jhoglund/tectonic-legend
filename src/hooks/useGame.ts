@@ -1,8 +1,15 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useRef } from 'react';
 import type { GameState, Difficulty, Puzzle, GridSize, HintMode } from '../engine/types';
+import { posKey } from '../engine/types';
 import { findErrors, isSolved } from '../engine/validator';
 import { generatePuzzle } from '../engine/generator';
-import { findHint, findCandidatesHint, findRevealHint, findCheckHint } from '../engine/hints';
+import {
+  findHint,
+  findCandidatesHint,
+  findRevealHint,
+  findCheckHint,
+  classifyMove,
+} from '../engine/hints';
 import type { Hint } from '../engine/hints';
 import { encodeState, decodeState } from '../engine/urlCodec';
 
@@ -45,6 +52,12 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
   // Logic-hint techniques surfaced this game, keyed by Hint.type. Reset
   // per game; the Solved screen reads it for the per-solve breakdown.
   const [techniquesUsed, setTechniquesUsed] = useState<Record<string, number>>({});
+  // Unaided correct moves that a basic technique justifies — keyed by
+  // Hint.type, the self-applied tally for technique mastery (§3).
+  const [selfAppliedMoves, setSelfAppliedMoves] = useState<Record<string, number>>({});
+  // Cells the hint engine has surfaced this game; a later fill in one
+  // is assisted, never self-applied. A ref — touched only in callbacks.
+  const hintedCells = useRef<Set<string>>(new Set());
   // Undo / redo — full move history, no cap. `past` holds states before
   // the current one; `future` holds states undone away from.
   const [past, setPast] = useState<GameState[]>([]);
@@ -69,6 +82,8 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     setNotesMode(false);
     setHint(null);
     setTechniquesUsed({});
+    setSelfAppliedMoves({});
+    hintedCells.current = new Set();
 
     setTimeout(() => {
       const [rows, cols] = gridSizeDimensions(actualSize);
@@ -144,8 +159,31 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
         }
         newGrid[r][c] = 0;
       } else {
+        const wasEmpty = gameState.grid[r][c] === 0;
         newGrid[r][c] = newGrid[r][c] === num ? 0 : num;
         newNotes[r][c].clear();
+        // Self-applied: an unaided, correct fill of a previously empty
+        // cell that a naked / hidden single justifies (progression.md §3).
+        if (
+          wasEmpty &&
+          newGrid[r][c] === num &&
+          num === gameState.puzzle.solution[r][c] &&
+          !hintedCells.current.has(posKey(r, c))
+        ) {
+          const tech = classifyMove(
+            gameState.grid,
+            gameState.puzzle.layout,
+            r,
+            c,
+            num,
+          );
+          if (tech) {
+            setSelfAppliedMoves((prev) => ({
+              ...prev,
+              [tech]: (prev[tech] ?? 0) + 1,
+            }));
+          }
+        }
       }
 
       const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
@@ -221,6 +259,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
         setHint(h);
         setSelectedCell([h.row, h.col]);
         setTechniquesUsed((prev) => ({ ...prev, [h.type]: (prev[h.type] ?? 0) + 1 }));
+        hintedCells.current.add(posKey(h.row, h.col));
       } else {
         // No logic deduction found — fall back to revealing a cell
         const { rows, cols } = gameState.puzzle.layout;
@@ -242,6 +281,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
           const val = gameState.puzzle.solution[targetR][targetC];
           setHint({ row: targetR, col: targetC, value: val, reason: `No simple logic deduction found — revealing this cell. The answer is ${val}.`, type: 'reveal' });
           setSelectedCell([targetR, targetC]);
+          hintedCells.current.add(posKey(targetR, targetC));
           const newGrid = gameState.grid.map((row) => [...row]);
           const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
           newGrid[targetR][targetC] = val;
@@ -259,6 +299,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       const [r, c] = selectedCell;
       const h = findCandidatesHint(gameState.grid, gameState.puzzle.layout, r, c);
       setHint(h);
+      hintedCells.current.add(posKey(r, c));
     } else if (activeMode === 'reveal') {
       if (!selectedCell) {
         setHint({ row: -1, col: -1, value: 0, reason: 'Select a cell first to reveal its answer.', type: 'reveal' });
@@ -267,6 +308,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       const [r, c] = selectedCell;
       const h = findRevealHint(gameState.puzzle.solution, gameState.grid, r, c);
       setHint(h);
+      hintedCells.current.add(posKey(r, c));
       if (h.value && gameState.grid[r][c] !== h.value && !gameState.isClue[r][c]) {
         const newGrid = gameState.grid.map((row) => [...row]);
         const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
@@ -302,6 +344,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     hint,
     hintMode,
     techniquesUsed,
+    selfAppliedMoves,
     canUndo: past.length > 0,
     canRedo: future.length > 0,
     startNewGame,
