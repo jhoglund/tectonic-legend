@@ -1,0 +1,346 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Cage Colors v3</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2;
+    --surface:#fafafa;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root {
+      --brand-600:#06b6d4;
+      --surface:#0a0a0a;--surface-elevated:#171717;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--surface);color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 80px;
+  }
+
+  h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{font-size:13px;color:var(--text-secondary);margin:0 0 32px;line-height:1.5;max-width:600px}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
+    gap:28px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .variant{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    padding:20px 16px 16px;
+    border-radius:16px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .variant:hover{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .2)}
+  .variant.selected{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .3)}
+  .variant-header{display:flex;align-items:center;gap:10px;width:100%}
+  .variant-label{
+    font-size:14px;font-weight:600;letter-spacing:-.01em;flex:1;
+  }
+  .variant-desc{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400}
+  .swatch-row{display:flex;gap:3px}
+  .sw{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.08)}
+  @media (prefers-color-scheme: dark){.sw{border-color:rgba(255,255,255,.1)}}
+
+  /* Board */
+  .board{
+    --cell:56px;
+    display:grid;grid-template-columns:repeat(5,var(--cell));grid-template-rows:repeat(5,var(--cell));
+    background:var(--surface-board);
+    border:2px solid var(--border-cage);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .cell{
+    position:relative;
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:20px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+  }
+  .cell.empty{color:var(--text-tertiary);font-size:12px}
+  .cb-t{border-top:2px solid var(--border-cage)}
+  .cb-r{border-right:2px solid var(--border-cage)}
+  .cb-b{border-bottom:2px solid var(--border-cage)}
+  .cb-l{border-left:2px solid var(--border-cage)}
+
+  .cage-a{background:var(--cage-1)}
+  .cage-b{background:var(--cage-2)}
+  .cage-c{background:var(--cage-3)}
+  .cage-d{background:var(--cage-4)}
+  .cage-e{background:var(--cage-5)}
+  .cage-f{background:var(--cage-1)}
+  .cage-g{background:var(--cage-2)}
+  .cage-h{background:var(--cage-3)}
+
+  /* ═══════════════════════════════════════════════════
+     PALETTES — 4 refined directions
+     Blending Blueprint's discipline with Stained Glass warmth
+     No cyan, no purple, no light blue
+     ═══════════════════════════════════════════════════ */
+
+  /* 1. Aged Parchment — warm monochromatic with enough spread to read
+     Ochre / sienna / olive / warm stone / burnt rose */
+  .palette-parchment{
+    --cage-1: oklch(92% 0.06 75);   /* warm ochre */
+    --cage-2: oklch(88% 0.07 35);   /* sienna blush */
+    --cage-3: oklch(91% 0.05 130);  /* olive sage */
+    --cage-4: oklch(94% 0.04 60);   /* sandstone */
+    --cage-5: oklch(86% 0.06 15);   /* dusty rose */
+  }
+
+  /* 2. Deep Forest — muted jewels, nature-inspired, no blue/purple
+     Forest green / amber / terracotta / moss / burgundy */
+  .palette-forest{
+    --cage-1: oklch(88% 0.07 148);  /* forest green */
+    --cage-2: oklch(90% 0.08 68);   /* dark amber */
+    --cage-3: oklch(86% 0.06 25);   /* terracotta */
+    --cage-4: oklch(91% 0.05 115);  /* pale moss */
+    --cage-5: oklch(84% 0.07 355);  /* muted burgundy */
+  }
+
+  /* 3. Midnight Library — deep cool tones, slate-based, no bright cyan
+     Slate / ink green / charcoal rose / storm / graphite gold */
+  .palette-library{
+    --cage-1: oklch(90% 0.04 250);  /* quiet slate */
+    --cage-2: oklch(88% 0.06 160);  /* ink green */
+    --cage-3: oklch(86% 0.05 350);  /* charcoal rose */
+    --cage-4: oklch(92% 0.04 220);  /* storm grey */
+    --cage-5: oklch(89% 0.05 80);   /* graphite gold */
+  }
+
+  /* 4. Kiln — ceramic-inspired, warm earth tones spread wide
+     Clay / sage / warm cream / iron oxide / charcoal green */
+  .palette-kiln{
+    --cage-1: oklch(89% 0.07 45);   /* clay */
+    --cage-2: oklch(91% 0.06 140);  /* celadon sage */
+    --cage-3: oklch(93% 0.04 85);   /* warm cream */
+    --cage-4: oklch(85% 0.08 25);   /* iron oxide */
+    --cage-5: oklch(87% 0.05 175);  /* deep celadon */
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark){
+    .palette-parchment{
+      --cage-1: oklch(24% 0.04 75);
+      --cage-2: oklch(21% 0.05 35);
+      --cage-3: oklch(23% 0.04 130);
+      --cage-4: oklch(26% 0.03 60);
+      --cage-5: oklch(19% 0.05 15);
+    }
+    .palette-forest{
+      --cage-1: oklch(22% 0.05 148);
+      --cage-2: oklch(24% 0.06 68);
+      --cage-3: oklch(20% 0.04 25);
+      --cage-4: oklch(25% 0.04 115);
+      --cage-5: oklch(18% 0.05 355);
+    }
+    .palette-library{
+      --cage-1: oklch(22% 0.03 250);
+      --cage-2: oklch(20% 0.04 160);
+      --cage-3: oklch(18% 0.04 350);
+      --cage-4: oklch(24% 0.03 220);
+      --cage-5: oklch(21% 0.04 80);
+    }
+    .palette-kiln{
+      --cage-1: oklch(22% 0.05 45);
+      --cage-2: oklch(24% 0.04 140);
+      --cage-3: oklch(26% 0.03 85);
+      --cage-4: oklch(19% 0.06 25);
+      --cage-5: oklch(21% 0.04 175);
+    }
+  }
+
+  /* Tweaks panel */
+  .tweaks{
+    position:fixed;bottom:16px;right:16px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.12);
+    font-size:12px;width:220px;z-index:10;
+  }
+  .tweaks h3{margin:0 0 10px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary)}
+  .range-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .range-row label{min-width:60px;font-weight:500}
+  .range-row input[type="range"]{flex:1;accent-color:var(--brand-600)}
+  .range-row span{min-width:48px;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary);text-align:right}
+</style>
+</head>
+<body>
+
+<h1>Cage background colors — v3 (refined)</h1>
+<p class="sub">4 directions: elegant, muted, no cyan/purple/light-blue. More distinction between areas than Blueprint, less saturation than Stained Glass. Tweak chroma + lightness below.</p>
+
+<div class="grid" id="grid">
+  <!-- 1 Aged Parchment -->
+  <div class="variant" data-palette="parchment">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">1 — Aged Parchment</div>
+        <div class="variant-desc">Warm monochrome — ochre, sienna, olive, sandstone, dusty rose</div>
+      </div>
+      <div class="swatch-row" id="sw-parchment"></div>
+    </div>
+    <div class="board palette-parchment" id="board-parchment"></div>
+  </div>
+
+  <!-- 2 Deep Forest -->
+  <div class="variant" data-palette="forest">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">2 — Deep Forest</div>
+        <div class="variant-desc">Nature jewels — forest green, amber, terracotta, moss, burgundy</div>
+      </div>
+      <div class="swatch-row" id="sw-forest"></div>
+    </div>
+    <div class="board palette-forest" id="board-forest"></div>
+  </div>
+
+  <!-- 3 Midnight Library -->
+  <div class="variant" data-palette="library">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">3 — Midnight Library</div>
+        <div class="variant-desc">Cool discipline — slate, ink green, charcoal rose, storm, graphite gold</div>
+      </div>
+      <div class="swatch-row" id="sw-library"></div>
+    </div>
+    <div class="board palette-library" id="board-library"></div>
+  </div>
+
+  <!-- 4 Kiln -->
+  <div class="variant" data-palette="kiln">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">4 — Kiln</div>
+        <div class="variant-desc">Ceramic warmth — clay, celadon, cream, iron oxide, deep celadon</div>
+      </div>
+      <div class="swatch-row" id="sw-kiln"></div>
+    </div>
+    <div class="board palette-kiln" id="board-kiln"></div>
+  </div>
+</div>
+
+<!-- Tweaks panel -->
+<div class="tweaks">
+  <h3>Tweak</h3>
+  <div class="range-row">
+    <label for="chroma">Chroma</label>
+    <input type="range" id="chroma" min="0" max="100" value="50">
+    <span id="chroma-val">1.0x</span>
+  </div>
+  <div class="range-row">
+    <label for="lightness">Light</label>
+    <input type="range" id="lightness" min="0" max="100" value="50">
+    <span id="light-val">0</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  const PALETTES = {
+    parchment: { hues:[75, 35, 130, 60, 15],    c:0.056, l:0.902 },
+    forest:    { hues:[148, 68, 25, 115, 355],   c:0.066, l:0.878 },
+    library:   { hues:[250, 160, 350, 220, 80],  c:0.048, l:0.890 },
+    kiln:      { hues:[45, 140, 85, 25, 175],    c:0.060, l:0.890 },
+  };
+
+  const CELLS = [
+    {v:'4',cls:'cb-t cb-l cb-r cb-b cage-a'},{v:'',cls:'cb-t cb-r cage-b'},{v:'3',cls:'cb-t cb-b cage-b'},{v:'1',cls:'cb-t cb-l cb-r cb-b cage-c'},{v:'5',cls:'cb-t cb-r cb-b cage-c'},
+    {v:'',cls:'cb-l cb-r cage-a'},{v:'5',cls:'cb-r cb-b cage-a'},{v:'2',cls:'cb-b cage-b'},{v:'4',cls:'cb-l cage-d'},{v:'1',cls:'cb-r cage-d'},
+    {v:'3',cls:'cb-l cb-r cb-b cage-a'},{v:'1',cls:'cb-b cage-e'},{v:'4',cls:'cb-r cb-b cage-e'},{v:'2',cls:'cage-d'},{v:'',cls:'cb-r cb-b cage-d'},
+    {v:'5',cls:'cb-l cb-r cage-f'},{v:'2',cls:'cb-r cage-f'},{v:'3',cls:'cb-r cb-b cage-e'},{v:'',cls:'cb-l cage-g'},{v:'4',cls:'cb-l cb-r cb-b cage-d'},
+    {v:'',cls:'cb-l cb-r cb-b cage-f'},{v:'3',cls:'cb-r cb-b cage-f'},{v:'',cls:'cb-b cage-g'},{v:'3',cls:'cb-l cb-r cb-b cage-g'},{v:'2',cls:'cb-l cb-r cb-b cage-h'},
+  ];
+
+  for (const [name, p] of Object.entries(PALETTES)){
+    const board = document.getElementById('board-' + name);
+    CELLS.forEach(function(c){
+      const d = document.createElement('div');
+      d.className = 'cell ' + c.cls;
+      d.textContent = c.v;
+      board.appendChild(d);
+    });
+    const sw = document.getElementById('sw-' + name);
+    p.hues.forEach(function(h){
+      const s = document.createElement('span');
+      s.className = 'sw';
+      s.style.background = 'oklch(' + (p.l * 100).toFixed(0) + '% ' + p.c.toFixed(3) + ' ' + h + ')';
+      sw.appendChild(s);
+    });
+  }
+
+  document.querySelectorAll('.variant').forEach(function(v){
+    v.addEventListener('click', function(){
+      document.querySelectorAll('.variant').forEach(function(el){ el.classList.remove('selected') });
+      v.classList.add('selected');
+    });
+  });
+
+  const chromaSlider = document.getElementById('chroma');
+  const lightnessSlider = document.getElementById('lightness');
+  const chromaVal = document.getElementById('chroma-val');
+  const lightVal = document.getElementById('light-val');
+
+  function update(){
+    const cMult = chromaSlider.value / 50;
+    const lShift = (lightnessSlider.value - 50) / 500;
+
+    chromaVal.textContent = cMult.toFixed(1) + 'x';
+    lightVal.textContent = (lShift >= 0 ? '+' : '') + (lShift * 100).toFixed(0);
+
+    const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    for (const [name, p] of Object.entries(PALETTES)){
+      const board = document.getElementById('board-' + name);
+      const swRow = document.getElementById('sw-' + name);
+      const swatches = swRow.querySelectorAll('.sw');
+
+      p.hues.forEach(function(hue, i){
+        const c = p.c * cMult;
+        let l;
+        if (isDark) {
+          l = 0.21 + (lShift * 0.5);
+          const baseOffset = (p.l - 0.89) * 0.3;
+          l += baseOffset;
+        } else {
+          l = p.l + lShift;
+        }
+        l = Math.max(0.10, Math.min(0.98, l));
+        const color = 'oklch(' + (l*100).toFixed(1) + '% ' + c.toFixed(4) + ' ' + hue + ')';
+        board.style.setProperty('--cage-' + (i+1), color);
+        if (swatches[i]) swatches[i].style.background = color;
+      });
+    }
+  }
+
+  chromaSlider.addEventListener('input', update);
+  lightnessSlider.addEventListener('input', update);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', update);
+})();
+</script>
+</body>
+</html>

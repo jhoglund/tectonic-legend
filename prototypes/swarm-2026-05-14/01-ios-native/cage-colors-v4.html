@@ -1,0 +1,420 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Cage Colors v4 (Your Palette)</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-600:#0891b2;
+    --surface:#fafafa;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;
+  }
+  @media (prefers-color-scheme: dark){
+    :root {
+      --brand-600:#06b6d4;
+      --surface:#0a0a0a;--surface-elevated:#171717;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;
+    background:var(--surface);color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;
+    padding:32px 20px 80px;
+  }
+
+  h1{font-size:20px;font-weight:700;margin:0 0 4px;letter-spacing:-.02em}
+  .sub{font-size:13px;color:var(--text-secondary);margin:0 0 24px;line-height:1.5;max-width:600px}
+
+  .ref-palette{display:flex;gap:2px;margin-bottom:28px;border-radius:10px;overflow:hidden;max-width:600px}
+  .ref-swatch{flex:1;height:48px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+  .ref-swatch span{font-size:10px;font-weight:600;letter-spacing:.04em}
+  .ref-swatch small{font-size:9px;opacity:.7}
+
+  .grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(340px, 1fr));
+    gap:28px;
+    max-width:1200px;
+    margin:0 auto;
+  }
+  .variant{
+    display:flex;flex-direction:column;align-items:center;gap:10px;
+    padding:20px 16px 16px;
+    border-radius:16px;
+    border:2px solid transparent;
+    cursor:pointer;
+    transition:border-color .2s, box-shadow .2s;
+  }
+  .variant:hover{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .2)}
+  .variant.selected{border-color:var(--brand-600);box-shadow:0 0 0 4px oklch(80% 0.08 200 / .3)}
+  .variant-header{display:flex;align-items:center;gap:10px;width:100%}
+  .variant-label{font-size:14px;font-weight:600;letter-spacing:-.01em;flex:1}
+  .variant-desc{font-size:11px;color:var(--text-tertiary);margin-top:2px;font-weight:400}
+  .swatch-row{display:flex;gap:3px}
+  .sw{width:18px;height:18px;border-radius:5px;border:1px solid rgba(0,0,0,.08)}
+  @media (prefers-color-scheme: dark){.sw{border-color:rgba(255,255,255,.1)}}
+
+  .board{
+    --cell:56px;
+    display:grid;grid-template-columns:repeat(5,var(--cell));grid-template-rows:repeat(5,var(--cell));
+    background:var(--surface-board);
+    border:2px solid var(--border-cage);
+    border-radius:14px;overflow:hidden;
+    box-shadow:0 2px 8px rgba(0,0,0,0.06);
+  }
+  .cell{
+    position:relative;
+    border:1px solid var(--border);
+    display:flex;align-items:center;justify-content:center;
+    font-family:'JetBrains Mono',monospace;
+    font-variant-numeric:tabular-nums;
+    font-size:20px;font-weight:500;line-height:1;
+    color:var(--text-primary);
+  }
+  .cell.empty{color:var(--text-tertiary);font-size:12px}
+  .cb-t{border-top:2px solid var(--border-cage)}
+  .cb-r{border-right:2px solid var(--border-cage)}
+  .cb-b{border-bottom:2px solid var(--border-cage)}
+  .cb-l{border-left:2px solid var(--border-cage)}
+
+  .cage-a{background:var(--cage-1)}
+  .cage-b{background:var(--cage-2)}
+  .cage-c{background:var(--cage-3)}
+  .cage-d{background:var(--cage-4)}
+  .cage-e{background:var(--cage-5)}
+  .cage-f{background:var(--cage-1)}
+  .cage-g{background:var(--cage-2)}
+  .cage-h{background:var(--cage-3)}
+
+  /* ═══════════════════════════════════════════
+     SOURCE PALETTE (hex → oklch hues):
+     #1F4F4F  Dark Slate Grey  → hue ~195  teal
+     #EFCB68  Royal Gold       → hue ~85   gold
+     #E1EFE6  Honeydew         → hue ~145  pale mint
+     #AEB7B3  Ash Grey         → hue ~165  grey-green
+     #C7654A  Rosy Copper      → hue ~30   copper
+     ═══════════════════════════════════════════ */
+
+  /* 1. Tinted — light pastel tints of the source colors */
+  .palette-tinted{
+    --cage-1: oklch(90% 0.04 195);  /* teal tint */
+    --cage-2: oklch(93% 0.06 85);   /* gold tint */
+    --cage-3: oklch(96% 0.02 145);  /* honeydew */
+    --cage-4: oklch(92% 0.015 165); /* ash tint */
+    --cage-5: oklch(89% 0.05 30);   /* copper tint */
+  }
+
+  /* 2. Washed — mid-saturation, the colors are more present */
+  .palette-washed{
+    --cage-1: oklch(86% 0.06 195);
+    --cage-2: oklch(90% 0.09 85);
+    --cage-3: oklch(94% 0.03 145);
+    --cage-4: oklch(89% 0.025 165);
+    --cage-5: oklch(85% 0.07 30);
+  }
+
+  /* 3. Saturated — colors close to the source, rich and distinct */
+  .palette-saturated{
+    --cage-1: oklch(82% 0.08 195);
+    --cage-2: oklch(87% 0.12 85);
+    --cage-3: oklch(93% 0.04 145);
+    --cage-4: oklch(86% 0.035 165);
+    --cage-5: oklch(80% 0.10 30);
+  }
+
+  /* 4. Earthy bold — deeper, richer, closer to original hex values */
+  .palette-bold{
+    --cage-1: oklch(78% 0.10 195);
+    --cage-2: oklch(84% 0.14 85);
+    --cage-3: oklch(92% 0.05 145);
+    --cage-4: oklch(82% 0.04 165);
+    --cage-5: oklch(74% 0.12 30);
+  }
+
+  /* 5. Muted earth — desaturated, sophisticated, barely colored */
+  .palette-muted{
+    --cage-1: oklch(90% 0.025 195);
+    --cage-2: oklch(93% 0.04 85);
+    --cage-3: oklch(95% 0.012 145);
+    --cage-4: oklch(92% 0.01 165);
+    --cage-5: oklch(89% 0.03 30);
+  }
+
+  /* 6. Warm shift — gold/copper lead, teal recedes, honeydew stays neutral */
+  .palette-warm{
+    --cage-1: oklch(88% 0.045 195);
+    --cage-2: oklch(90% 0.11 80);
+    --cage-3: oklch(95% 0.02 130);
+    --cage-4: oklch(87% 0.06 50);
+    --cage-5: oklch(84% 0.09 25);
+  }
+
+  /* Dark mode */
+  @media (prefers-color-scheme: dark){
+    .palette-tinted{
+      --cage-1: oklch(24% 0.03 195);
+      --cage-2: oklch(26% 0.04 85);
+      --cage-3: oklch(22% 0.015 145);
+      --cage-4: oklch(23% 0.01 165);
+      --cage-5: oklch(23% 0.04 30);
+    }
+    .palette-washed{
+      --cage-1: oklch(22% 0.04 195);
+      --cage-2: oklch(25% 0.06 85);
+      --cage-3: oklch(21% 0.02 145);
+      --cage-4: oklch(22% 0.018 165);
+      --cage-5: oklch(21% 0.05 30);
+    }
+    .palette-saturated{
+      --cage-1: oklch(20% 0.06 195);
+      --cage-2: oklch(24% 0.08 85);
+      --cage-3: oklch(20% 0.03 145);
+      --cage-4: oklch(21% 0.025 165);
+      --cage-5: oklch(19% 0.07 30);
+    }
+    .palette-bold{
+      --cage-1: oklch(18% 0.07 195);
+      --cage-2: oklch(22% 0.09 85);
+      --cage-3: oklch(19% 0.035 145);
+      --cage-4: oklch(20% 0.03 165);
+      --cage-5: oklch(17% 0.08 30);
+    }
+    .palette-muted{
+      --cage-1: oklch(24% 0.018 195);
+      --cage-2: oklch(26% 0.03 85);
+      --cage-3: oklch(23% 0.01 145);
+      --cage-4: oklch(24% 0.008 165);
+      --cage-5: oklch(23% 0.022 30);
+    }
+    .palette-warm{
+      --cage-1: oklch(22% 0.03 195);
+      --cage-2: oklch(24% 0.07 80);
+      --cage-3: oklch(21% 0.015 130);
+      --cage-4: oklch(22% 0.04 50);
+      --cage-5: oklch(20% 0.06 25);
+    }
+  }
+
+  .tweaks{
+    position:fixed;bottom:16px;right:16px;
+    background:var(--surface-elevated);
+    border:1px solid var(--border);
+    border-radius:12px;padding:14px 16px;
+    box-shadow:0 4px 20px rgba(0,0,0,0.12);
+    font-size:12px;width:220px;z-index:10;
+  }
+  .tweaks h3{margin:0 0 10px;font-size:12px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text-tertiary)}
+  .range-row{display:flex;align-items:center;gap:8px;margin-bottom:8px}
+  .range-row label{min-width:60px;font-weight:500}
+  .range-row input[type="range"]{flex:1;accent-color:var(--brand-600)}
+  .range-row span{min-width:48px;font-variant-numeric:tabular-nums;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--text-secondary);text-align:right}
+</style>
+</head>
+<body>
+
+<h1>Cage colors — your palette</h1>
+<p class="sub">Your 5-color palette applied at 6 intensity levels. Click to select, then tweak chroma + lightness.</p>
+
+<div class="ref-palette">
+  <div class="ref-swatch" style="background:#1F4F4F;color:#fff"><span>#1F4F4F</span><small>Dark Slate</small></div>
+  <div class="ref-swatch" style="background:#EFCB68;color:#1a1a1a"><span>#EFCB68</span><small>Royal Gold</small></div>
+  <div class="ref-swatch" style="background:#E1EFE6;color:#1a1a1a"><span>#E1EFE6</span><small>Honeydew</small></div>
+  <div class="ref-swatch" style="background:#AEB7B3;color:#1a1a1a"><span>#AEB7B3</span><small>Ash Grey</small></div>
+  <div class="ref-swatch" style="background:#C7654A;color:#fff"><span>#C7654A</span><small>Rosy Copper</small></div>
+</div>
+
+<div class="grid" id="grid">
+  <div class="variant" data-palette="tinted">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">1 — Tinted</div>
+        <div class="variant-desc">Light pastel tints. Subtle, airy, colors barely whispered.</div>
+      </div>
+      <div class="swatch-row" id="sw-tinted"></div>
+    </div>
+    <div class="board palette-tinted" id="board-tinted"></div>
+  </div>
+
+  <div class="variant" data-palette="washed">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">2 — Washed</div>
+        <div class="variant-desc">Mid-saturation. Colors present but relaxed.</div>
+      </div>
+      <div class="swatch-row" id="sw-washed"></div>
+    </div>
+    <div class="board palette-washed" id="board-washed"></div>
+  </div>
+
+  <div class="variant" data-palette="saturated">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">3 — Saturated</div>
+        <div class="variant-desc">Rich and distinct. Close to the source hex values.</div>
+      </div>
+      <div class="swatch-row" id="sw-saturated"></div>
+    </div>
+    <div class="board palette-saturated" id="board-saturated"></div>
+  </div>
+
+  <div class="variant" data-palette="bold">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">4 — Earthy Bold</div>
+        <div class="variant-desc">Deep and rich. Strongest expression of the palette.</div>
+      </div>
+      <div class="swatch-row" id="sw-bold"></div>
+    </div>
+    <div class="board palette-bold" id="board-bold"></div>
+  </div>
+
+  <div class="variant" data-palette="muted">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">5 — Muted</div>
+        <div class="variant-desc">Desaturated, sophisticated. Barely colored, lets borders work.</div>
+      </div>
+      <div class="swatch-row" id="sw-muted"></div>
+    </div>
+    <div class="board palette-muted" id="board-muted"></div>
+  </div>
+
+  <div class="variant" data-palette="warm">
+    <div class="variant-header">
+      <div>
+        <div class="variant-label">6 — Warm Shift</div>
+        <div class="variant-desc">Gold and copper lead, teal recedes. Warmer overall feel.</div>
+      </div>
+      <div class="swatch-row" id="sw-warm"></div>
+    </div>
+    <div class="board palette-warm" id="board-warm"></div>
+  </div>
+</div>
+
+<div class="tweaks">
+  <h3>Tweak</h3>
+  <div class="range-row">
+    <label for="chroma">Chroma</label>
+    <input type="range" id="chroma" min="0" max="100" value="50">
+    <span id="chroma-val">1.0x</span>
+  </div>
+  <div class="range-row">
+    <label for="lightness">Light</label>
+    <input type="range" id="lightness" min="0" max="100" value="50">
+    <span id="light-val">0</span>
+  </div>
+</div>
+
+<script>
+(function(){
+  /* hue, base chroma, base lightness for each palette variant */
+  const HUES = [195, 85, 145, 165, 30];
+
+  const PALETTES = {
+    tinted:    { cs:[0.04, 0.06, 0.02, 0.015, 0.05],    ls:[0.90, 0.93, 0.96, 0.92, 0.89] },
+    washed:    { cs:[0.06, 0.09, 0.03, 0.025, 0.07],     ls:[0.86, 0.90, 0.94, 0.89, 0.85] },
+    saturated: { cs:[0.08, 0.12, 0.04, 0.035, 0.10],     ls:[0.82, 0.87, 0.93, 0.86, 0.80] },
+    bold:      { cs:[0.10, 0.14, 0.05, 0.04,  0.12],     ls:[0.78, 0.84, 0.92, 0.82, 0.74] },
+    muted:     { cs:[0.025,0.04, 0.012,0.01,  0.03],     ls:[0.90, 0.93, 0.95, 0.92, 0.89] },
+    warm:      { cs:[0.045,0.11, 0.02, 0.06,  0.09],     ls:[0.88, 0.90, 0.95, 0.87, 0.84] },
+  };
+
+  /* Warm-shift uses slightly shifted hues for ash grey */
+  const HUES_WARM = [195, 80, 130, 50, 25];
+
+  const CELLS = [
+    {v:'4',cls:'cb-t cb-l cb-r cb-b cage-a'},{v:'',cls:'cb-t cb-r cage-b'},{v:'3',cls:'cb-t cb-b cage-b'},{v:'1',cls:'cb-t cb-l cb-r cb-b cage-c'},{v:'5',cls:'cb-t cb-r cb-b cage-c'},
+    {v:'',cls:'cb-l cb-r cage-a'},{v:'5',cls:'cb-r cb-b cage-a'},{v:'2',cls:'cb-b cage-b'},{v:'4',cls:'cb-l cage-d'},{v:'1',cls:'cb-r cage-d'},
+    {v:'3',cls:'cb-l cb-r cb-b cage-a'},{v:'1',cls:'cb-b cage-e'},{v:'4',cls:'cb-r cb-b cage-e'},{v:'2',cls:'cage-d'},{v:'',cls:'cb-r cb-b cage-d'},
+    {v:'5',cls:'cb-l cb-r cage-f'},{v:'2',cls:'cb-r cage-f'},{v:'3',cls:'cb-r cb-b cage-e'},{v:'',cls:'cb-l cage-g'},{v:'4',cls:'cb-l cb-r cb-b cage-d'},
+    {v:'',cls:'cb-l cb-r cb-b cage-f'},{v:'3',cls:'cb-r cb-b cage-f'},{v:'',cls:'cb-b cage-g'},{v:'3',cls:'cb-l cb-r cb-b cage-g'},{v:'2',cls:'cb-l cb-r cb-b cage-h'},
+  ];
+
+  for (const [name] of Object.entries(PALETTES)){
+    const board = document.getElementById('board-' + name);
+    CELLS.forEach(function(c){
+      const d = document.createElement('div');
+      d.className = 'cell ' + c.cls;
+      d.textContent = c.v;
+      board.appendChild(d);
+    });
+  }
+
+  function renderSwatches(name, p, hues){
+    const sw = document.getElementById('sw-' + name);
+    sw.innerHTML = '';
+    hues.forEach(function(h, i){
+      const s = document.createElement('span');
+      s.className = 'sw';
+      s.style.background = 'oklch(' + (p.ls[i]*100).toFixed(0) + '% ' + p.cs[i].toFixed(3) + ' ' + h + ')';
+      sw.appendChild(s);
+    });
+  }
+
+  for (const [name, p] of Object.entries(PALETTES)){
+    renderSwatches(name, p, name === 'warm' ? HUES_WARM : HUES);
+  }
+
+  document.querySelectorAll('.variant').forEach(function(v){
+    v.addEventListener('click', function(){
+      document.querySelectorAll('.variant').forEach(function(el){ el.classList.remove('selected') });
+      v.classList.add('selected');
+    });
+  });
+
+  var chromaSlider = document.getElementById('chroma');
+  var lightnessSlider = document.getElementById('lightness');
+  var chromaVal = document.getElementById('chroma-val');
+  var lightVal = document.getElementById('light-val');
+
+  function update(){
+    var cMult = chromaSlider.value / 50;
+    var lShift = (lightnessSlider.value - 50) / 500;
+
+    chromaVal.textContent = cMult.toFixed(1) + 'x';
+    lightVal.textContent = (lShift >= 0 ? '+' : '') + (lShift * 100).toFixed(0);
+
+    var isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+
+    for (var _i = 0, _a = Object.entries(PALETTES); _i < _a.length; _i++){
+      var name = _a[_i][0], p = _a[_i][1];
+      var board = document.getElementById('board-' + name);
+      var swRow = document.getElementById('sw-' + name);
+      var swatches = swRow.querySelectorAll('.sw');
+      var hues = name === 'warm' ? HUES_WARM : HUES;
+
+      hues.forEach(function(hue, i){
+        var c = p.cs[i] * cMult;
+        var l;
+        if (isDark) {
+          l = 0.21 + (lShift * 0.5);
+          l += (p.ls[i] - 0.88) * 0.3;
+        } else {
+          l = p.ls[i] + lShift;
+        }
+        l = Math.max(0.10, Math.min(0.98, l));
+        var color = 'oklch(' + (l*100).toFixed(1) + '% ' + c.toFixed(4) + ' ' + hue + ')';
+        board.style.setProperty('--cage-' + (i+1), color);
+        if (swatches[i]) swatches[i].style.background = color;
+      });
+    }
+  }
+
+  chromaSlider.addEventListener('input', update);
+  lightnessSlider.addEventListener('input', update);
+  window.matchMedia('(prefers-color-scheme: dark)').addEventListener('change', update);
+})();
+</script>
+</body>
+</html>
