@@ -1,0 +1,350 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Practice</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --brand-600:#0891b2;--brand-500:#06b6d4;--brand-100:#cffafe;--brand-50:#ecfeff;
+    --surface:#f2f2f7;--surface-elevated:#ffffff;--surface-board:#ffffff;
+    --surface-cell:#ffffff;--surface-cell-sel:#e0f7fa;
+    --border:#e5e5e5;--border-cage:#a3a3a3;
+    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;--text-on-brand:#ffffff;
+    --success:#10b981;--warning:#f59e0b;--danger:#dc2626;
+    --separator:rgba(60,60,67,0.18);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --brand-600:#06b6d4;--brand-500:#22d3ee;--brand-100:#155057;--brand-50:#0e2a30;
+      --surface:#000;--surface-elevated:#1c1c1e;--surface-board:#0f1419;
+      --surface-cell:#1a1f24;--surface-cell-sel:#164e5b;
+      --border:#2a2a2a;--border-cage:#525252;
+      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;--text-on-brand:#0a0a0a;
+      --success:#34d399;--warning:#fbbf24;--danger:#f87171;
+      --separator:rgba(84,84,88,0.5);
+    }
+  }
+  *,*::before,*::after{box-sizing:border-box}
+  html,body{margin:0;padding:0}
+  body{
+    font-family:'Inter',system-ui,sans-serif;background:#e9eaee;color:var(--text-primary);
+    -webkit-font-smoothing:antialiased;min-height:100vh;
+    display:flex;align-items:center;justify-content:center;
+  }
+  @media (prefers-color-scheme: dark){ body{background:#000} }
+  .device{
+    width:390px;min-height:844px;background:var(--surface);position:relative;overflow:hidden;
+    box-shadow:0 12px 40px rgba(0,0,0,0.18);border-radius:44px;
+    display:flex;flex-direction:column;
+  }
+  .status-bar{
+    height:54px;display:flex;align-items:flex-end;justify-content:space-between;
+    padding:0 28px 6px;font-size:15px;font-weight:600;letter-spacing:-.01em;flex-shrink:0;
+    background:var(--surface);
+  }
+  .status-bar .right{display:flex;align-items:center;gap:6px}
+
+  /* large title */
+  .large-title{padding:8px 20px 4px;background:var(--surface)}
+  .large-title h1{
+    font-size:34px;line-height:40px;font-weight:600;letter-spacing:-.02em;margin:0;
+  }
+
+  .content{
+    flex:1;overflow:auto;padding:8px 16px 16px;
+    display:flex;flex-direction:column;gap:14px;
+  }
+
+  .intro{
+    font-size:14px;line-height:20px;color:var(--text-secondary);
+    padding:2px 4px 4px;
+  }
+
+  .section-h{
+    font-size:13px;font-weight:600;color:var(--text-tertiary);
+    text-transform:uppercase;letter-spacing:.06em;
+    padding:8px 4px 4px;
+  }
+
+  /* Inset grouped list */
+  .list{
+    background:var(--surface-elevated);border-radius:12px;overflow:hidden;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  .row{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;cursor:pointer;
+    transition:background 120ms ease-out;
+  }
+  .row:active{background:rgba(120,120,128,0.12)}
+  .row + .row{border-top:1px solid var(--separator)}
+  .row .icon{
+    width:30px;height:30px;border-radius:7px;background:var(--brand-50);color:var(--brand-600);
+    display:flex;align-items:center;justify-content:center;flex-shrink:0;
+  }
+  .row.locked .icon{background:var(--surface);color:var(--text-tertiary)}
+  .row .body{flex:1;min-width:0}
+  .row .title{font-size:16px;font-weight:500;display:flex;align-items:center;gap:8px}
+  .row .sub{font-size:12px;color:var(--text-tertiary);margin-top:2px;line-height:16px}
+  .row.locked .title{color:var(--text-secondary)}
+  .row .meta{font-size:13px;color:var(--text-tertiary);font-variant-numeric:tabular-nums}
+  .row .meta.brand{color:var(--brand-600)}
+  .check{color:var(--brand-600)}
+  .chev{color:var(--text-tertiary)}
+  .lock{color:var(--text-tertiary)}
+  .pill{
+    display:inline-flex;align-items:center;gap:5px;
+    font-size:11px;font-weight:500;color:var(--text-secondary);
+    background:var(--surface);border:1px solid var(--border);
+    border-radius:999px;padding:3px 9px;
+    text-align:right;
+  }
+  .pill .lock{display:flex}
+
+  /* segmented control */
+  .seg-wrap{
+    background:var(--surface-elevated);border-radius:12px;
+    padding:12px 14px;display:flex;align-items:center;gap:12px;
+    box-shadow:0 1px 2px rgba(0,0,0,0.04);
+  }
+  .seg-wrap .seg-label{
+    font-size:16px;font-weight:500;flex:1;
+  }
+  .segmented{
+    display:flex;background:rgba(120,120,128,0.16);border-radius:9px;padding:2px;
+  }
+  @media (prefers-color-scheme: dark){ .segmented{background:rgba(120,120,128,0.32)} }
+  .segmented button{
+    background:transparent;border:0;font:inherit;
+    font-size:14px;font-weight:500;color:var(--text-primary);
+    padding:7px 16px;border-radius:7px;cursor:pointer;
+    font-variant-numeric:tabular-nums;
+    transition:background 120ms ease-out;
+  }
+  .segmented button.on{
+    background:var(--surface);
+    box-shadow:0 2px 6px rgba(0,0,0,0.08);
+  }
+  @media (prefers-color-scheme: dark){
+    .segmented button.on{background:#48484a}
+  }
+
+  /* Recent practice */
+  .recent-row{
+    display:flex;align-items:center;gap:14px;
+    padding:14px 16px;cursor:pointer;
+    transition:background 120ms ease-out;
+  }
+  .recent-row:active{background:rgba(120,120,128,0.12)}
+  .recent-row + .recent-row{border-top:1px solid var(--separator)}
+  .recent-row .dot{
+    width:8px;height:8px;border-radius:999px;background:var(--brand-600);flex-shrink:0;
+  }
+  .recent-row .r-body{flex:1;min-width:0}
+  .recent-row .r-title{font-size:15px;font-weight:500}
+  .recent-row .r-sub{
+    font-size:12px;color:var(--text-tertiary);margin-top:1px;
+    font-variant-numeric:tabular-nums;
+  }
+  .recent-row .r-time{
+    font-size:14px;color:var(--text-secondary);
+    font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
+  }
+
+  /* Footer CTA */
+  .footer{
+    flex-shrink:0;
+    padding:10px 16px 6px;
+    background:var(--surface);
+    border-top:0.5px solid var(--separator);
+  }
+  .btn{
+    width:100%;height:50px;border-radius:8px;border:0;
+    font:inherit;font-size:16px;font-weight:500;
+    background:var(--brand-600);color:var(--text-on-brand);cursor:pointer;
+    transition:opacity 120ms ease-out;letter-spacing:-.01em;
+  }
+  .btn:active{opacity:.85}
+  .surprise{
+    display:block;width:100%;text-align:center;
+    background:none;border:0;font-family:inherit;cursor:pointer;
+    font-size:13px;font-weight:500;color:var(--brand-600);
+    padding:10px 0 4px;
+  }
+
+  /* Tab bar */
+  .tab-bar{
+    flex-shrink:0;
+    background:rgba(250,250,250,0.86);
+    backdrop-filter:blur(20px);
+    -webkit-backdrop-filter:blur(20px);
+    border-top:0.5px solid var(--separator);
+    padding:8px 8px 28px;
+    display:flex;justify-content:space-around;
+  }
+  @media (prefers-color-scheme: dark){
+    .tab-bar{background:rgba(20,20,20,0.86)}
+  }
+  .tab{
+    flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;
+    background:none;border:0;font:inherit;cursor:pointer;
+    color:var(--text-tertiary);padding:4px 0;
+  }
+  .tab .lbl{font-size:10px;font-weight:500;letter-spacing:.02em}
+  .tab.active{color:var(--brand-600)}
+  .tab svg{display:block}
+
+  .home-indicator{
+    position:absolute;bottom:8px;left:50%;transform:translateX(-50%);
+    width:134px;height:5px;border-radius:3px;background:var(--text-primary);opacity:.9;
+  }
+</style>
+</head>
+<body>
+  <div class="device">
+    <div class="status-bar">
+      <span>9:41</span>
+      <span class="right">
+        <svg width="18" height="12" viewBox="0 0 18 12" fill="currentColor"><rect x="0" y="6" width="3" height="6" rx="1"/><rect x="5" y="4" width="3" height="8" rx="1"/><rect x="10" y="2" width="3" height="10" rx="1"/><rect x="15" y="0" width="3" height="12" rx="1"/></svg>
+        <svg width="16" height="12" viewBox="0 0 16 12" fill="none" stroke="currentColor" stroke-width="1.4"><path d="M1 4.5C3 2.5 6 1.5 8 1.5s5 1 7 3M3 7c1.5-1.2 3.2-1.7 5-1.7S11.5 5.8 13 7M5.5 9.3C6.2 8.8 7 8.5 8 8.5s1.8.3 2.5.8"/><circle cx="8" cy="10.7" r=".9" fill="currentColor"/></svg>
+        <svg width="26" height="12" viewBox="0 0 26 12" fill="none"><rect x="0.5" y="0.5" width="22" height="11" rx="3" stroke="currentColor" opacity=".5"/><rect x="2" y="2" width="17" height="8" rx="1.5" fill="currentColor"/><rect x="23.5" y="3.5" width="1.5" height="5" rx=".5" fill="currentColor" opacity=".5"/></svg>
+      </span>
+    </div>
+
+    <div class="large-title">
+      <h1>Practice</h1>
+    </div>
+
+    <div class="content">
+      <p class="intro">Free play. No streak, no timer pressure. Solve as many as you'd like.</p>
+
+      <!-- Difficulty -->
+      <div class="section-h">Difficulty</div>
+      <div class="list">
+        <div class="row">
+          <div class="icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg>
+          </div>
+          <div class="body">
+            <div class="title">
+              Easy
+              <svg class="check" width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="3 8 7 12 13 4"/></svg>
+            </div>
+            <div class="sub">Naked singles</div>
+          </div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>
+        </div>
+
+        <div class="row">
+          <div class="icon">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8"/></svg>
+          </div>
+          <div class="body">
+            <div class="title">Medium</div>
+            <div class="sub">Hidden singles</div>
+          </div>
+          <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>
+        </div>
+
+        <div class="row locked">
+          <div class="icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="body">
+            <div class="title">Hard</div>
+            <div class="sub">Forced moves</div>
+          </div>
+          <span class="pill">
+            <svg class="lock" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Master hidden single
+          </span>
+        </div>
+
+        <div class="row locked">
+          <div class="icon">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+          </div>
+          <div class="body">
+            <div class="title">Expert</div>
+            <div class="sub">Contradiction chains</div>
+          </div>
+          <span class="pill">
+            <svg class="lock" width="9" height="9" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
+            Advanced + 5 Hard solves
+          </span>
+        </div>
+      </div>
+
+      <!-- Grid size -->
+      <div class="section-h">Grid size</div>
+      <div class="seg-wrap">
+        <span class="seg-label">Board</span>
+        <div class="segmented" role="group" aria-label="Grid size">
+          <button class="on" type="button">5 × 5</button>
+          <button type="button">8 × 8</button>
+        </div>
+      </div>
+
+      <!-- Recent practice -->
+      <div class="section-h">Recent practice</div>
+      <div class="list">
+        <div class="recent-row">
+          <span class="dot" aria-hidden="true"></span>
+          <div class="r-body">
+            <div class="r-title">Medium 5×5</div>
+            <div class="r-sub">Yesterday · 14:38</div>
+          </div>
+          <span class="r-time">3:02</span>
+        </div>
+        <div class="recent-row">
+          <span class="dot" aria-hidden="true"></span>
+          <div class="r-body">
+            <div class="r-title">Easy 5×5</div>
+            <div class="r-sub">Yesterday · 14:31</div>
+          </div>
+          <span class="r-time">1:47</span>
+        </div>
+        <div class="recent-row">
+          <span class="dot" aria-hidden="true"></span>
+          <div class="r-body">
+            <div class="r-title">Medium 8×8</div>
+            <div class="r-sub">May 12 · 21:05</div>
+          </div>
+          <span class="r-time">9:14</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="footer">
+      <button class="btn" type="button">Start</button>
+      <button class="surprise" type="button">or, surprise me</button>
+    </div>
+
+    <!-- Tab bar -->
+    <nav class="tab-bar" aria-label="Primary">
+      <button class="tab" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><path d="M3 11l9-8 9 8"/><path d="M5 10v10h14V10"/></svg>
+        <span class="lbl">Today</span>
+      </button>
+      <button class="tab active" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg>
+        <span class="lbl">Practice</span>
+      </button>
+      <button class="tab" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><line x1="6" y1="20" x2="6" y2="10"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="18" y1="20" x2="18" y2="14"/></svg>
+        <span class="lbl">Stats</span>
+      </button>
+      <button class="tab" type="button">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1A2 2 0 1 1 4.2 17l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1A2 2 0 1 1 7 4.2l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1A2 2 0 1 1 19.8 7l-.1.1a1.7 1.7 0 0 0-.3 1.8V9a1.7 1.7 0 0 0 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg>
+        <span class="lbl">Settings</span>
+      </button>
+    </nav>
+
+    <div class="home-indicator"></div>
+  </div>
+</body>
+</html>

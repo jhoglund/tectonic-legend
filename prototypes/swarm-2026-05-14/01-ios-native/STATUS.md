@@ -27,3 +27,11 @@ Added 3 surfaces expressing the differentiator: the guided tutorial overlay
 (Newcomer-stage walkthrough), the mid-solve mastery-crossed chip moment, and
 the post-solve summary variant where a technique crossed mastery. Hint-chain
 colors held in reserve; mastery uses brand-600 only.
+
+## Second-round expansion · batch 4 — re-entry, share, practice · 2026-05-15
+Added 3 surfaces closing out the PRD §8 list: the warm re-entry card
+(no broken-streak punishment), the iOS-native share sheet over the
+Solved screen (Tier-0 viral artifact), and the Practice tab destination
+distinct from the New Game sheet. With this batch the iOS-native variant
+covers every surface in the PRD §8 list plus the solving-state set,
+paywalls, settings, tutorial, and mastery moments.
