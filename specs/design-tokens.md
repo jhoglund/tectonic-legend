@@ -74,7 +74,7 @@ The board container paints the outer frame; each cell paints only its top + left
 |-------|-------|------|
 | `cell-text` | `oklch(4% 0 0)` | `oklch(96% 0 0)` |
 
-Clue vs. player-entered values are distinguished by weight (bold vs. medium), not colour — both use `cell-text`. Error values override to the danger colour.
+Clue values use `cell-text` (bold). Player-entered values use `text-cell-player` (the brand colour, §3) at medium weight — so given numbers and the player's own entries read clearly apart. Error values override to the danger colour.
 
 ## 3. Color — text
 

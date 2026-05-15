@@ -1,8 +1,10 @@
 interface KeypadProps {
   maxNumber: number;
   onNumber: (n: number) => void;
-  onClear: () => void;
-  disabled?: boolean;
+  onUndo: () => void;
+  onRedo: () => void;
+  canUndo: boolean;
+  canRedo: boolean;
 }
 
 const keyStyle = (disabled: boolean): React.CSSProperties => ({
@@ -12,24 +14,44 @@ const keyStyle = (disabled: boolean): React.CSSProperties => ({
   background: 'var(--surface-elevated)',
   border: '1px solid var(--border)',
   cursor: disabled ? 'default' : 'pointer',
-  opacity: disabled ? 0.4 : 1,
+  opacity: disabled ? 0.35 : 1,
   display: 'grid',
   placeItems: 'center',
 });
 
-/** The number-entry keypad — digits 1..maxNumber plus a delete key.
- *  Digits use the tabular mono numeral face. */
-export function Keypad({ maxNumber, onNumber, onClear, disabled = false }: KeypadProps) {
+const svgProps = {
+  width: 21,
+  height: 21,
+  viewBox: '0 0 24 24',
+  fill: 'none',
+  stroke: 'currentColor',
+  strokeWidth: 2,
+  strokeLinecap: 'round' as const,
+  strokeLinejoin: 'round' as const,
+};
+
+/**
+ * The number-entry keypad — digits 1..maxNumber, then Undo and Redo.
+ * Per-cell clearing lives in the toolbar's Clear; the keypad's action
+ * keys step through the full move history.
+ */
+export function Keypad({
+  maxNumber,
+  onNumber,
+  onUndo,
+  onRedo,
+  canUndo,
+  canRedo,
+}: KeypadProps) {
   return (
     <div className="flex flex-wrap justify-center gap-2">
       {Array.from({ length: maxNumber }, (_, i) => i + 1).map((n) => (
         <button
           key={n}
           type="button"
-          disabled={disabled}
           onClick={() => onNumber(n)}
           style={{
-            ...keyStyle(disabled),
+            ...keyStyle(false),
             color: 'var(--text-primary)',
             fontFamily: 'var(--font-mono)',
             fontSize: '1.15rem',
@@ -42,25 +64,26 @@ export function Keypad({ maxNumber, onNumber, onClear, disabled = false }: Keypa
       ))}
       <button
         type="button"
-        disabled={disabled}
-        onClick={onClear}
-        aria-label="Delete"
-        style={{ ...keyStyle(disabled), color: 'var(--danger)' }}
+        disabled={!canUndo}
+        onClick={onUndo}
+        aria-label="Undo"
+        style={{ ...keyStyle(!canUndo), color: 'var(--text-secondary)' }}
       >
-        <svg
-          width="22"
-          height="22"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M21 4H8l-7 8 7 8h13a2 2 0 0 0 2-2V6a2 2 0 0 0-2-2z" />
-          <line x1="18" y1="9" x2="12" y2="15" />
-          <line x1="12" y1="9" x2="18" y2="15" />
+        <svg {...svgProps} aria-hidden="true">
+          <path d="M3 7v6h6" />
+          <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3L3 13" />
+        </svg>
+      </button>
+      <button
+        type="button"
+        disabled={!canRedo}
+        onClick={onRedo}
+        aria-label="Redo"
+        style={{ ...keyStyle(!canRedo), color: 'var(--text-secondary)' }}
+      >
+        <svg {...svgProps} aria-hidden="true">
+          <path d="M21 7v6h-6" />
+          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3L21 13" />
         </svg>
       </button>
     </div>

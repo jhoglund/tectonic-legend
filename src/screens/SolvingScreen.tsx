@@ -51,12 +51,16 @@ export function SolvingScreen({
     notesMode,
     isGenerating,
     techniquesUsed,
+    canUndo,
+    canRedo,
     handleCellClick,
     handleNumberInput,
     handleClear,
     handleHint,
     toggleNotes,
     getShareUrl,
+    undo,
+    redo,
   } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize });
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
@@ -128,7 +132,16 @@ export function SolvingScreen({
   // Keyboard play — number entry, delete, notes, hint, arrow navigation.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!gameState || !selectedCell || paused || abandonOpen || solved) return;
+      if (!gameState || paused || abandonOpen || solved) return;
+
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+        return;
+      }
+
+      if (!selectedCell) return;
 
       const num = parseInt(e.key);
       if (num >= 1 && num <= maxNumber) {
@@ -175,6 +188,8 @@ export function SolvingScreen({
     toggleNotes,
     handleHint,
     handleCellClick,
+    undo,
+    redo,
   ]);
 
   const cellsLeft = gameState
@@ -318,7 +333,14 @@ export function SolvingScreen({
             ))}
           </div>
 
-          <Keypad maxNumber={maxNumber} onNumber={handleNumberInput} onClear={handleClear} />
+          <Keypad
+            maxNumber={maxNumber}
+            onNumber={handleNumberInput}
+            onUndo={undo}
+            onRedo={redo}
+            canUndo={canUndo}
+            canRedo={canRedo}
+          />
         </div>
       )}
 

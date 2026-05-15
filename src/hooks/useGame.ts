@@ -45,6 +45,20 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
   // Logic-hint techniques surfaced this game, keyed by Hint.type. Reset
   // per game; the Solved screen reads it for the per-solve breakdown.
   const [techniquesUsed, setTechniquesUsed] = useState<Record<string, number>>({});
+  // Undo / redo — full move history, no cap. `past` holds states before
+  // the current one; `future` holds states undone away from.
+  const [past, setPast] = useState<GameState[]>([]);
+  const [future, setFuture] = useState<GameState[]>([]);
+
+  /** Apply a board-changing state, pushing the current one onto history. */
+  const commit = useCallback(
+    (next: GameState) => {
+      setPast((p) => (gameState ? [...p, gameState] : p));
+      setGameState(next);
+      setFuture([]);
+    },
+    [gameState],
+  );
 
   const startNewGame = useCallback((diff: Difficulty, size?: GridSize) => {
     const actualSize = size ?? gridSize;
@@ -60,6 +74,8 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       const [rows, cols] = gridSizeDimensions(actualSize);
       const puzzle = generatePuzzle(rows, cols, diff);
       setGameState(createGameState(puzzle));
+      setPast([]);
+      setFuture([]);
       setIsGenerating(false);
     }, 50);
   }, [gridSize]);
@@ -80,6 +96,8 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     state.errors = findErrors(grid, puzzle.layout, puzzle.solution, state.isClue);
     state.isSolved = isSolved(grid, puzzle.layout, state.errors);
     setGameState(state);
+    setPast([]);
+    setFuture([]);
 
     window.history.replaceState(null, '', window.location.pathname);
     return true;
@@ -115,38 +133,27 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       if (gameState.isClue[r][c]) return;
       setHint(null);
 
-      setGameState((prev) => {
-        if (!prev) return prev;
-        const newGrid = prev.grid.map((row) => [...row]);
-        const newNotes = prev.notes.map((row) =>
-          row.map((s) => new Set(s))
-        );
+      const newGrid = gameState.grid.map((row) => [...row]);
+      const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
 
-        if (notesMode) {
-          if (newNotes[r][c].has(num)) {
-            newNotes[r][c].delete(num);
-          } else {
-            newNotes[r][c].add(num);
-          }
-          newGrid[r][c] = 0;
+      if (notesMode) {
+        if (newNotes[r][c].has(num)) {
+          newNotes[r][c].delete(num);
         } else {
-          newGrid[r][c] = newGrid[r][c] === num ? 0 : num;
-          newNotes[r][c].clear();
+          newNotes[r][c].add(num);
         }
+        newGrid[r][c] = 0;
+      } else {
+        newGrid[r][c] = newGrid[r][c] === num ? 0 : num;
+        newNotes[r][c].clear();
+      }
 
-        const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
-        const solved = isSolved(newGrid, prev.puzzle.layout, newErrors);
+      const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
+      const solved = isSolved(newGrid, gameState.puzzle.layout, newErrors);
 
-        return {
-          ...prev,
-          grid: newGrid,
-          notes: newNotes,
-          errors: newErrors,
-          isSolved: solved,
-        };
-      });
+      commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved });
     },
-    [gameState, selectedCell, notesMode]
+    [gameState, selectedCell, notesMode, commit]
   );
 
   const handleClear = useCallback(() => {
@@ -154,25 +161,34 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     const [r, c] = selectedCell;
     if (gameState.isClue[r][c]) return;
 
-    setGameState((prev) => {
-      if (!prev) return prev;
-      const newGrid = prev.grid.map((row) => [...row]);
-      const newNotes = prev.notes.map((row) =>
-        row.map((s) => new Set(s))
-      );
-      newGrid[r][c] = 0;
-      newNotes[r][c].clear();
-      const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
+    const newGrid = gameState.grid.map((row) => [...row]);
+    const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
+    newGrid[r][c] = 0;
+    newNotes[r][c].clear();
+    const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
 
-      return {
-        ...prev,
-        grid: newGrid,
-        notes: newNotes,
-        errors: newErrors,
-        isSolved: false,
-      };
-    });
-  }, [gameState, selectedCell]);
+    commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: false });
+  }, [gameState, selectedCell, commit]);
+
+  /** Step back one move. */
+  const undo = useCallback(() => {
+    if (past.length === 0 || !gameState) return;
+    const prevState = past[past.length - 1];
+    setPast((p) => p.slice(0, -1));
+    setFuture((f) => [gameState, ...f]);
+    setGameState(prevState);
+    setHint(null);
+  }, [past, gameState]);
+
+  /** Step forward one undone move. */
+  const redo = useCallback(() => {
+    if (future.length === 0 || !gameState) return;
+    const nextState = future[0];
+    setFuture((f) => f.slice(1));
+    setPast((p) => [...p, gameState]);
+    setGameState(nextState);
+    setHint(null);
+  }, [future, gameState]);
 
   const handleHint = useCallback((mode?: HintMode) => {
     if (!gameState) return;
@@ -205,16 +221,13 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
           const val = gameState.puzzle.solution[targetR][targetC];
           setHint({ row: targetR, col: targetC, value: val, reason: `No simple logic deduction found — revealing this cell. The answer is ${val}.`, type: 'reveal' });
           setSelectedCell([targetR, targetC]);
-          setGameState((prev) => {
-            if (!prev) return prev;
-            const newGrid = prev.grid.map((row) => [...row]);
-            const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
-            newGrid[targetR][targetC] = val;
-            newNotes[targetR][targetC].clear();
-            const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
-            const solved = isSolved(newGrid, prev.puzzle.layout);
-            return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
-          });
+          const newGrid = gameState.grid.map((row) => [...row]);
+          const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
+          newGrid[targetR][targetC] = val;
+          newNotes[targetR][targetC].clear();
+          const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
+          const solved = isSolved(newGrid, gameState.puzzle.layout);
+          commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved });
         }
       }
     } else if (activeMode === 'candidates') {
@@ -234,22 +247,19 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       const h = findRevealHint(gameState.puzzle.solution, gameState.grid, r, c);
       setHint(h);
       if (h.value && gameState.grid[r][c] !== h.value && !gameState.isClue[r][c]) {
-        setGameState((prev) => {
-          if (!prev) return prev;
-          const newGrid = prev.grid.map((row) => [...row]);
-          const newNotes = prev.notes.map((row) => row.map((s) => new Set(s)));
-          newGrid[r][c] = h.value;
-          newNotes[r][c].clear();
-          const newErrors = findErrors(newGrid, prev.puzzle.layout, prev.puzzle.solution, prev.isClue);
-          const solved = isSolved(newGrid, prev.puzzle.layout);
-          return { ...prev, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved };
-        });
+        const newGrid = gameState.grid.map((row) => [...row]);
+        const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
+        newGrid[r][c] = h.value;
+        newNotes[r][c].clear();
+        const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
+        const solved = isSolved(newGrid, gameState.puzzle.layout);
+        commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: solved });
       }
     } else if (activeMode === 'check') {
       const h = findCheckHint(gameState.grid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
       setHint(h);
     }
-  }, [gameState, selectedCell, hintMode]);
+  }, [gameState, selectedCell, hintMode, commit]);
 
   const toggleNotes = useCallback(() => {
     setNotesMode((prev) => !prev);
@@ -271,6 +281,8 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     hint,
     hintMode,
     techniquesUsed,
+    canUndo: past.length > 0,
+    canRedo: future.length > 0,
     startNewGame,
     handleCellClick,
     handleNumberInput,
@@ -279,5 +291,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     setHintMode,
     toggleNotes,
     getShareUrl,
+    undo,
+    redo,
   };
 }

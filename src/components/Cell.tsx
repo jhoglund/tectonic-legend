@@ -72,8 +72,10 @@ export function Cell({
   const noteTextSize = compact ? 'text-[6px]' : 'text-[9px]';
   const dimClass = isDimmed ? 'opacity-30' : '';
 
-  // Clue vs. player entry distinguished by weight; both use --cell-text.
+  // Clue vs. player entry: clues are bold in --cell-text; player entries
+  // are medium-weight in the brand colour, so the two read apart clearly.
   const valueWeight = isClue ? 'font-bold' : 'font-medium';
+  const valueColor = isClue ? 'var(--cell-text)' : 'var(--text-cell-player)';
 
   return (
     <div
@@ -91,7 +93,7 @@ export function Cell({
       ) : value !== 0 ? (
         <span
           className={`${textSize} ${valueWeight} ${isError ? 'text-red-600' : ''}`}
-          style={isError ? undefined : { color: 'var(--cell-text)' }}
+          style={isError ? undefined : { color: valueColor }}
         >
           {value}
         </span>
