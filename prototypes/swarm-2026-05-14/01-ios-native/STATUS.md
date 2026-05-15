@@ -18,3 +18,6 @@ The brief says nav between Home and Solving is via push (variant 01 uses iOS's s
 
 ## Second-round expansion · batch 1 — solving states · 2026-05-15
 Added 7 alternate states of the solving screen: fresh, cell-selected, notes-mode, conflict, basic-hint, pause, abandon-confirm. Board geometry constant across all 7. Reviewer nav updated.
+
+## Second-round expansion · batch 2 — paywall + settings · 2026-05-15
+Added 4 surfaces: Hard-tap paywall, contradiction-hint paywall, Settings root, and Settings → Account detail. Free-tier states rendered (upgrade affordance is the most prominent thing in both Settings surfaces). Annual is the default highlighted pricing per ADR-0008.
