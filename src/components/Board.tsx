@@ -62,9 +62,12 @@ export function Board({ gameState, selectedCell, hint, cellOverlays, onCellClick
 
   return (
     <div
-      className="inline-grid border-2 border-slate-800 bg-slate-800"
+      className="inline-grid"
       style={{
         gridTemplateColumns: `repeat(${cols}, auto)`,
+        border: 'var(--border-cage-width) solid var(--border-cage)',
+        borderRadius: '6px',
+        overflow: 'hidden',
       }}
     >
       {Array.from({ length: rows }, (_, r) =>
