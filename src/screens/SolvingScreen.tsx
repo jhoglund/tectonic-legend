@@ -3,6 +3,7 @@ import { Board } from '../components/Board';
 import type { CellOverlay } from '../components/Board';
 import { Keypad } from '../components/Keypad';
 import { ContradictionStepper } from '../components/ContradictionStepper';
+import { HintMenu } from '../components/HintMenu';
 import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
 import { SolvedScreen } from './SolvedScreen';
@@ -120,7 +121,22 @@ export function SolvingScreen({
   const solved = gameState?.isSolved ?? false;
   const [paused, setPaused] = useState(false);
   const [abandonOpen, setAbandonOpen] = useState(false);
+  const [hintMenuOpen, setHintMenuOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+
+  // Validation is explicit — wrong entries surface in red only for a
+  // few seconds after the player taps Validate, never live.
+  const [showErrors, setShowErrors] = useState(false);
+  const [validateNonce, setValidateNonce] = useState(0);
+  const validate = useCallback(() => {
+    setShowErrors(true);
+    setValidateNonce((n) => n + 1);
+  }, []);
+  useEffect(() => {
+    if (validateNonce === 0) return;
+    const id = window.setTimeout(() => setShowErrors(false), 6000);
+    return () => clearTimeout(id);
+  }, [validateNonce]);
 
   // Solve timer — runs while a puzzle is live, unsolved, and not paused.
   useEffect(() => {
@@ -272,6 +288,7 @@ export function SolvingScreen({
             hint={hint}
             cellOverlays={cellOverlays}
             onCellClick={handleCellClick}
+            showErrors={showErrors}
           />
 
           {/* hint area */}
@@ -312,15 +329,16 @@ export function SolvingScreen({
           {/* toolbar */}
           <div className="flex w-full gap-2">
             {[
-              { label: notesMode ? 'Notes: On' : 'Notes', onClick: toggleNotes, active: notesMode },
-              { label: 'Hint', onClick: () => handleHint(), active: false },
+              { label: 'Notes', onClick: toggleNotes, active: notesMode },
+              { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
+              { label: 'Validate', onClick: validate, active: showErrors },
               { label: 'Clear', onClick: handleClear, active: false },
             ].map((tool) => (
               <button
                 key={tool.label}
                 type="button"
                 onClick={tool.onClick}
-                className="flex-1 cursor-pointer py-2.5 text-sm font-medium"
+                className="flex-1 cursor-pointer py-2.5 text-[13px] font-medium"
                 style={{
                   borderRadius: 'var(--radius-button)',
                   border: '1px solid var(--border)',
@@ -344,6 +362,11 @@ export function SolvingScreen({
         </div>
       )}
 
+      <HintMenu
+        open={hintMenuOpen}
+        onClose={() => setHintMenuOpen(false)}
+        onPick={(mode) => handleHint(mode)}
+      />
       <PauseSheet
         open={paused}
         onResume={() => setPaused(false)}
