@@ -30,9 +30,15 @@ function App() {
   const chain = hint?.chain ?? null;
   const chainLength = chain?.length ?? 0;
 
-  useEffect(() => {
+  // Reset the chain stepper to step 0 whenever a new hint arrives.
+  // Adjusting state during render (rather than in an effect) is React's
+  // recommended pattern for "reset state when a value changes" — no
+  // extra commit, no flash of a stale step index.
+  const [hintForStepper, setHintForStepper] = useState(hint);
+  if (hint !== hintForStepper) {
+    setHintForStepper(hint);
     setChainStepIndex(0);
-  }, [hint]);
+  }
 
   const handleChainStep = useCallback((delta: number) => {
     setChainStepIndex((prev) => {

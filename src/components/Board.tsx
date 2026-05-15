@@ -2,8 +2,9 @@ import { useMemo } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 import type { Hint } from '../engine/hints';
-import { Cell, computeBorders } from './Cell';
+import { Cell } from './Cell';
 import type { CellHighlight } from './Cell';
+import { computeBorders } from './cellBorders';
 
 function colorGroups(layout: PuzzleLayout): number[] {
   const { rows, cols, groups, cellToGroup } = layout;

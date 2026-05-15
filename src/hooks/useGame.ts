@@ -82,9 +82,18 @@ export function useGame() {
   }, []);
 
   useEffect(() => {
-    if (!loadFromUrl()) {
-      startNewGame('easy', '5x5');
-    }
+    // Mount bootstrap, deferred to a macrotask so it doesn't call
+    // setState synchronously within the effect (which would cascade an
+    // extra render). loadFromUrl() restores a shared-link game;
+    // otherwise generate a fresh Easy 5x5.
+    const t = setTimeout(() => {
+      if (!loadFromUrl()) {
+        startNewGame('easy', '5x5');
+      }
+    }, 0);
+    return () => clearTimeout(t);
+    // Mount-only: loadFromUrl / startNewGame are intentionally not deps.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCellClick = useCallback(
