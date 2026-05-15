@@ -22,6 +22,15 @@ export const TECHNIQUE_NAMES: readonly TechniqueName[] = [
   'contradiction-chain',
 ];
 
+/** Player-facing technique names — for chips, stats, the solved screen. */
+export const TECHNIQUE_LABELS: Record<TechniqueName, string> = {
+  'naked-single': 'Naked single',
+  'hidden-single': 'Hidden single',
+  'forced-move': 'Forced move',
+  'pair-elimination': 'Pair elimination',
+  'contradiction-chain': 'Contradiction chain',
+};
+
 /** Player journey stage. Stages never regress (progression.md §1). */
 export type PlayerStage = 0 | 1 | 2 | 3 | 4;
 
