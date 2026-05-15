@@ -30,6 +30,9 @@ export interface SolveRecord {
 
 export interface PlayerProfile {
   stage: PlayerStage;
+  /** Highest stage whose celebration card has been shown — when it
+   *  trails `stage`, a stage-up card is pending (progression.md §5). */
+  celebratedStage: PlayerStage;
   techniques: Record<TechniqueName, TechniqueMastery>;
   /** Newcomer tutorial puzzles completed (gates stage 0 → 1). */
   tutorialsCompleted: number;
@@ -71,6 +74,7 @@ function freshTechniques(): Record<TechniqueName, TechniqueMastery> {
 export function defaultProfile(): PlayerProfile {
   return {
     stage: 0,
+    celebratedStage: 0,
     techniques: freshTechniques(),
     tutorialsCompleted: 0,
     solveHistory: [],
@@ -219,10 +223,25 @@ function normalizeProfile(parsed: Record<string, unknown>): PlayerProfile {
     ...base,
     ...(parsed as Partial<PlayerProfile>),
     techniques,
+    // A profile saved before this field existed has already passed its
+    // stage-up moments — assume celebrated up to its current stage so
+    // old cards do not fire retroactively.
+    celebratedStage:
+      (parsed.celebratedStage as PlayerStage | undefined) ??
+      (parsed.stage as PlayerStage | undefined) ??
+      0,
     streak: { ...base.streak, ...(parsed.streak as object) },
     settings: { ...base.settings, ...(parsed.settings as object) },
     schemaVersion: 1,
   };
+}
+
+/**
+ * Mark the player's current stage as celebrated — dismisses the
+ * stage-up card so it never repeats (progression.md §5).
+ */
+export function markStageCelebrated(profile: PlayerProfile): PlayerProfile {
+  return { ...profile, celebratedStage: profile.stage };
 }
 
 /** Load the profile from localStorage, or a fresh one if absent/invalid. */

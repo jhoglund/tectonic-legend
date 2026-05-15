@@ -126,9 +126,9 @@ not just what value a cell must hold.
 [Continue]
 ```
 
-The card is dismissible by tap and never repeats. Once dismissed, the player lands on the stage-up tutorial puzzle. The card is the only celebration — no confetti, no animation, no popup chain. The brand voice is `quiet, warm, adult`.
+The card is dismissible by tap and never repeats. The card is the only celebration — no confetti, no animation, no popup chain. The brand voice is `quiet, warm, adult`.
 
-Stage-up moments are designed in Open Design before code (see [`design-workflow.md`](design-workflow.md)).
+**As built:** `StageUpCard` (one of four, by target stage) renders on the Home surface whenever `profile.stage` exceeds `profile.celebratedStage`; Continue marks the stage celebrated. Dismissal returns to Home — the stage-up tutorial puzzles are not yet built (they fold into a later pass). The Open Design pass for these cards was skipped by decision; revisit the visual treatment there if the moment needs more weight.
 
 ---
 

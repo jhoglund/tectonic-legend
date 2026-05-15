@@ -3,6 +3,7 @@ import { HomeLanding } from './HomeLanding';
 import { SolvingScreen } from './SolvingScreen';
 import { TutorialFlow } from './TutorialFlow';
 import { DifficultyPicker } from '../components/DifficultyPicker';
+import { StageUpCard } from '../components/StageUpCard';
 import { useProfile } from '../lib/profileContext';
 import type { Difficulty, GridSize } from '../engine/types';
 
@@ -13,7 +14,7 @@ import type { Difficulty, GridSize } from '../engine/types';
  * instead, until they earn the Beginner stage.
  */
 export function HomeTab() {
-  const { profile } = useProfile();
+  const { profile, celebrateStage } = useProfile();
   const [view, setView] = useState<'landing' | 'playing'>('landing');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [game, setGame] = useState<{ difficulty: Difficulty; gridSize: GridSize } | null>(
@@ -43,6 +44,10 @@ export function HomeTab() {
           initialGridSize={game.gridSize}
           onExit={() => setView('landing')}
         />
+      ) : profile.stage > profile.celebratedStage ? (
+        // A stage-up crossed since the player last saw Home — celebrate
+        // it before anything else (progression.md §5).
+        <StageUpCard stage={profile.stage} onContinue={celebrateStage} />
       ) : (
         <HomeLanding stage={profile.stage} onNewPuzzle={() => setPickerOpen(true)} />
       )}

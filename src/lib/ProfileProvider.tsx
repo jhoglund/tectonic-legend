@@ -5,6 +5,7 @@ import {
   saveProfile,
   recordSolve,
   recordTutorialCompletion,
+  markStageCelebrated,
 } from './profile';
 import type { PlayerStage } from './progression';
 import { ProfileContext } from './profileContext';
@@ -34,12 +35,19 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     return result.stageUp;
   }, [profile]);
 
+  const handleCelebrateStage = useCallback(() => {
+    const next = markStageCelebrated(profile);
+    saveProfile(next);
+    setProfile(next);
+  }, [profile]);
+
   return (
     <ProfileContext.Provider
       value={{
         profile,
         recordSolve: handleRecordSolve,
         recordTutorial: handleRecordTutorial,
+        celebrateStage: handleCelebrateStage,
       }}
     >
       {children}

@@ -3,6 +3,7 @@ import {
   defaultProfile,
   recordSolve,
   recordTutorialCompletion,
+  markStageCelebrated,
   loadProfile,
   saveProfile,
   type PlayerProfile,
@@ -150,6 +151,28 @@ describe('recordTutorialCompletion', () => {
     expect(result.stageUp).toBe(1);
     expect(result.profile.stage).toBe(1);
     expect(result.profile.tutorialsCompleted).toBe(3);
+  });
+});
+
+describe('markStageCelebrated', () => {
+  it('a fresh profile has no pending stage-up card', () => {
+    const p = defaultProfile();
+    expect(p.celebratedStage).toBe(p.stage);
+  });
+
+  it('a stage advance leaves the card pending until celebrated', () => {
+    const advanced = recordTutorialCompletion(
+      recordTutorialCompletion(
+        recordTutorialCompletion(defaultProfile()).profile,
+      ).profile,
+    ).profile;
+    expect(advanced.stage).toBe(1);
+    // celebratedStage trails — the Beginner card is pending.
+    expect(advanced.stage).toBeGreaterThan(advanced.celebratedStage);
+
+    const celebrated = markStageCelebrated(advanced);
+    expect(celebrated.celebratedStage).toBe(1);
+    expect(celebrated.stage).toBe(celebrated.celebratedStage);
   });
 });
 
