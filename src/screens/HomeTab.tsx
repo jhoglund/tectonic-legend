@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { HomeLanding } from './HomeLanding';
-import { GameScreen } from './GameScreen';
+import { SolvingScreen } from './SolvingScreen';
 import { DifficultyPicker } from '../components/DifficultyPicker';
 import { loadProfile } from '../lib/profile';
 import type { Difficulty, GridSize } from '../engine/types';
@@ -8,8 +8,7 @@ import type { Difficulty, GridSize } from '../engine/types';
 /**
  * The Home tab — owns navigation between the landing screen and a
  * playing session, with the difficulty picker as a sheet over the
- * landing. Phase 1; the Solving screen here is still the interim
- * GameScreen until backlog item 7 rebuilds it.
+ * landing.
  */
 export function HomeTab() {
   const [profile] = useState(() => loadProfile());
@@ -31,7 +30,7 @@ export function HomeTab() {
   return (
     <>
       {view === 'playing' && game ? (
-        <GameScreen
+        <SolvingScreen
           key={gameKey}
           initialDifficulty={game.difficulty}
           initialGridSize={game.gridSize}
