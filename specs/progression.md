@@ -40,6 +40,8 @@ The generator gates puzzles by **the minimum-strength technique required to solv
 
 Critical invariant: **an Easy puzzle is never solvable only by guessing.** Every puzzle in every difficulty has a deterministic logic path. The generator rejects any candidate that fails this check.
 
+**As built (2026-05-15).** The solver implements three techniques — naked single, hidden single, and backtracking search — so the four tiers are graded as: Easy = naked singles only; Medium = also needs hidden singles; Hard = needs real search (`backtracks ≥ 1`, below the Expert floor); Expert = needs sustained search (`backtracks ≥ 8` on 5×5, `≥ 15` on 8×8). Backtrack count — dead-end branches the search abandons — is the difficulty proxy; gating on it (not merely "did the solver guess once") is what makes Expert genuinely hard. Clue density was also lowered a notch per tier the same day. A tier above Expert would need a deeper gate still — see the Legend-level open question in the backlog.
+
 ---
 
 ## 3. Technique mastery

@@ -309,6 +309,14 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
   return search() ? grid : null;
 }
 
+/**
+ * Minimum abandoned-branch count separating the top tiers. Expert must
+ * demand sustained search; Hard must need *some* search but stay below
+ * Expert. Per board size — a 5x5 cannot demand as much search as an 8x8.
+ */
+const EXPERT_MIN_BACKTRACKS = { small: 8, large: 15 };
+const HARD_MIN_BACKTRACKS = 1;
+
 function carveClues(
   layout: PuzzleLayout,
   solution: number[][],
@@ -358,6 +366,14 @@ function carveClues(
 
   const usesBacktrack = check.techniques.includes('backtrack');
   const usesHiddenSingle = check.techniques.includes('hidden_single');
+  // Search depth, not just "did it guess once". `usesBacktrack` only
+  // means the solver *entered* the search phase — a puzzle whose first
+  // guess happens to be right has bt 0 and is trivial. Hard and Expert
+  // are graded on how many dead-ends the search must abandon.
+  const bt = check.backtracks;
+  const expertFloor = isLarge
+    ? EXPERT_MIN_BACKTRACKS.large
+    : EXPERT_MIN_BACKTRACKS.small;
 
   if (difficulty === 'easy') {
     if (usesBacktrack) return null;
@@ -366,9 +382,12 @@ function carveClues(
     if (usesBacktrack) return null;
     if (!isLarge && !usesHiddenSingle) return null;
   } else if (difficulty === 'hard') {
-    if (!usesBacktrack) return null;
+    // Real search — but anything Expert-deep belongs in Expert.
+    if (bt < HARD_MIN_BACKTRACKS) return null;
+    if (bt >= expertFloor) return null;
   } else if (difficulty === 'expert') {
-    if (!usesBacktrack) return null;
+    // Must demand sustained contradiction reasoning.
+    if (bt < expertFloor) return null;
   }
 
   return { layout, clues, solution };

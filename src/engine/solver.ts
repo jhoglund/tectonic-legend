@@ -4,6 +4,9 @@ export interface SolveResult {
   solved: boolean;
   grid: number[][];
   techniques: SolveTechnique[];
+  /** Dead-end branches the search abandoned — a proxy for how much
+   *  guess-and-check the puzzle demands. 0 = pure logic, no search. */
+  backtracks: number;
 }
 
 export type SolveTechnique = 'naked_single' | 'hidden_single' | 'backtrack';
@@ -20,6 +23,8 @@ export function solve(
 ): SolveResult {
   const { rows, cols, groups, neighbors, cellGroup } = layout;
   const techniques = new Set<SolveTechnique>();
+  // Dead-end branches abandoned during search — see SolveResult.
+  let backtracks = 0;
 
   const candidates: Set<number>[][] = Array.from({ length: rows }, () =>
     Array.from({ length: cols }, () => new Set<number>())
@@ -128,23 +133,23 @@ export function solve(
     for (let c = 0; c < cols; c++) {
       if (clues[r][c] !== 0) {
         if (!assign(r, c, clues[r][c])) {
-          return { solved: false, grid, techniques: [...techniques] };
+          return { solved: false, grid, techniques: [...techniques], backtracks };
         }
       }
     }
   }
 
   if (!propagate()) {
-    return { solved: false, grid, techniques: [...techniques] };
+    return { solved: false, grid, techniques: [...techniques], backtracks };
   }
 
   if (isComplete()) {
-    return { solved: true, grid, techniques: [...techniques] };
+    return { solved: true, grid, techniques: [...techniques], backtracks };
   }
 
   techniques.add('backtrack');
   const result = backtrack();
-  return { solved: result, grid, techniques: [...techniques] };
+  return { solved: result, grid, techniques: [...techniques], backtracks };
 
   function isComplete(): boolean {
     for (let r = 0; r < rows; r++) {
@@ -186,6 +191,7 @@ export function solve(
         return true;
       }
       undoTo(mark);
+      backtracks++;
     }
 
     return false;

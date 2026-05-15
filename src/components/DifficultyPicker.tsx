@@ -14,9 +14,10 @@ const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
 ];
 
 /**
- * Stage gating is built (progression.md §1) but switched off — every
- * difficulty is playable regardless of stage. The lock rendering and
- * the `isDifficultyUnlocked` logic stay intact; flip this to re-enable.
+ * Difficulty is player-choice — stage gating is off by decision
+ * (ADR-0012). The lock rendering and `isDifficultyUnlocked` logic are
+ * kept intact, dormant behind this flag; flipping it back on is a
+ * one-line change should soft-launch data argue for it.
  */
 const STAGE_GATING_ENABLED = false;
 
