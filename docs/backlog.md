@@ -48,6 +48,15 @@ Six phases to soft launch. Phases are roughly sequential; within a phase, order 
 7. **Solving screen + all 7 states** — wire the React layer to the engine; build fresh / cell-selected / notes / conflict / basic-hint / contradiction-stepper / pause / abandon to the prototype design.
 8. **Solved screen** — solve time, technique histogram, mastery chips, share button. No cohort/percentile (no backend in v1).
 
+### Solving screen refinements
+
+Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; slot alongside Phase 2.
+
+- **S1. Clearer clue vs. player-entered distinction.** Today the board separates them only by font weight (clue `font-bold`, player `font-medium`, both `--cell-text` — design-tokens §2a). Too subtle. Options: keep weight *and* colour player entries with `--text-cell-player` (brand-600, already a token in §3); or give clue cells a distinct faint treatment. Decide and apply in `Cell.tsx`.
+- **S2. Undo / Redo replacing the keypad delete key.** Add an undo+redo stack to `useGame` holding the full move history (cell value + notes per step) — multiple undos and redos. The keypad's delete key becomes Undo; add a Redo affordance. The toolbar's "Clear" (clears the selected cell) stays. New state in `useGame` — there is no undo today.
+- **S3. Explicit validation — no live red errors.** Stop auto-highlighting wrong entries red. `useGame` runs `findErrors` on every input and `Cell` renders errors red; remove the live red. Add a "Validate" control that checks on demand and surfaces mistakes (briefly, or until the next move). Touches `useGame`, `Cell`, and the toolbar.
+- **S4. Restore the multi-hint menu.** The Phase-1 rebuild dropped the prototype's hint-mode menu (Logic Hint / Show Candidates / Reveal Cell / Check Errors) for a single Hint button. `useGame` still supports all four modes (`handleHint(mode)`, `hintMode`, `setHintMode`) — re-surface the menu on the Solving screen. Note overlap with S3: "Check Errors" is itself a validation mode — reconcile when implementing.
+
 ### Phase 2 — The differentiator
 
 9. **Stage gating** — difficulty picker becomes stage-aware; locked difficulties show the technique to master. Driven by `specs/progression.md` §2.
