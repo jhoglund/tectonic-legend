@@ -30,7 +30,6 @@
   --text-tertiary: #a3a3a3;
   --text-on-brand: #ffffff;
   --text-cell-clue: #525252;
-  --text-cell-player: #0891b2;
   --text-cell-error: #dc2626;
   --text-ghost-value: #a3a3a3;
 
@@ -71,6 +70,16 @@
   --cage-3-inner: oklch(from var(--cage-3) calc(l + (var(--border-inner-target-l) - l) * var(--border-inner-blend)) c h);
   --cage-4-inner: oklch(from var(--cage-4) calc(l + (var(--border-inner-target-l) - l) * var(--border-inner-blend)) c h);
   --cage-5-inner: oklch(from var(--cage-5) calc(l + (var(--border-inner-target-l) - l) * var(--border-inner-blend)) c h);
+
+  /* Player-entry ink — a darker, more saturated shade of each cage
+     fill, so a typed value reads as the player's against any cage.
+     Re-resolves per light/dark because var(--cage-N) is substituted
+     at use time; the lightness literal differs per mode. */
+  --cage-1-player: oklch(from var(--cage-1) 0.42 calc(c * 2) h);
+  --cage-2-player: oklch(from var(--cage-2) 0.42 calc(c * 2) h);
+  --cage-3-player: oklch(from var(--cage-3) 0.42 calc(c * 2) h);
+  --cage-4-player: oklch(from var(--cage-4) 0.42 calc(c * 2) h);
+  --cage-5-player: oklch(from var(--cage-5) 0.42 calc(c * 2) h);
 
   /* --- Board: cell value text --------------------------------- */
   --cell-text: oklch(4% 0 0);
@@ -135,7 +144,6 @@
     --text-tertiary: #737373;
     --text-on-brand: #0a0a0a;
     --text-cell-clue: #a3a3a3;
-    --text-cell-player: #06b6d4;
     --text-cell-error: #f87171;
     --text-ghost-value: #737373;
 
@@ -158,17 +166,24 @@
     --cage-4: oklch(28.5% 0.034 180);
     --cage-5: oklch(36.5% 0.004 83);
     --cell-text: oklch(96% 0 0);
+
+    /* Player-entry ink — lighter shade for contrast on dark cages. */
+    --cage-1-player: oklch(from var(--cage-1) 0.85 calc(c * 2) h);
+    --cage-2-player: oklch(from var(--cage-2) 0.85 calc(c * 2) h);
+    --cage-3-player: oklch(from var(--cage-3) 0.85 calc(c * 2) h);
+    --cage-4-player: oklch(from var(--cage-4) 0.85 calc(c * 2) h);
+    --cage-5-player: oklch(from var(--cage-5) 0.85 calc(c * 2) h);
   }
 }
 
 /* Cage fill classes — applied per board cell by colour index.
    Each sets the per-cell fill + inner-border custom properties
    the Cell component reads. */
-.cage-1 { --cell-fill: var(--cage-1); --cell-inner: var(--cage-1-inner); }
-.cage-2 { --cell-fill: var(--cage-2); --cell-inner: var(--cage-2-inner); }
-.cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); }
-.cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); }
-.cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); }
+.cage-1 { --cell-fill: var(--cage-1); --cell-inner: var(--cage-1-inner); --cell-player: var(--cage-1-player); }
+.cage-2 { --cell-fill: var(--cage-2); --cell-inner: var(--cage-2-inner); --cell-player: var(--cage-2-player); }
+.cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); --cell-player: var(--cage-3-player); }
+.cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); --cell-player: var(--cage-4-player); }
+.cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); --cell-player: var(--cage-5-player); }
 
 /* Base — applies the UI font + surface tokens app-wide. */
 body {

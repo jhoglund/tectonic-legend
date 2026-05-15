@@ -90,6 +90,18 @@ export function findErrors(
     }
   }
 
+  // A clue is part of the puzzle's given solution — it can never be the
+  // player's mistake. When a wrong entry collides with a clue, the
+  // adjacency / duplicate passes above flag both cells; clear the clue
+  // so only the player's own cell surfaces as an error.
+  if (isClue) {
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (isClue[r][c]) errors[r][c] = false;
+      }
+    }
+  }
+
   return errors;
 }
 

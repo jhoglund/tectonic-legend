@@ -73,9 +73,10 @@ export function Cell({
   const dimClass = isDimmed ? 'opacity-30' : '';
 
   // Clue vs. player entry: clues are bold in --cell-text; player entries
-  // are medium-weight in the brand colour, so the two read apart clearly.
+  // are medium-weight in --cell-player — a darker shade of this cell's
+  // own cage fill — so the two read apart clearly on any cage colour.
   const valueWeight = isClue ? 'font-bold' : 'font-medium';
-  const valueColor = isClue ? 'var(--cell-text)' : 'var(--text-cell-player)';
+  const valueColor = isClue ? 'var(--cell-text)' : 'var(--cell-player)';
 
   return (
     <div

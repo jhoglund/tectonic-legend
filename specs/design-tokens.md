@@ -65,6 +65,7 @@ A cell's cage fill supersedes `surface-cell` on the board. `surface-cell` remain
 | `border-inner-target-l` | `0.66` | Lightness the inner border is pulled toward |
 | `border-inner-blend` | `0.40` | How far to pull (0 = invisible, 1 = full shift) |
 | `cage-N-inner` | derived | `cage-N` with lightness blended toward `border-inner-target-l` by `border-inner-blend`; hue + chroma preserved. Computed in CSS via relative color syntax, so it re-resolves per light/dark. |
+| `cage-N-player` | derived | `cage-N` taken to a fixed contrasting lightness (`0.42` light / `0.85` dark) with chroma doubled, hue preserved — the ink for player-entered values. Exposed per cell as `--cell-player` by the `.cage-N` class. |
 
 The board container paints the outer frame; each cell paints only its top + left edge, so every internal line is drawn exactly once at the intended width.
 
@@ -74,7 +75,7 @@ The board container paints the outer frame; each cell paints only its top + left
 |-------|-------|------|
 | `cell-text` | `oklch(4% 0 0)` | `oklch(96% 0 0)` |
 
-Clue values use `cell-text` (bold). Player-entered values use `text-cell-player` (the brand colour, §3) at medium weight — so given numbers and the player's own entries read clearly apart. Error values override to the danger colour.
+Clue values use `cell-text` (bold). Player-entered values use `cell-player` — a darker, more saturated shade of that cell's own cage fill (`cage-N-player`, §2) — at medium weight, so given numbers and the player's own entries read clearly apart on any cage colour. Error values override to the danger colour.
 
 ## 3. Color — text
 
@@ -85,7 +86,6 @@ Clue values use `cell-text` (bold). Player-entered values use `text-cell-player`
 | `text-tertiary` | `#a3a3a3` | `#737373` |
 | `text-on-brand` | `#ffffff` | `#0a0a0a` |
 | `text-cell-clue` | `#525252` | `#a3a3a3` |
-| `text-cell-player` | `#0891b2` | `#06b6d4` |
 | `text-cell-error` | `#dc2626` | `#f87171` |
 | `text-ghost-value` | `#a3a3a3` | `#737373` |
 

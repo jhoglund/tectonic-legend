@@ -2,9 +2,7 @@ interface KeypadProps {
   maxNumber: number;
   onNumber: (n: number) => void;
   onUndo: () => void;
-  onRedo: () => void;
   canUndo: boolean;
-  canRedo: boolean;
 }
 
 const keyStyle = (disabled: boolean): React.CSSProperties => ({
@@ -31,17 +29,15 @@ const svgProps = {
 };
 
 /**
- * The number-entry keypad — digits 1..maxNumber, then Undo and Redo.
- * Per-cell clearing lives in the toolbar's Clear; the keypad's action
- * keys step through the full move history.
+ * The number-entry keypad — digits 1..maxNumber, then Undo.
+ * Per-cell clearing lives in the toolbar's Clear; Undo steps back
+ * through the full move history.
  */
 export function Keypad({
   maxNumber,
   onNumber,
   onUndo,
-  onRedo,
   canUndo,
-  canRedo,
 }: KeypadProps) {
   return (
     <div className="flex flex-wrap justify-center gap-2">
@@ -72,18 +68,6 @@ export function Keypad({
         <svg {...svgProps} aria-hidden="true">
           <path d="M3 7v6h6" />
           <path d="M21 17a9 9 0 0 0-9-9 9 9 0 0 0-6.7 3L3 13" />
-        </svg>
-      </button>
-      <button
-        type="button"
-        disabled={!canRedo}
-        onClick={onRedo}
-        aria-label="Redo"
-        style={{ ...keyStyle(!canRedo), color: 'var(--text-secondary)' }}
-      >
-        <svg {...svgProps} aria-hidden="true">
-          <path d="M21 7v6h-6" />
-          <path d="M3 17a9 9 0 0 1 9-9 9 9 0 0 1 6.7 3L21 13" />
         </svg>
       </button>
     </div>

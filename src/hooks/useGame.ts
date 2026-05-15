@@ -170,6 +170,27 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: false });
   }, [gameState, selectedCell, commit]);
 
+  /** Clear every cell currently flagged as an error (wrong entries). */
+  const removeErrors = useCallback(() => {
+    if (!gameState) return;
+    const { rows, cols } = gameState.puzzle.layout;
+    const newGrid = gameState.grid.map((row) => [...row]);
+    const newNotes = gameState.notes.map((row) => row.map((s) => new Set(s)));
+    let removed = false;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (gameState.errors[r][c]) {
+          newGrid[r][c] = 0;
+          newNotes[r][c].clear();
+          removed = true;
+        }
+      }
+    }
+    if (!removed) return;
+    const newErrors = findErrors(newGrid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
+    commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: false });
+  }, [gameState, commit]);
+
   /** Step back one move. */
   const undo = useCallback(() => {
     if (past.length === 0 || !gameState) return;
@@ -287,6 +308,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     handleCellClick,
     handleNumberInput,
     handleClear,
+    removeErrors,
     handleHint,
     setHintMode,
     toggleNotes,

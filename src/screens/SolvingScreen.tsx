@@ -53,10 +53,10 @@ export function SolvingScreen({
     isGenerating,
     techniquesUsed,
     canUndo,
-    canRedo,
     handleCellClick,
     handleNumberInput,
     handleClear,
+    removeErrors,
     handleHint,
     toggleNotes,
     getShareUrl,
@@ -137,6 +137,17 @@ export function SolvingScreen({
     const id = window.setTimeout(() => setShowErrors(false), 6000);
     return () => clearTimeout(id);
   }, [validateNonce]);
+
+  // True while Validate is surfacing real mistakes — the toolbar's
+  // Validate control becomes "Remove" so the player can clear them.
+  const hasErrors = gameState
+    ? gameState.errors.some((row) => row.some(Boolean))
+    : false;
+  const showingErrors = showErrors && hasErrors;
+  const handleRemoveErrors = useCallback(() => {
+    removeErrors();
+    setShowErrors(false);
+  }, [removeErrors]);
 
   // Solve timer — runs while a puzzle is live, unsolved, and not paused.
   useEffect(() => {
@@ -328,36 +339,49 @@ export function SolvingScreen({
 
           {/* toolbar */}
           <div className="flex w-full gap-2">
-            {[
-              { label: 'Notes', onClick: toggleNotes, active: notesMode },
-              { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
-              { label: 'Validate', onClick: validate, active: showErrors },
-              { label: 'Clear', onClick: handleClear, active: false },
-            ].map((tool) => (
-              <button
-                key={tool.label}
-                type="button"
-                onClick={tool.onClick}
-                className="flex-1 cursor-pointer py-2.5 text-[13px] font-medium"
-                style={{
-                  borderRadius: 'var(--radius-button)',
-                  border: '1px solid var(--border)',
-                  background: tool.active ? 'var(--brand-100)' : 'var(--surface-elevated)',
-                  color: tool.active ? 'var(--brand-600)' : 'var(--text-primary)',
-                }}
-              >
-                {tool.label}
-              </button>
-            ))}
+            {(
+              [
+                { label: 'Notes', onClick: toggleNotes, active: notesMode },
+                { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
+                showingErrors
+                  ? { label: 'Remove', onClick: handleRemoveErrors, active: true, tone: 'danger' as const }
+                  : { label: 'Validate', onClick: validate, active: showErrors },
+                { label: 'Clear', onClick: handleClear, active: false },
+              ] as { label: string; onClick: () => void; active: boolean; tone?: 'danger' }[]
+            ).map((tool) => {
+              const danger = tool.tone === 'danger';
+              return (
+                <button
+                  key={tool.label}
+                  type="button"
+                  onClick={tool.onClick}
+                  className="flex-1 cursor-pointer py-2.5 text-[13px] font-medium"
+                  style={{
+                    borderRadius: 'var(--radius-button)',
+                    border: `1px solid ${danger ? 'var(--danger)' : 'var(--border)'}`,
+                    background: danger
+                      ? 'var(--cage-2)'
+                      : tool.active
+                        ? 'var(--brand-100)'
+                        : 'var(--surface-elevated)',
+                    color: danger
+                      ? 'var(--danger)'
+                      : tool.active
+                        ? 'var(--brand-600)'
+                        : 'var(--text-primary)',
+                  }}
+                >
+                  {tool.label}
+                </button>
+              );
+            })}
           </div>
 
           <Keypad
             maxNumber={maxNumber}
             onNumber={handleNumberInput}
             onUndo={undo}
-            onRedo={redo}
             canUndo={canUndo}
-            canRedo={canRedo}
           />
         </div>
       )}
