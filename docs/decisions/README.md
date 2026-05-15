@@ -46,3 +46,4 @@ The decision itself. 1–3 sentences.
 | [0008](ADR-0008-subscription-vs-one-time.md) | Subscription vs one-time unlock | Proposed |
 | [0009](ADR-0009-multiplayer-scope-v1.md) | Multiplayer scope for v1 | Proposed |
 | [0010](ADR-0010-daily-puzzle-design.md) | Daily puzzle system design | Proposed |
+| [0011](ADR-0011-v1-scope-triage.md) | v1 scope — prototype triaged against the PRD | Accepted |

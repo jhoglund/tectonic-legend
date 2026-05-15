@@ -35,3 +35,19 @@ Solved screen (Tier-0 viral artifact), and the Practice tab destination
 distinct from the New Game sheet. With this batch the iOS-native variant
 covers every surface in the PRD §8 list plus the solving-state set,
 paywalls, settings, tutorial, and mastery moments.
+
+## v1 scope triage · 2026-05-15
+
+Jonas triaged every prototype surface against the PRD — see [ADR-0011](../../../docs/decisions/ADR-0011-v1-scope-triage.md) and the v1 build plan in [`docs/backlog.md`](../../../docs/backlog.md). Disposition of the 25 screens:
+
+**Built for v1 (design reference):** 02-onboarding, 03-home (simplified composition), 04-new-game (becomes the single merged difficulty picker), 05-solving + 05a–05g, 06-solved (minus cohort/percentile), 07-stats, 08-stage-up, 09-paywall-hard-tap, 10-paywall-contradiction, 13-tutorial-overlay, 14-mastery-moment, 15-post-solve-mastery, 17-share-sheet, 11-settings (trimmed).
+
+**Cut from v1 — reference-only, not built:**
+- `01-auth.html` — no auth/accounts in v1 (ARCHITECTURE §8).
+- `12-settings-account.html` — Restore Purchase + Manage Subscription fold into Settings; no standalone Account screen.
+- `18-practice.html` — Practice tab merged into the single difficulty picker; v1 tab bar is Home / Stats / Settings.
+- `16-re-entry.html` — kept as a concept but downgraded: v1 ships a "Welcome back" line on Home, not a dedicated screen.
+
+**Watch-item carried into build:** the Solved and Stats screens must not show cohort/percentile ranking in v1 — that needs a backend (Tier-1).
+
+These remain valuable design references regardless of v1 disposition; nothing is deleted.

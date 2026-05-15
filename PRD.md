@@ -123,17 +123,22 @@ Tier 1 (daily puzzle leaderboard, friends) is on the roadmap; not in v1.
 
 ## 8. Surfaces (where features live in the UI)
 
+v1 surface set, after the prototype-vs-PRD scope triage of 2026-05-15 ([ADR-0011](docs/decisions/ADR-0011-v1-scope-triage.md)). The iOS-native prototype is variant 01 of the 2026-05-14 swarm.
+
 | Surface | Contents |
 |---------|----------|
-| **Home** | Today's daily puzzle, "Resume" if a game is in progress, current stage chip, entry into Practice / Stats / Settings |
-| **Practice** | Difficulty picker (locked stages show what you'd need to unlock), "Random puzzle" button |
-| **Solve view** | The board, technique chip (when a hint just fired), notes/clear/hint controls, share button on solve |
-| **Stats** | Three sections from §4 |
-| **Onboarding** | Newcomer welcome → tutorial 1 → tutorial 2 → tutorial 3 → "You're a Beginner now" |
-| **Stage-up moment** | Single full-screen card on first launch after demonstrating mastery; tappable to dismiss |
-| **Re-entry** | First launch after 7+ days away |
-| **Paywall** | Triggered on Hard difficulty tap, Expert tap, contradiction hint tap, archive tap |
-| **Settings** | Account, restore purchase, theme, sound, haptics, sign out |
+| **Home** | Today's daily puzzle, "Resume" if a game is in progress, current stage chip, a "Welcome back" line after a 7+ day gap. v1 ships a simplified composition; refined later. |
+| **Difficulty picker** | Single entry point from Home — choose difficulty + grid size. Locked difficulties show what unlocks them. (v1 merges the prototype's separate New Game sheet and Practice tab into one surface.) |
+| **Solve view** | Board, technique chip, notes/clear/hint controls, share on solve. All solving states: fresh, cell-selected, notes, conflict, basic hint, contradiction stepper, pause, abandon. |
+| **Solved** | Solve time, technique histogram, mastery chips earned, share button. No cohort/percentile comparison in v1 — that needs a backend. |
+| **Onboarding** | Newcomer welcome → guided tutorial puzzles. No account step. |
+| **Stage-up moment** | Single full-screen card per stage transition; tappable to dismiss. |
+| **Mastery moments** | Mid-solve chip when a technique crosses mastery + a post-solve mastery recognition. |
+| **Stats** | Three sections from §4. |
+| **Paywall** | Triggered on Hard tap and contradiction-hint tap. One component, two trigger copies. Built last, pre-soft-launch. |
+| **Settings** | Theme, sound, haptics, Restore Purchase, Manage Subscription, How to play, About. No account / sign-in. |
+
+**Navigation:** v1 tab bar is **Home / Stats / Settings** (three tabs — the prototype's Practice tab is merged into the difficulty picker).
 
 UI fidelity for each of these is iterated in Open Design — see [`specs/design-workflow.md`](specs/design-workflow.md) and the starter brief at [`prototypes/DESIGN-BRIEF.md`](prototypes/DESIGN-BRIEF.md).
 
@@ -141,11 +146,16 @@ UI fidelity for each of these is iterated in Open Design — see [`specs/design-
 
 ## 9. Out of scope for v1
 
+- **Authentication / accounts / sign-in.** v1 is local-only, no backend (`ARCHITECTURE.md` §8). Apple StoreKit handles subscriptions without an account system. The prototype's Auth screen (01-auth) is cut from v1; re-add when a backend exists.
+- **Standalone Account screen.** Restore Purchase + Manage Subscription fold into Settings as StoreKit rows. The prototype's 12-settings-account screen is cut.
+- **Practice as a separate tab.** Merged into the single difficulty picker for v1.
+- **Cohort / percentile comparison** ("faster than X% of solvers", "1 of N today"). A leaderboard feature — needs a backend (Tier-1).
 - Multiplayer (real-time or async). Tier 0 viral is enough until retention proves out.
 - Friend leaderboards, friend system. Requires backend; not before Tier 1 metrics warrant it.
 - Cosmetics / themes beyond a single Premium theme pack.
 - Localization beyond English. UI has minimal text, mostly numbers; localize after first non-English market expansion.
 - Cross-device sync. Local state only in v1.
+- Challenge links (challenger's time encoded in the share URL). The share artifact is the v1 viral bet; challenge links are a fast-follow.
 
 ---
 
