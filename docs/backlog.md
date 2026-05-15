@@ -59,8 +59,8 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 
 ### Phase 2 — The differentiator
 
-9. **✅ Stage gating** — difficulty picker is stage-aware; locked difficulties show the requirement to unlock them. Done 2026-05-15 (`b290627`).
-10. **✅ Tutorial pipeline + onboarding** — 3 curated Newcomer tutorials (typed fixtures in `src/data/tutorials/`, generator-validated boards), `TutorialScreen` guided play, `WelcomeScreen`, and the `TutorialFlow` funnel routing Newcomers from stage 0 to Beginner. Done 2026-05-15. Stage-up tutorials deferred (fold into item 11).
+9. **✅ Stage gating** — difficulty picker is stage-aware; locked difficulties show the requirement to unlock them. Done 2026-05-15 (`b290627`). **Locking off permanently** by decision ([ADR-0012](decisions/ADR-0012-difficulty-is-player-choice.md)) — `STAGE_GATING_ENABLED = false`; every difficulty is playable, stage is a progress indicator not a gate. The gating code is kept dormant behind the flag for reference.
+10. **✅ Tutorial pipeline + onboarding** — 3 curated Newcomer tutorials (typed fixtures in `src/data/tutorials/`, generator-validated boards), `TutorialScreen` guided play, `WelcomeScreen`, and the `TutorialFlow` funnel routing Newcomers from stage 0 to Beginner. A Skip control (Welcome + each tutorial) jumps straight to Beginner. Done 2026-05-15. **Needs a polish pass before soft launch** — tutorial content, pacing, and visual treatment are first-draft. Stage-up tutorials still unbuilt.
 11. **✅ Stage-up celebration cards** — `StageUpCard`, four full-screen cards (one per transition), shown on Home when `profile.stage` outruns `profile.celebratedStage`. Done 2026-05-15. The Open Design pass was skipped by decision; stage-up tutorial puzzles remain unbuilt (dismissal returns to Home).
 12. **✅ Mastery chip + mastery moments** — `MasteryChip` (`learning · familiar · mastered`), surfaced in Stats and on the Solved screen. Done 2026-05-15. The mid-solve crossing moment is deferred — it depends on self-applied detection (deferred slice below); until that lands, `mastered` is unreachable.
 13. **✅ Stats surface** — solve performance / technique mastery / streaks, empty-state until ≥5 solves. Done 2026-05-15. Percentile band and contradiction-chain record omitted (no backend / not tracked); the premium gate on technique mastery lands with the Phase 4 paywall.
@@ -112,7 +112,8 @@ Deliberately unresolved. Resolve through evidence, not committee. When resolved,
 - **Lifetime pricing.** $6.99 Lifetime strictly dominates $24.99/yr Annual — the swarm's paywall agent flagged it. Options: reprice Lifetime (~$39.99), hide it on the contradiction paywall, or gate it behind two declines. ADR-0008 needs the answer.
 - **Free/premium split.** Current thinking gates Hard/Expert + contradiction hints + technique-mastery stats + archive. Validate in soft launch. ADR-0007.
 - **Subscription vs one-time unlock.** Research favors subscription; test both in soft launch. ADR-0008.
-- **Tutorial skippability.** Should experienced players be allowed to skip Newcomer entirely? If yes, what's the gate?
+- **Tutorial skippability.** ✅ Resolved 2026-05-15 — anyone can skip, no gate. A Skip control on the Welcome screen and each tutorial jumps straight to Beginner.
+- **A difficulty tier above Expert ("Legend"?).** Puzzle difficulty was bumped up a notch 2026-05-15 (lower clue density per tier). Expert already carves to the unique-solution floor — clue density cannot go lower — so a genuinely harder tier needs a *new technique gate* (e.g. requiring multi-step contradiction chains of depth ≥ N), not just fewer clues. Decide whether to add it, and what to call it.
 - **Mastery thresholds** (`specs/progression.md`). 8 self-applications / 3 puzzles is a guess. Real data may move it.
 - **Basic-hint persistence.** Should the basic-hint ring/caption persist until the player acts, or auto-clear after N seconds? (Swarm batch-1 open question.)
 - **Mastery chip layout.** The mid-solve chip shifts the keypad down ~58px. Overlay on the toolbar, shrink the technique chip, or accept the crowd? (Swarm batch-3 open question.)

@@ -47,3 +47,4 @@ The decision itself. 1–3 sentences.
 | [0009](ADR-0009-multiplayer-scope-v1.md) | Multiplayer scope for v1 | Proposed |
 | [0010](ADR-0010-daily-puzzle-design.md) | Daily puzzle system design | Proposed |
 | [0011](ADR-0011-v1-scope-triage.md) | v1 scope — prototype triaged against the PRD | Accepted |
+| [0012](ADR-0012-difficulty-is-player-choice.md) | Difficulty is player-choice — stage gating disabled | Accepted |

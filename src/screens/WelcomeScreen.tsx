@@ -1,6 +1,8 @@
 interface WelcomeScreenProps {
   /** Begin the first Newcomer tutorial. */
   onStart: () => void;
+  /** Skip the tutorials entirely and jump to Beginner. */
+  onSkip: () => void;
 }
 
 /**
@@ -8,7 +10,7 @@ interface WelcomeScreenProps {
  * (specs/progression.md §4). Quiet, warm, adult: no hype, just a frame
  * for the journey ahead.
  */
-export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
+export function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
   return (
     <div
       className="flex min-h-screen flex-col justify-between px-6"
@@ -40,18 +42,28 @@ export function WelcomeScreen({ onStart }: WelcomeScreenProps) {
         </p>
       </div>
 
-      <button
-        type="button"
-        onClick={onStart}
-        className="cursor-pointer py-4 text-base font-semibold"
-        style={{
-          background: 'var(--brand-600)',
-          color: 'var(--text-on-brand)',
-          borderRadius: 'var(--radius-button)',
-        }}
-      >
-        Start
-      </button>
+      <div className="flex flex-col gap-3">
+        <button
+          type="button"
+          onClick={onStart}
+          className="cursor-pointer py-4 text-base font-semibold"
+          style={{
+            background: 'var(--brand-600)',
+            color: 'var(--text-on-brand)',
+            borderRadius: 'var(--radius-button)',
+          }}
+        >
+          Start
+        </button>
+        <button
+          type="button"
+          onClick={onSkip}
+          className="cursor-pointer py-2 text-sm font-medium"
+          style={{ color: 'var(--text-tertiary)' }}
+        >
+          Skip for now
+        </button>
+      </div>
     </div>
   );
 }

@@ -13,6 +13,14 @@ const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
   { id: 'expert', label: 'Expert', blurb: 'Contradiction chains' },
 ];
 
+/**
+ * Difficulty is player-choice — stage gating is off by decision
+ * (ADR-0012). The lock rendering and `isDifficultyUnlocked` logic are
+ * kept intact, dormant behind this flag; flipping it back on is a
+ * one-line change should soft-launch data argue for it.
+ */
+const STAGE_GATING_ENABLED = false;
+
 interface DifficultyPickerProps {
   open: boolean;
   stage: PlayerStage;
@@ -119,7 +127,8 @@ export function DifficultyPicker({
           }}
         >
           {DIFFICULTIES.map((d, i) => {
-            const unlocked = isDifficultyUnlocked(stage, d.id);
+            const unlocked =
+              !STAGE_GATING_ENABLED || isDifficultyUnlocked(stage, d.id);
             return (
               <button
                 key={d.id}

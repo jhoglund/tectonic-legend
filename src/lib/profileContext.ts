@@ -15,6 +15,8 @@ export interface ProfileContextValue {
   recordTutorial: () => PlayerStage | null;
   /** Dismiss the pending stage-up card — marks the current stage seen. */
   celebrateStage: () => void;
+  /** Skip the Newcomer tutorials and jump to Beginner. */
+  skipTutorials: () => void;
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);

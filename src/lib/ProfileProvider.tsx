@@ -6,6 +6,7 @@ import {
   recordSolve,
   recordTutorialCompletion,
   markStageCelebrated,
+  skipTutorials,
 } from './profile';
 import type { PlayerStage } from './progression';
 import { ProfileContext } from './profileContext';
@@ -41,6 +42,12 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setProfile(next);
   }, [profile]);
 
+  const handleSkipTutorials = useCallback(() => {
+    const next = skipTutorials(profile);
+    saveProfile(next);
+    setProfile(next);
+  }, [profile]);
+
   return (
     <ProfileContext.Provider
       value={{
@@ -48,6 +55,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         recordSolve: handleRecordSolve,
         recordTutorial: handleRecordTutorial,
         celebrateStage: handleCelebrateStage,
+        skipTutorials: handleSkipTutorials,
       }}
     >
       {children}

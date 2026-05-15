@@ -4,6 +4,7 @@ import {
   recordSolve,
   recordTutorialCompletion,
   markStageCelebrated,
+  skipTutorials,
   loadProfile,
   saveProfile,
   type PlayerProfile,
@@ -173,6 +174,19 @@ describe('markStageCelebrated', () => {
     const celebrated = markStageCelebrated(advanced);
     expect(celebrated.celebratedStage).toBe(1);
     expect(celebrated.stage).toBe(celebrated.celebratedStage);
+  });
+});
+
+describe('skipTutorials', () => {
+  it('jumps a fresh Newcomer straight to Beginner', () => {
+    const p = skipTutorials(defaultProfile());
+    expect(p.stage).toBe(1);
+    expect(p.tutorialsCompleted).toBe(3);
+  });
+
+  it('leaves no stage-up card pending — the skipper opted out', () => {
+    const p = skipTutorials(defaultProfile());
+    expect(p.celebratedStage).toBe(p.stage);
   });
 });
 

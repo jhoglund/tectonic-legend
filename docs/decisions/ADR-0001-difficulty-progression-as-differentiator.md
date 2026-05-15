@@ -1,7 +1,7 @@
 # ADR-0001: Difficulty progression as the primary differentiator
 
 **Date:** 2026-05-14
-**Status:** Accepted
+**Status:** Accepted — refined by [ADR-0012](ADR-0012-difficulty-is-player-choice.md) (difficulty is no longer hard-gated; the progression journey stays as a guide and a badge)
 **Source:** [specs/progression.md](../../specs/progression.md), [docs/market-research.md](../market-research.md)
 
 ## Context
