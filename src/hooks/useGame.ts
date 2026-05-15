@@ -42,6 +42,9 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
   const [isGenerating, setIsGenerating] = useState(false);
   const [hint, setHint] = useState<Hint | null>(null);
   const [hintMode, setHintMode] = useState<HintMode>('logic');
+  // Logic-hint techniques surfaced this game, keyed by Hint.type. Reset
+  // per game; the Solved screen reads it for the per-solve breakdown.
+  const [techniquesUsed, setTechniquesUsed] = useState<Record<string, number>>({});
 
   const startNewGame = useCallback((diff: Difficulty, size?: GridSize) => {
     const actualSize = size ?? gridSize;
@@ -51,6 +54,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     setSelectedCell(null);
     setNotesMode(false);
     setHint(null);
+    setTechniquesUsed({});
 
     setTimeout(() => {
       const [rows, cols] = gridSizeDimensions(actualSize);
@@ -179,6 +183,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
       if (h) {
         setHint(h);
         setSelectedCell([h.row, h.col]);
+        setTechniquesUsed((prev) => ({ ...prev, [h.type]: (prev[h.type] ?? 0) + 1 }));
       } else {
         // No logic deduction found — fall back to revealing a cell
         const { rows, cols } = gameState.puzzle.layout;
@@ -265,6 +270,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     isGenerating,
     hint,
     hintMode,
+    techniquesUsed,
     startNewGame,
     handleCellClick,
     handleNumberInput,

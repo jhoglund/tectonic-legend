@@ -5,6 +5,7 @@ import { Keypad } from '../components/Keypad';
 import { ContradictionStepper } from '../components/ContradictionStepper';
 import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
+import { SolvedScreen } from './SolvedScreen';
 import { useGame } from '../hooks/useGame';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
@@ -49,11 +50,13 @@ export function SolvingScreen({
     hint,
     notesMode,
     isGenerating,
+    techniquesUsed,
     handleCellClick,
     handleNumberInput,
     handleClear,
     handleHint,
     toggleNotes,
+    getShareUrl,
   } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize });
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
@@ -225,39 +228,15 @@ export function SolvingScreen({
           </p>
         </div>
       ) : solved ? (
-        <div className="flex flex-col items-center gap-5 px-4 py-12">
-          <p className="text-sm font-semibold" style={{ color: 'var(--success)', letterSpacing: '0.04em' }}>
-            SOLVED
-          </p>
-          <p className="text-3xl font-semibold" style={{ color: 'var(--text-primary)' }}>
-            <span style={{ fontFamily: 'var(--font-mono)', fontVariantNumeric: 'tabular-nums' }}>
-              {timeStr}
-            </span>
-          </p>
-          <Board
-            gameState={gameState}
-            selectedCell={null}
-            hint={null}
-            cellOverlays={null}
-            onCellClick={() => {}}
-          />
-          <button
-            type="button"
-            onClick={onExit}
-            className="cursor-pointer py-3.5 px-10 text-base font-semibold"
-            style={{
-              background: 'var(--brand-600)',
-              color: 'var(--text-on-brand)',
-              borderRadius: 'var(--radius-button)',
-            }}
-          >
-            Done
-          </button>
-          <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
-            The full post-solve summary — technique breakdown, share — arrives
-            with the Solved screen.
-          </p>
-        </div>
+        <SolvedScreen
+          gameState={gameState}
+          elapsedSeconds={elapsed}
+          difficulty={initialDifficulty}
+          gridSize={initialGridSize}
+          techniquesUsed={techniquesUsed}
+          getShareUrl={getShareUrl}
+          onExit={onExit}
+        />
       ) : (
         <div className="flex flex-col items-center gap-4 px-4 pt-2 pb-8">
           {/* status row */}
