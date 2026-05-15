@@ -11,6 +11,8 @@ interface TutorialScreenProps {
   total: number;
   /** Called once the player has placed every guided value. */
   onComplete: () => void;
+  /** Skip the rest of the tutorials and jump to Beginner. */
+  onSkip: () => void;
 }
 
 /**
@@ -24,6 +26,7 @@ export function TutorialScreen({
   index,
   total,
   onComplete,
+  onSkip,
 }: TutorialScreenProps) {
   const { puzzle, steps, title, intro } = tutorial;
   const { layout, clues } = puzzle;
@@ -103,17 +106,26 @@ export function TutorialScreen({
 
   return (
     <div className="flex flex-col">
-      {/* nav bar */}
+      {/* nav bar — the left spacer balances Skip so the title stays centred */}
       <div
-        className="flex items-center justify-center px-4"
+        className="flex items-center justify-between px-4"
         style={{ paddingTop: 'calc(env(safe-area-inset-top) + 6px)', height: 52 }}
       >
+        <span style={{ width: 36 }} />
         <span
           className="text-base font-semibold"
           style={{ color: 'var(--text-primary)' }}
         >
           {title}
         </span>
+        <button
+          type="button"
+          onClick={onSkip}
+          className="cursor-pointer text-sm font-medium"
+          style={{ width: 36, textAlign: 'right', color: 'var(--brand-600)' }}
+        >
+          Skip
+        </button>
       </div>
 
       {phase === 'intro' ? (

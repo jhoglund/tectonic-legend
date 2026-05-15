@@ -11,14 +11,19 @@ import { TutorialScreen } from './TutorialScreen';
  * more. Progress is profile-backed, so a mid-funnel relaunch resumes.
  */
 export function TutorialFlow() {
-  const { profile, recordTutorial } = useProfile();
+  const { profile, recordTutorial, skipTutorials } = useProfile();
   // The welcome card shows only to a player who has not begun.
   const [showWelcome, setShowWelcome] = useState(
     profile.tutorialsCompleted === 0,
   );
 
   if (showWelcome) {
-    return <WelcomeScreen onStart={() => setShowWelcome(false)} />;
+    return (
+      <WelcomeScreen
+        onStart={() => setShowWelcome(false)}
+        onSkip={skipTutorials}
+      />
+    );
   }
 
   const idx = Math.min(
@@ -34,6 +39,7 @@ export function TutorialFlow() {
       index={idx + 1}
       total={NEWCOMER_TUTORIALS.length}
       onComplete={() => recordTutorial()}
+      onSkip={skipTutorials}
     />
   );
 }

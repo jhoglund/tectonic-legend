@@ -4,6 +4,7 @@ import {
   type TechniqueMastery,
   type PlayerStage,
   TECHNIQUE_NAMES,
+  TUTORIALS_TO_BEGINNER,
   emptyMastery,
   nextStageFor,
 } from './progression';
@@ -242,6 +243,33 @@ function normalizeProfile(parsed: Record<string, unknown>): PlayerProfile {
  */
 export function markStageCelebrated(profile: PlayerProfile): PlayerProfile {
   return { ...profile, celebratedStage: profile.stage };
+}
+
+/**
+ * Skip the Newcomer tutorials — count them all complete and advance to
+ * Beginner. The resulting stage is marked celebrated too: a player who
+ * opted out of onboarding should not be handed its stage-up card.
+ */
+export function skipTutorials(profile: PlayerProfile): PlayerProfile {
+  const tutorialsCompleted = Math.max(
+    profile.tutorialsCompleted,
+    TUTORIALS_TO_BEGINNER,
+  );
+  const hardSolveCount = profile.solveHistory.filter(
+    (s) => s.difficulty === 'hard',
+  ).length;
+  let stage = profile.stage;
+  for (;;) {
+    const next = nextStageFor({
+      stage,
+      techniques: profile.techniques,
+      tutorialsCompleted,
+      hardSolveCount,
+    });
+    if (next === null) break;
+    stage = next;
+  }
+  return { ...profile, tutorialsCompleted, stage, celebratedStage: stage };
 }
 
 /** Load the profile from localStorage, or a fresh one if absent/invalid. */

@@ -326,10 +326,15 @@ function carveClues(
   }
   shuffle(positions);
 
+  // Clue density per difficulty — fewer clues, longer deductions. Bumped
+  // up a notch 2026-05-15 (puzzles were solving too quickly). `expert`
+  // is 0 = carve as far as a unique solution allows; it is already at
+  // the floor, so a harder tier above it needs a new technique gate,
+  // not a lower density (see the backlog's Legend-level note).
   const totalCells = rows * cols;
   const targetClues = isLarge
-    ? { easy: Math.ceil(totalCells * 0.58), medium: Math.ceil(totalCells * 0.48), hard: Math.ceil(totalCells * 0.35), expert: 0 }[difficulty]!
-    : { easy: Math.ceil(totalCells * 0.52), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.25), expert: 0 }[difficulty]!;
+    ? { easy: Math.ceil(totalCells * 0.50), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.28), expert: 0 }[difficulty]!
+    : { easy: Math.ceil(totalCells * 0.46), medium: Math.ceil(totalCells * 0.32), hard: Math.ceil(totalCells * 0.18), expert: 0 }[difficulty]!;
 
   let currentClueCount = totalCells;
 

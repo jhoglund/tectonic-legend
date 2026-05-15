@@ -13,6 +13,13 @@ const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
   { id: 'expert', label: 'Expert', blurb: 'Contradiction chains' },
 ];
 
+/**
+ * Stage gating is built (progression.md §1) but switched off — every
+ * difficulty is playable regardless of stage. The lock rendering and
+ * the `isDifficultyUnlocked` logic stay intact; flip this to re-enable.
+ */
+const STAGE_GATING_ENABLED = false;
+
 interface DifficultyPickerProps {
   open: boolean;
   stage: PlayerStage;
@@ -119,7 +126,8 @@ export function DifficultyPicker({
           }}
         >
           {DIFFICULTIES.map((d, i) => {
-            const unlocked = isDifficultyUnlocked(stage, d.id);
+            const unlocked =
+              !STAGE_GATING_ENABLED || isDifficultyUnlocked(stage, d.id);
             return (
               <button
                 key={d.id}
