@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { HomeLanding } from './HomeLanding';
 import { SolvingScreen } from './SolvingScreen';
 import { DifficultyPicker } from '../components/DifficultyPicker';
-import { loadProfile } from '../lib/profile';
+import { useProfile } from '../lib/profileContext';
 import type { Difficulty, GridSize } from '../engine/types';
 
 /**
@@ -11,7 +11,7 @@ import type { Difficulty, GridSize } from '../engine/types';
  * landing.
  */
 export function HomeTab() {
-  const [profile] = useState(() => loadProfile());
+  const { profile } = useProfile();
   const [view, setView] = useState<'landing' | 'playing'>('landing');
   const [pickerOpen, setPickerOpen] = useState(false);
   const [game, setGame] = useState<{ difficulty: Difficulty; gridSize: GridSize } | null>(
@@ -41,6 +41,7 @@ export function HomeTab() {
       )}
       <DifficultyPicker
         open={pickerOpen}
+        stage={profile.stage}
         onClose={() => setPickerOpen(false)}
         onStart={handleStart}
       />

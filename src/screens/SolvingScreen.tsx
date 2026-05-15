@@ -3,6 +3,7 @@ import { Board } from '../components/Board';
 import type { CellOverlay } from '../components/Board';
 import { Keypad } from '../components/Keypad';
 import { ContradictionStepper } from '../components/ContradictionStepper';
+import { HintMenu } from '../components/HintMenu';
 import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
 import { SolvedScreen } from './SolvedScreen';
@@ -51,12 +52,16 @@ export function SolvingScreen({
     notesMode,
     isGenerating,
     techniquesUsed,
+    canUndo,
     handleCellClick,
     handleNumberInput,
     handleClear,
+    removeErrors,
     handleHint,
     toggleNotes,
     getShareUrl,
+    undo,
+    redo,
   } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize });
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
@@ -116,7 +121,33 @@ export function SolvingScreen({
   const solved = gameState?.isSolved ?? false;
   const [paused, setPaused] = useState(false);
   const [abandonOpen, setAbandonOpen] = useState(false);
+  const [hintMenuOpen, setHintMenuOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
+
+  // Validation is explicit — wrong entries surface in red only for a
+  // few seconds after the player taps Validate, never live.
+  const [showErrors, setShowErrors] = useState(false);
+  const [validateNonce, setValidateNonce] = useState(0);
+  const validate = useCallback(() => {
+    setShowErrors(true);
+    setValidateNonce((n) => n + 1);
+  }, []);
+  useEffect(() => {
+    if (validateNonce === 0) return;
+    const id = window.setTimeout(() => setShowErrors(false), 6000);
+    return () => clearTimeout(id);
+  }, [validateNonce]);
+
+  // True while Validate is surfacing real mistakes — the toolbar's
+  // Validate control becomes "Remove" so the player can clear them.
+  const hasErrors = gameState
+    ? gameState.errors.some((row) => row.some(Boolean))
+    : false;
+  const showingErrors = showErrors && hasErrors;
+  const handleRemoveErrors = useCallback(() => {
+    removeErrors();
+    setShowErrors(false);
+  }, [removeErrors]);
 
   // Solve timer — runs while a puzzle is live, unsolved, and not paused.
   useEffect(() => {
@@ -128,7 +159,16 @@ export function SolvingScreen({
   // Keyboard play — number entry, delete, notes, hint, arrow navigation.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!gameState || !selectedCell || paused || abandonOpen || solved) return;
+      if (!gameState || paused || abandonOpen || solved) return;
+
+      if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) {
+        e.preventDefault();
+        if (e.shiftKey) redo();
+        else undo();
+        return;
+      }
+
+      if (!selectedCell) return;
 
       const num = parseInt(e.key);
       if (num >= 1 && num <= maxNumber) {
@@ -175,6 +215,8 @@ export function SolvingScreen({
     toggleNotes,
     handleHint,
     handleCellClick,
+    undo,
+    redo,
   ]);
 
   const cellsLeft = gameState
@@ -257,6 +299,7 @@ export function SolvingScreen({
             hint={hint}
             cellOverlays={cellOverlays}
             onCellClick={handleCellClick}
+            showErrors={showErrors}
           />
 
           {/* hint area */}
@@ -296,32 +339,58 @@ export function SolvingScreen({
 
           {/* toolbar */}
           <div className="flex w-full gap-2">
-            {[
-              { label: notesMode ? 'Notes: On' : 'Notes', onClick: toggleNotes, active: notesMode },
-              { label: 'Hint', onClick: () => handleHint(), active: false },
-              { label: 'Clear', onClick: handleClear, active: false },
-            ].map((tool) => (
-              <button
-                key={tool.label}
-                type="button"
-                onClick={tool.onClick}
-                className="flex-1 cursor-pointer py-2.5 text-sm font-medium"
-                style={{
-                  borderRadius: 'var(--radius-button)',
-                  border: '1px solid var(--border)',
-                  background: tool.active ? 'var(--brand-100)' : 'var(--surface-elevated)',
-                  color: tool.active ? 'var(--brand-600)' : 'var(--text-primary)',
-                }}
-              >
-                {tool.label}
-              </button>
-            ))}
+            {(
+              [
+                { label: 'Notes', onClick: toggleNotes, active: notesMode },
+                { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
+                showingErrors
+                  ? { label: 'Remove', onClick: handleRemoveErrors, active: true, tone: 'danger' as const }
+                  : { label: 'Validate', onClick: validate, active: showErrors },
+                { label: 'Clear', onClick: handleClear, active: false },
+              ] as { label: string; onClick: () => void; active: boolean; tone?: 'danger' }[]
+            ).map((tool) => {
+              const danger = tool.tone === 'danger';
+              return (
+                <button
+                  key={tool.label}
+                  type="button"
+                  onClick={tool.onClick}
+                  className="flex-1 cursor-pointer py-2.5 text-[13px] font-medium"
+                  style={{
+                    borderRadius: 'var(--radius-button)',
+                    border: `1px solid ${danger ? 'var(--danger)' : 'var(--border)'}`,
+                    background: danger
+                      ? 'var(--cage-2)'
+                      : tool.active
+                        ? 'var(--brand-100)'
+                        : 'var(--surface-elevated)',
+                    color: danger
+                      ? 'var(--danger)'
+                      : tool.active
+                        ? 'var(--brand-600)'
+                        : 'var(--text-primary)',
+                  }}
+                >
+                  {tool.label}
+                </button>
+              );
+            })}
           </div>
 
-          <Keypad maxNumber={maxNumber} onNumber={handleNumberInput} onClear={handleClear} />
+          <Keypad
+            maxNumber={maxNumber}
+            onNumber={handleNumberInput}
+            onUndo={undo}
+            canUndo={canUndo}
+          />
         </div>
       )}
 
+      <HintMenu
+        open={hintMenuOpen}
+        onClose={() => setHintMenuOpen(false)}
+        onPick={(mode) => handleHint(mode)}
+      />
       <PauseSheet
         open={paused}
         onResume={() => setPaused(false)}

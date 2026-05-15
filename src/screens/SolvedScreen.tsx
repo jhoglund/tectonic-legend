@@ -1,12 +1,22 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Board } from '../components/Board';
 import type { GameState, Difficulty, GridSize } from '../engine/types';
+import { useProfile } from '../lib/profileContext';
+import type { SolveTechniqueTally } from '../lib/profile';
+import type { TechniqueName } from '../lib/progression';
 
 const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
   hidden_single: 'Hidden single',
   contradiction: 'Contradiction chain',
   reveal: 'Revealed cell',
+};
+
+/** Hint.type → progression TechniqueName. 'reveal' is not a technique. */
+const HINT_TO_TECHNIQUE: Record<string, TechniqueName> = {
+  naked_single: 'naked-single',
+  hidden_single: 'hidden-single',
+  contradiction: 'contradiction-chain',
 };
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -44,9 +54,33 @@ export function SolvedScreen({
   onExit,
 }: SolvedScreenProps) {
   const [copied, setCopied] = useState(false);
+  const { recordSolve } = useProfile();
 
   const timeStr = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
   const techniqueRows = Object.entries(techniquesUsed).filter(([, n]) => n > 0);
+
+  // Record the finished solve into the profile exactly once. The ref
+  // guard keeps it idempotent under StrictMode's double-invoke.
+  const recorded = useRef(false);
+  useEffect(() => {
+    if (recorded.current) return;
+    recorded.current = true;
+    const techniques: SolveTechniqueTally[] = Object.entries(techniquesUsed)
+      .map(([type, count]) => {
+        const technique = HINT_TO_TECHNIQUE[type];
+        return technique ? { technique, used: count, selfApplied: 0 } : null;
+      })
+      .filter((t): t is SolveTechniqueTally => t !== null);
+    recordSolve({
+      difficulty,
+      gridSize,
+      timeMs: elapsedSeconds * 1000,
+      isDailyPuzzle: false,
+      techniques,
+    });
+    // Mount-once: inputs are captured at solve time and don't change.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   function handleShare() {
     const url = getShareUrl();

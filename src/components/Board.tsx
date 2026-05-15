@@ -51,9 +51,19 @@ interface BoardProps {
   hint: Hint | null;
   cellOverlays: Map<string, CellOverlay> | null;
   onCellClick: (row: number, col: number) => void;
+  /** Surface wrong entries in red. Off by default — validation is
+   *  explicit (the Validate control), never live. */
+  showErrors?: boolean;
 }
 
-export function Board({ gameState, selectedCell, hint, cellOverlays, onCellClick }: BoardProps) {
+export function Board({
+  gameState,
+  selectedCell,
+  hint,
+  cellOverlays,
+  onCellClick,
+  showErrors = false,
+}: BoardProps) {
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
@@ -92,7 +102,7 @@ export function Board({ gameState, selectedCell, hint, cellOverlays, onCellClick
               value={grid[r][c]}
               isClue={isClue[r][c]}
               isSelected={isSelected}
-              isError={errors[r][c]}
+              isError={showErrors && errors[r][c]}
               isHinted={!cellOverlays && isHinted}
               isDimmed={isDimmed}
               cellHighlight={overlay?.highlight ?? null}
