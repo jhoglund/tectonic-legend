@@ -3,203 +3,189 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Tectonic · Variant 01 — iOS-native reviewer</title>
+<title>Tectonic — iOS-native clickable prototype</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --brand-600:#0891b2;--brand-50:#ecfeff;
-    --surface:#fafafa;--surface-elevated:#ffffff;
-    --border:#e5e5e5;
-    --text-primary:#0a0a0a;--text-secondary:#525252;--text-tertiary:#a3a3a3;
+  @view-transition { navigation: auto; }
+  :root {
+    --surface: #fafafa;
+    --surface-elevated: #ffffff;
+    --border: #e5e5e5;
+    --text-primary: #0a0a0a;
+    --text-secondary: #525252;
+    --text-tertiary: #a3a3a3;
+    --text-on-brand: #ffffff;
+    --brand-600: #0891b2;
+    --brand-100: #cffafe;
+    --brand-50: #ecfeff;
+    --radius-button: 8px;
+    --radius-chip: 999px;
+    --radius-card: 12px;
+    --radius-board: 16px;
+    --shadow-card: 0 2px 8px rgba(0,0,0,0.06);
+    --shadow-modal: 0 12px 40px rgba(0,0,0,0.18);
   }
-  @media (prefers-color-scheme: dark){
-    :root{
-      --brand-600:#06b6d4;--brand-50:#0e2a30;
-      --surface:#0a0a0a;--surface-elevated:#171717;
-      --border:#2a2a2a;
-      --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --surface: #0a0a0a;
+      --surface-elevated: #171717;
+      --border: #2a2a2a;
+      --text-primary: #fafafa;
+      --text-secondary: #a3a3a3;
+      --text-tertiary: #737373;
+      --text-on-brand: #0a0a0a;
+      --brand-600: #06b6d4;
+      --brand-100: #155057;
+      --brand-50: #0e2a30;
+      --shadow-card: 0 2px 8px rgba(0,0,0,0.4);
+      --shadow-modal: 0 12px 40px rgba(0,0,0,0.5);
     }
   }
-  *,*::before,*::after{box-sizing:border-box}
-  html,body{margin:0;padding:0;height:100%}
-  body{
-    font-family:'Inter',system-ui,sans-serif;
-    background:var(--surface);color:var(--text-primary);
-    -webkit-font-smoothing:antialiased;
-    display:grid;grid-template-columns:240px 1fr;
-    min-height:100vh;
+  * { box-sizing: border-box; }
+  html, body { margin: 0; padding: 0; }
+  body {
+    background: var(--surface);
+    color: var(--text-primary);
+    font-family: 'Inter', system-ui, -apple-system, sans-serif;
+    font-feature-settings: "tnum";
+    -webkit-font-smoothing: antialiased;
+    min-height: 100vh;
   }
+  .wrap { max-width: 880px; margin: 0 auto; padding: 56px 24px 64px; }
 
-  /* Sidebar nav */
-  aside{
-    background:var(--surface-elevated);
-    border-right:1px solid var(--border);
-    padding:24px 16px;
-    position:sticky;top:0;
-    height:100vh;overflow:auto;
-    display:flex;flex-direction:column;gap:4px;
+  .mark {
+    width: 56px; height: 56px; border-radius: var(--radius-board);
+    background: var(--brand-600); color: var(--text-on-brand);
+    display: grid; place-items: center; margin-bottom: 24px;
   }
-  .brand{
-    display:flex;align-items:center;gap:10px;
-    padding:4px 8px 16px;margin-bottom:8px;
-    border-bottom:1px solid var(--border);
-  }
-  .brand .mark{
-    width:32px;height:32px;border-radius:8px;background:var(--brand-50);
-    color:var(--brand-600);display:flex;align-items:center;justify-content:center;
-  }
-  .brand .t{font-size:15px;font-weight:600;letter-spacing:-.01em}
-  .brand .s{font-size:11px;color:var(--text-secondary);font-variant-numeric:tabular-nums}
-  .eyebrow{
-    font-size:11px;font-weight:600;color:var(--text-tertiary);
-    text-transform:uppercase;letter-spacing:.08em;
-    padding:8px 8px 4px;
-  }
-  nav button{
-    width:100%;text-align:left;
-    background:transparent;border:0;
-    font:inherit;font-size:14px;font-weight:500;
-    color:var(--text-secondary);
-    padding:9px 12px;border-radius:8px;
-    display:flex;align-items:center;gap:10px;
-    cursor:pointer;
-    transition:background 120ms ease-out, color 120ms ease-out;
-  }
-  nav button:hover{background:var(--surface);color:var(--text-primary)}
-  nav button.active{
-    background:var(--brand-50);color:var(--brand-600);font-weight:600;
-  }
-  nav button .num{
-    font-family:'JetBrains Mono',monospace;font-variant-numeric:tabular-nums;
-    font-size:11px;color:var(--text-tertiary);
-    width:18px;
-  }
-  nav button.active .num{color:var(--brand-600)}
+  .mark svg { width: 30px; height: 30px; }
+  h1 { font-size: 32px; line-height: 38px; font-weight: 600; letter-spacing: -0.02em; margin: 0 0 8px; }
+  .lede { font-size: 16px; line-height: 24px; color: var(--text-secondary); margin: 0 0 4px; max-width: 56ch; }
+  .meta { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 12px; color: var(--text-tertiary); margin: 12px 0 0; }
 
-  .foot{
-    margin-top:auto;padding:16px 8px 8px;
-    font-size:11px;color:var(--text-tertiary);line-height:16px;
+  .start {
+    display: inline-flex; align-items: center; gap: 10px;
+    margin: 28px 0 8px;
+    background: var(--brand-600); color: var(--text-on-brand);
+    font: 600 16px/1 'Inter', sans-serif;
+    padding: 16px 26px; border-radius: var(--radius-button);
+    text-decoration: none; border: none; cursor: pointer;
+    transition: transform 120ms ease-out, opacity 120ms ease-out;
   }
-  .foot a{color:var(--text-secondary);text-decoration:underline}
+  .start:active { transform: scale(0.97); }
+  .start svg { width: 18px; height: 18px; }
+  .start-note { font-size: 13px; color: var(--text-tertiary); margin: 0; max-width: 52ch; }
 
-  /* Stage area */
-  main{
-    display:flex;flex-direction:column;
-    align-items:center;justify-content:center;
-    padding:24px;gap:16px;
-    background:
-      radial-gradient(60% 60% at 50% 30%, rgba(8,145,178,0.05), transparent 70%),
-      var(--surface);
+  .section { margin-top: 48px; }
+  .section h2 { font-size: 13px; line-height: 16px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-tertiary); margin: 0 0 14px; }
+
+  .group { margin-bottom: 26px; }
+  .group-label { font-size: 12px; font-weight: 600; color: var(--brand-600); margin: 0 0 8px; letter-spacing: 0.02em; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(190px, 1fr)); gap: 8px; }
+  .screen {
+    display: flex; align-items: baseline; gap: 8px;
+    background: var(--surface-elevated); border: 1px solid var(--border);
+    border-radius: var(--radius-button); padding: 11px 13px;
+    text-decoration: none; color: var(--text-primary);
+    transition: border-color 120ms ease-out, box-shadow 120ms ease-out;
   }
-  .frame-wrap{
-    width:390px;height:844px;
-    border-radius:44px;
-    box-shadow:0 24px 64px rgba(0,0,0,0.22), 0 2px 8px rgba(0,0,0,0.08);
-    background:#000;
-    overflow:hidden;
-    position:relative;
-  }
-  iframe{
-    width:100%;height:100%;border:0;display:block;
-  }
-  .label{
-    font-size:13px;color:var(--text-secondary);
-    font-variant-numeric:tabular-nums;
-    display:flex;align-items:center;gap:8px;
-  }
-  .label code{
-    font-family:'JetBrains Mono',monospace;font-size:12px;
-    color:var(--text-primary);background:var(--surface-elevated);
-    padding:2px 6px;border-radius:4px;border:1px solid var(--border);
-  }
+  .screen:hover { border-color: var(--brand-600); box-shadow: var(--shadow-card); }
+  .screen .id { font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 11px; color: var(--text-tertiary); flex: none; }
+  .screen .nm { font-size: 13px; line-height: 18px; font-weight: 500; }
+
+  footer { margin-top: 52px; padding-top: 24px; border-top: 1px solid var(--border); font-size: 13px; line-height: 20px; color: var(--text-secondary); }
+  footer a { color: var(--brand-600); text-decoration: none; font-weight: 500; }
+  footer a:hover { text-decoration: underline; }
+  footer .row { margin-bottom: 6px; }
 </style>
 </head>
 <body>
-  <aside>
-    <div class="brand">
-      <div class="mark" aria-hidden="true">
-        <svg width="18" height="18" viewBox="0 0 28 28" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round"><rect x="3" y="3" width="10" height="10" rx="1.5"/><rect x="15" y="3" width="10" height="10" rx="1.5"/><rect x="3" y="15" width="10" height="10" rx="1.5"/><rect x="15" y="15" width="10" height="10" rx="1.5"/></svg>
+<div class="wrap">
+
+  <div class="mark" aria-hidden="true">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2"/>
+      <path d="M3 9h18M3 15h18M9 3v18M15 3v18"/>
+    </svg>
+  </div>
+
+  <h1>Tectonic — iOS-native prototype</h1>
+  <p class="lede">A fully clickable walkthrough of the iOS-native design direction for the Tectonic puzzle app. Start at sign-in and click through the app as a player would — onboarding, the guided difficulty journey, solving, mastery, paywall, settings.</p>
+  <p class="meta">25 screens · variant 01 of the 2026-05-14 swarm · interaction model: Apple HIG</p>
+
+  <a class="start" href="01-auth.html">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    Start the prototype
+  </a>
+  <p class="start-note">Begins at the sign-in screen. Tap through; back chevrons and the tab bar navigate, just like the real app.</p>
+
+  <div class="section">
+    <h2>Jump to any screen</h2>
+
+    <div class="group">
+      <p class="group-label">Core flow</p>
+      <div class="grid">
+        <a class="screen" href="01-auth.html"><span class="id">01</span><span class="nm">Sign in</span></a>
+        <a class="screen" href="02-onboarding.html"><span class="id">02</span><span class="nm">Onboarding</span></a>
+        <a class="screen" href="03-home.html"><span class="id">03</span><span class="nm">Home · Today</span></a>
+        <a class="screen" href="04-new-game.html"><span class="id">04</span><span class="nm">New game</span></a>
+        <a class="screen" href="05-solving.html"><span class="id">05</span><span class="nm">Solving</span></a>
+        <a class="screen" href="06-solved.html"><span class="id">06</span><span class="nm">Solved</span></a>
+        <a class="screen" href="07-stats.html"><span class="id">07</span><span class="nm">Stats</span></a>
+        <a class="screen" href="08-stage-up.html"><span class="id">08</span><span class="nm">Stage up</span></a>
       </div>
-      <div>
-        <div class="t">Tectonic</div>
-        <div class="s">Variant 01 · iOS-native</div>
+    </div>
+
+    <div class="group">
+      <p class="group-label">Solving states</p>
+      <div class="grid">
+        <a class="screen" href="05a-solving-fresh.html"><span class="id">05a</span><span class="nm">Fresh puzzle</span></a>
+        <a class="screen" href="05b-cell-selected.html"><span class="id">05b</span><span class="nm">Cell selected</span></a>
+        <a class="screen" href="05c-notes-mode.html"><span class="id">05c</span><span class="nm">Notes mode</span></a>
+        <a class="screen" href="05d-conflict.html"><span class="id">05d</span><span class="nm">Conflict</span></a>
+        <a class="screen" href="05e-basic-hint.html"><span class="id">05e</span><span class="nm">Basic hint</span></a>
+        <a class="screen" href="05f-pause.html"><span class="id">05f</span><span class="nm">Pause</span></a>
+        <a class="screen" href="05g-abandon-confirm.html"><span class="id">05g</span><span class="nm">Abandon confirm</span></a>
       </div>
     </div>
 
-    <div class="eyebrow">Screens</div>
-    <nav id="nav">
-      <button class="active" data-src="01-auth.html"><span class="num">01</span>Auth</button>
-      <button data-src="02-onboarding.html"><span class="num">02</span>Onboarding</button>
-      <button data-src="03-home.html"><span class="num">03</span>Home</button>
-      <button data-src="04-new-game.html"><span class="num">04</span>New game</button>
-      <button data-src="05-solving.html"><span class="num">05</span>Solving</button>
-      <button data-src="05a-solving-fresh.html"><span class="num">5a</span>Solving · Fresh</button>
-      <button data-src="05b-cell-selected.html"><span class="num">5b</span>Solving · Cell selected</button>
-      <button data-src="05c-notes-mode.html"><span class="num">5c</span>Solving · Notes mode</button>
-      <button data-src="05d-conflict.html"><span class="num">5d</span>Solving · Conflict</button>
-      <button data-src="05e-basic-hint.html"><span class="num">5e</span>Solving · Basic hint</button>
-      <button data-src="05f-pause.html"><span class="num">5f</span>Solving · Pause</button>
-      <button data-src="05g-abandon-confirm.html"><span class="num">5g</span>Solving · Abandon confirm</button>
-      <button data-src="06-solved.html"><span class="num">06</span>Solved</button>
-      <button data-src="07-stats.html"><span class="num">07</span>Stats</button>
-      <button data-src="08-stage-up.html"><span class="num">08</span>Stage up</button>
-      <button data-src="09-paywall-hard-tap.html"><span class="num">09</span>Paywall · Hard tap</button>
-      <button data-src="10-paywall-contradiction.html"><span class="num">10</span>Paywall · Contradiction</button>
-      <button data-src="11-settings.html"><span class="num">11</span>Settings</button>
-      <button data-src="12-settings-account.html"><span class="num">12</span>Settings · Account</button>
-      <button data-src="13-tutorial-overlay.html"><span class="num">13</span>Tutorial · Overlay</button>
-      <button data-src="14-mastery-moment.html"><span class="num">14</span>Mastery moment</button>
-      <button data-src="15-post-solve-mastery.html"><span class="num">15</span>Solved · Mastery crossed</button>
-      <button data-src="16-re-entry.html"><span class="num">16</span>Re-entry · after lapse</button>
-      <button data-src="17-share-sheet.html"><span class="num">17</span>Share sheet</button>
-      <button data-src="18-practice.html"><span class="num">18</span>Practice</button>
-    </nav>
-
-    <div class="foot">
-      390 × 844 portrait. Light mode is the default; preview in macOS dark mode to see the dark-mode variant. See <a href="STATUS.md">STATUS.md</a> for direction notes.
+    <div class="group">
+      <p class="group-label">Monetization &amp; settings</p>
+      <div class="grid">
+        <a class="screen" href="09-paywall-hard-tap.html"><span class="id">09</span><span class="nm">Paywall · Hard tap</span></a>
+        <a class="screen" href="10-paywall-contradiction.html"><span class="id">10</span><span class="nm">Paywall · Contradiction</span></a>
+        <a class="screen" href="11-settings.html"><span class="id">11</span><span class="nm">Settings</span></a>
+        <a class="screen" href="12-settings-account.html"><span class="id">12</span><span class="nm">Settings · Account</span></a>
+      </div>
     </div>
-  </aside>
 
-  <main>
-    <div class="frame-wrap">
-      <iframe id="frame" src="01-auth.html" title="Variant 01 screen preview"></iframe>
+    <div class="group">
+      <p class="group-label">The differentiator</p>
+      <div class="grid">
+        <a class="screen" href="13-tutorial-overlay.html"><span class="id">13</span><span class="nm">Tutorial overlay</span></a>
+        <a class="screen" href="14-mastery-moment.html"><span class="id">14</span><span class="nm">Mastery moment</span></a>
+        <a class="screen" href="15-post-solve-mastery.html"><span class="id">15</span><span class="nm">Solved · Mastery</span></a>
+      </div>
     </div>
-    <div class="label">
-      <span id="label-title">Auth</span>
-      <code id="label-src">01-auth.html</code>
+
+    <div class="group">
+      <p class="group-label">Lifecycle</p>
+      <div class="grid">
+        <a class="screen" href="16-re-entry.html"><span class="id">16</span><span class="nm">Re-entry</span></a>
+        <a class="screen" href="17-share-sheet.html"><span class="id">17</span><span class="nm">Share sheet</span></a>
+        <a class="screen" href="18-practice.html"><span class="id">18</span><span class="nm">Practice</span></a>
+      </div>
     </div>
-  </main>
+  </div>
 
-  <script>
-    (function(){
-      var nav = document.getElementById('nav');
-      var frame = document.getElementById('frame');
-      var labelTitle = document.getElementById('label-title');
-      var labelSrc = document.getElementById('label-src');
-      nav.addEventListener('click', function(e){
-        var btn = e.target.closest('button');
-        if(!btn || !btn.dataset.src) return;
-        nav.querySelectorAll('button').forEach(function(b){ b.classList.remove('active'); });
-        btn.classList.add('active');
-        var src = btn.dataset.src;
-        frame.src = src;
-        labelSrc.textContent = src;
-        labelTitle.textContent = btn.textContent.replace(/^\d+/, '').trim();
-      });
+  <footer>
+    <div class="row"><a href="reviewer.html">Side-by-side reviewer</a> — flip between screens in one frame, for design review.</div>
+    <div class="row">Brief: <a href="BRIEF.md">BRIEF.md</a> · Variant notes: <a href="STATUS.md">STATUS.md</a></div>
+    <div class="row">Source: <a href="https://github.com/jhoglund/tectonic-for-the-win">jhoglund/tectonic-for-the-win</a></div>
+  </footer>
 
-      // Keyboard arrow nav between screens
-      document.addEventListener('keydown', function(e){
-        if(e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== 'ArrowLeft' && e.key !== 'ArrowRight') return;
-        var buttons = Array.prototype.slice.call(nav.querySelectorAll('button'));
-        var idx = buttons.findIndex(function(b){ return b.classList.contains('active'); });
-        if(idx === -1) return;
-        var delta = (e.key === 'ArrowDown' || e.key === 'ArrowRight') ? 1 : -1;
-        var next = (idx + delta + buttons.length) % buttons.length;
-        buttons[next].click();
-      });
-    })();
-  </script>
+</div>
 </body>
 </html>

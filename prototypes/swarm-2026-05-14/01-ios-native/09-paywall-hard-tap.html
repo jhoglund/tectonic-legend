@@ -28,6 +28,7 @@
       --separator:rgba(84,84,88,0.5);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -207,7 +208,7 @@
 
     <div class="sheet">
       <div class="grabber"></div>
-      <button class="close" type="button" aria-label="Close">
+      <button class="close" type="button" aria-label="Close" data-nav="04-new-game.html">
         <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><line x1="3" y1="3" x2="13" y2="13"/><line x1="13" y1="3" x2="3" y2="13"/></svg>
       </button>
 
@@ -280,9 +281,9 @@
       </div>
 
       <div class="footer">
-        <button class="btn" type="button">Continue with Annual</button>
+        <button class="btn" type="button" data-nav="05a-solving-fresh.html">Continue with Annual</button>
         <div class="legal">
-          <a href="#">Restore purchase</a>
+          <a href="#" data-nav="12-settings-account.html">Restore purchase</a>
           <span class="dot">·</span>
           <a href="#">Terms</a>
           <span class="dot">·</span>
@@ -291,5 +292,17 @@
       </div>
     </div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

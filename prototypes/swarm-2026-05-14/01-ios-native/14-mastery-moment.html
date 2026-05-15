@@ -28,6 +28,7 @@
       --separator:rgba(84,84,88,0.5);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -225,7 +226,7 @@
     </div>
 
     <div class="nav">
-      <button class="nav-btn" type="button">
+      <button class="nav-btn" type="button" data-nav="03-home.html">
         <svg width="11" height="18" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 2 2 9 9 16"/></svg>
         Today
       </button>
@@ -286,7 +287,7 @@
       </span>
     </div>
 
-    <div class="mastery-wrap" role="status" aria-live="polite">
+    <div class="mastery-wrap" role="status" aria-live="polite" data-nav="15-post-solve-mastery.html">
       <div class="mastery-chip">
         <span class="check" aria-hidden="true">
           <svg width="8" height="8" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 8 7 12 13 4"/></svg>
@@ -327,5 +328,17 @@
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

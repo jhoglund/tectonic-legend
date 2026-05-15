@@ -30,6 +30,7 @@
       --scrim:rgba(0,0,0,0.62);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -255,7 +256,7 @@
     </div>
 
     <div class="nav">
-      <button class="nav-btn" type="button">
+      <button class="nav-btn" type="button" data-nav="03-home.html">
         <svg width="11" height="18" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 2 2 9 9 16"/></svg>
         Exit
       </button>
@@ -342,11 +343,11 @@
               <span class="dot"></span>
             </span>
           </span>
-          <button class="wt-skip" type="button">Skip tutorial</button>
+          <button class="wt-skip" type="button" data-nav="03-home.html">Skip tutorial</button>
         </div>
         <h2 class="wt-title">Naked singles</h2>
         <p class="wt-body">Find the cell where only one digit fits. Tap it to place the value.</p>
-        <button class="wt-cta" type="button">
+        <button class="wt-cta" type="button" data-nav="03-home.html">
           Tap the highlighted cell
           <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="6 3 11 8 6 13"/></svg>
         </button>
@@ -355,5 +356,17 @@
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

@@ -29,6 +29,7 @@
       --separator:rgba(84,84,88,0.5);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -168,7 +169,7 @@
     </div>
 
     <div class="nav">
-      <button class="nav-btn" type="button">
+      <button class="nav-btn" type="button" data-nav="03-home.html">
         <svg width="11" height="18" viewBox="0 0 11 18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><polyline points="9 2 2 9 9 16"/></svg>
         Today
       </button>
@@ -176,7 +177,7 @@
         <span class="t">Daily · 5×5</span>
         <span class="s">#143 · May 14</span>
       </div>
-      <button class="nav-btn" type="button" aria-label="More">
+      <button class="nav-btn" type="button" aria-label="More" data-nav="05f-pause.html">
         <svg width="22" height="22" viewBox="0 0 22 22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="5" cy="11" r="1.4" fill="currentColor"/><circle cx="11" cy="11" r="1.4" fill="currentColor"/><circle cx="17" cy="11" r="1.4" fill="currentColor"/></svg>
       </button>
     </div>
@@ -231,11 +232,11 @@
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 7 9 7 9 13"/><path d="M20 18a8 8 0 0 0-13-6L3 16"/></svg>
         Undo
       </button>
-      <button class="tool on" type="button" aria-label="Notes">
+      <button class="tool on" type="button" aria-label="Notes" data-nav="05b-cell-selected.html">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.1 2.1 0 1 1 3 3L7 19l-4 1 1-4z"/></svg>
         Notes
       </button>
-      <button class="tool" type="button" aria-label="Hint">
+      <button class="tool" type="button" aria-label="Hint" data-nav="05e-basic-hint.html">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18h6M10 22h4M12 2a7 7 0 0 0-4 12.7c.7.7 1 1.6 1 2.3v1h6v-1c0-.7.3-1.6 1-2.3A7 7 0 0 0 12 2z"/></svg>
         Hint
       </button>
@@ -256,5 +257,17 @@
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

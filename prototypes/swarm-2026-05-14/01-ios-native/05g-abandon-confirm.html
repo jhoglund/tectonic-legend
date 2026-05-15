@@ -33,6 +33,7 @@
       --alert-sep:rgba(84,84,88,0.65);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -300,13 +301,25 @@
           <p class="alert-msg">Your progress on this puzzle will be lost. Your stage and stats stay the same.</p>
         </div>
         <div class="alert-actions">
-          <button class="alert-btn destructive" type="button">Abandon</button>
-          <button class="alert-btn default" type="button">Keep solving</button>
+          <button class="alert-btn destructive" type="button" data-nav="03-home.html">Abandon</button>
+          <button class="alert-btn default" type="button" data-nav="05-solving.html">Keep solving</button>
         </div>
       </div>
     </div>
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

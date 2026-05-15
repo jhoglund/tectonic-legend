@@ -25,6 +25,7 @@
       --text-primary:#fafafa;--text-secondary:#a3a3a3;--text-tertiary:#737373;--text-on-brand:#0a0a0a;
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -208,11 +209,23 @@
       </div>
 
       <div class="footer">
-        <button class="btn" type="button">Continue</button>
+        <button class="btn" type="button" data-nav="03-home.html">Continue</button>
       </div>
     </div>
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

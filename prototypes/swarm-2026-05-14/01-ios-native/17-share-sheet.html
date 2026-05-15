@@ -30,6 +30,7 @@
       --sheet-bg:#1c1c1e;
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -307,7 +308,7 @@
     </div>
 
     <!-- Scrim -->
-    <div class="scrim"></div>
+    <div class="scrim" data-nav="06-solved.html"></div>
 
     <!-- ------ Share sheet ------ -->
     <div class="sheet" role="dialog" aria-label="Share">
@@ -341,51 +342,51 @@
 
       <!-- Recents -->
       <div class="recents">
-        <button class="recent" type="button"><span class="av a">MK</span><span class="nm">Maja</span></button>
-        <button class="recent" type="button"><span class="av b">EN</span><span class="nm">Erik</span></button>
-        <button class="recent" type="button"><span class="av c">JL</span><span class="nm">Jonna</span></button>
-        <button class="recent" type="button"><span class="av d">+12</span><span class="nm">More</span></button>
+        <button class="recent" type="button" data-nav="06-solved.html"><span class="av a">MK</span><span class="nm">Maja</span></button>
+        <button class="recent" type="button" data-nav="06-solved.html"><span class="av b">EN</span><span class="nm">Erik</span></button>
+        <button class="recent" type="button" data-nav="06-solved.html"><span class="av c">JL</span><span class="nm">Jonna</span></button>
+        <button class="recent" type="button" data-nav="06-solved.html"><span class="av d">+12</span><span class="nm">More</span></button>
       </div>
 
       <!-- Apps -->
       <div class="apps">
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn msg" aria-hidden="true">
             <svg width="28" height="28" viewBox="0 0 24 24" fill="currentColor"><path d="M12 3C6.5 3 2 6.6 2 11c0 2.4 1.4 4.6 3.6 6L4 21l4.4-1.6c1.1.4 2.3.6 3.6.6 5.5 0 10-3.6 10-8s-4.5-9-10-9z"/></svg>
           </span>
           <span class="nm">Messages</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn mail" aria-hidden="true">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round"><rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M3 7l9 7 9-7" stroke-linecap="round"/></svg>
           </span>
           <span class="nm">Mail</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn x" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24h-6.66l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg>
           </span>
           <span class="nm">X</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn wa" aria-hidden="true">
             <svg width="26" height="26" viewBox="0 0 24 24" fill="currentColor"><path d="M20.5 3.5A11 11 0 0 0 3.6 17l-1.6 5 5.1-1.5A11 11 0 1 0 20.5 3.5zM12 20.4a8.5 8.5 0 0 1-4.5-1.3l-.3-.2-3 .9.9-3-.2-.3a8.5 8.5 0 1 1 7.1 3.9zm4.8-6.3c-.3-.1-1.5-.7-1.8-.8s-.4-.1-.6.1c-.2.3-.7.8-.8 1-.1.1-.3.2-.6 0-.3-.1-1.1-.4-2.1-1.3-.8-.7-1.3-1.6-1.5-1.9-.1-.3 0-.4.1-.6l.4-.5c.1-.2.2-.3.3-.5.1-.2 0-.3 0-.5s-.6-1.4-.8-1.9c-.2-.5-.4-.4-.6-.4h-.5c-.2 0-.5.1-.7.3-.3.3-1 1-.9 2.4.1 1.4 1 2.8 1.2 3 .1.1 2 3 4.8 4.2.7.3 1.2.5 1.6.6.7.2 1.3.2 1.8.1.6-.1 1.7-.7 1.9-1.4.2-.7.2-1.3.2-1.4 0-.1-.2-.2-.5-.3z"/></svg>
           </span>
           <span class="nm">WhatsApp</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn thr" aria-hidden="true">
             <svg width="22" height="22" viewBox="0 0 24 24" fill="currentColor"><path d="M12 22C6.5 22 2 17.5 2 12S6.5 2 12 2s10 4.5 10 10c0 4-2.3 6.7-5.4 7.6-1.9.6-3.6-.3-3.6-2 0-1.2.9-2 2.4-2 1 0 1.8.5 2 1.2.4-.5.6-1.1.6-1.8 0-1.7-1.4-3-3.3-3-2.4 0-4 1.7-4 4 0 1.6.8 2.8 2.3 3.6"/></svg>
           </span>
           <span class="nm">Threads</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn copy" aria-hidden="true">
             <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linejoin="round" stroke-linecap="round"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
           </span>
           <span class="nm">Copy</span>
         </button>
-        <button class="app" type="button">
+        <button class="app" type="button" data-nav="06-solved.html">
           <span class="icn more" aria-hidden="true">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><circle cx="6" cy="12" r="1.8"/><circle cx="12" cy="12" r="1.8"/><circle cx="18" cy="12" r="1.8"/></svg>
           </span>
@@ -416,10 +417,22 @@
       </div>
 
       <!-- Cancel -->
-      <button class="cancel" type="button">Cancel</button>
+      <button class="cancel" type="button" data-nav="06-solved.html">Cancel</button>
     </div>
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>

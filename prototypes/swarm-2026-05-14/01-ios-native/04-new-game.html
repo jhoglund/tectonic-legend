@@ -28,6 +28,7 @@
       --separator:rgba(84,84,88,0.5);
     }
   }
+  @view-transition { navigation: auto; }
   *,*::before,*::after{box-sizing:border-box}
   html,body{margin:0;padding:0}
   body{
@@ -181,9 +182,9 @@
     </div>
 
     <div class="sheet">
-      <div class="grabber"></div>
+      <div class="grabber" data-nav="03-home.html"></div>
       <div class="sheet-nav">
-        <button type="button">Cancel</button>
+        <button type="button" data-nav="03-home.html">Cancel</button>
         <h2>New game</h2>
         <button type="button" style="font-weight:600">Start</button>
       </div>
@@ -198,7 +199,7 @@
 
         <div class="section-h">Difficulty</div>
         <div class="list">
-          <div class="row">
+          <div class="row" data-nav="05a-solving-fresh.html">
             <div class="icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/></svg>
             </div>
@@ -210,7 +211,7 @@
             <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>
           </div>
 
-          <div class="row">
+          <div class="row" data-nav="05a-solving-fresh.html">
             <div class="icon">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3" fill="currentColor"/><circle cx="12" cy="12" r="8"/></svg>
             </div>
@@ -225,7 +226,7 @@
             <svg class="chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 4 10 8 6 12"/></svg>
           </div>
 
-          <div class="row locked">
+          <div class="row locked" data-nav="09-paywall-hard-tap.html">
             <div class="icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             </div>
@@ -236,7 +237,7 @@
             <span class="pill brand">5 / 8</span>
           </div>
 
-          <div class="row locked">
+          <div class="row locked" data-nav="09-paywall-hard-tap.html">
             <div class="icon">
               <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="4" y="11" width="16" height="10" rx="2"/><path d="M8 11V7a4 4 0 0 1 8 0v4"/></svg>
             </div>
@@ -279,5 +280,17 @@
 
     <div class="home-indicator"></div>
   </div>
+<script>
+(function(){
+  document.querySelectorAll('[data-nav]').forEach(function(el){
+    el.style.cursor = 'pointer';
+    el.addEventListener('click', function(ev){
+      ev.preventDefault();
+      var dest = el.getAttribute('data-nav');
+      if (dest) window.location.href = dest;
+    });
+  });
+})();
+</script>
 </body>
 </html>
