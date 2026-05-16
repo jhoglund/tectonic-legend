@@ -4,6 +4,7 @@ import { MasteryChip } from '../components/MasteryChip';
 import type { GameState, Difficulty, GridSize } from '../engine/types';
 import { useProfile } from '../lib/profileContext';
 import { analytics } from '../lib/analytics';
+import { buildShareText, shareGrid } from '../lib/shareArtifact';
 import type { SolveTechniqueTally } from '../lib/profile';
 import { TECHNIQUE_NAMES, type TechniqueName } from '../lib/progression';
 
@@ -40,14 +41,15 @@ interface SolvedScreenProps {
   /** Whether this solve was the daily puzzle. */
   isDaily: boolean;
   getShareUrl: () => string | null;
+  /** Snapshot of cells the hint engine surfaced — colours the artifact. */
+  getHintedCells: () => Set<string>;
   onExit: () => void;
 }
 
 /**
- * The post-solve summary — v1 Phase 1, backlog item 8. Solve time,
- * the per-solve hint breakdown, technique-mastery chips, and a share
- * button. Cohort/percentile is deliberately absent (ADR-0011 — needs
- * a backend); the colored-mini-grid share artifact is backlog item 15.
+ * The post-solve summary — solve time, the per-solve hint breakdown,
+ * technique-mastery chips, and the shareable solve artifact (ADR-0004).
+ * Cohort/percentile is deliberately absent (ADR-0011 — needs a backend).
  */
 export function SolvedScreen({
   gameState,
@@ -58,13 +60,17 @@ export function SolvedScreen({
   selfAppliedMoves,
   isDaily,
   getShareUrl,
+  getHintedCells,
   onExit,
 }: SolvedScreenProps) {
   const [copied, setCopied] = useState(false);
   const { profile, recordSolve } = useProfile();
+  // One-time snapshot at mount — the game is over, so it is stable.
+  const [hintedCells] = useState(getHintedCells);
 
   const timeStr = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
   const techniqueRows = Object.entries(techniquesUsed).filter(([, n]) => n > 0);
+  const hintCount = Object.values(techniquesUsed).reduce((a, b) => a + b, 0);
 
   // Techniques the player has any history with — their mastery chips
   // reflect the profile *after* this solve has been recorded.
@@ -114,13 +120,29 @@ export function SolvedScreen({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  function handleShare() {
-    const url = getShareUrl();
-    if (!url) return;
-    navigator.clipboard.writeText(url);
+  async function handleShare() {
+    const text = buildShareText({
+      gameState,
+      difficulty,
+      elapsedSeconds,
+      hintCount,
+      hintedCells,
+      isDaily,
+      url: getShareUrl(),
+    });
     analytics.puzzleShared(difficulty, gridSize);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
+    // Native share sheet on iOS; clipboard everywhere else.
+    if (navigator.share) {
+      try {
+        await navigator.share({ text });
+      } catch {
+        // player dismissed the share sheet — nothing to do
+      }
+    } else {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    }
   }
 
   return (
@@ -231,18 +253,39 @@ export function SolvedScreen({
         </div>
       )}
 
-      <button
-        type="button"
-        onClick={handleShare}
-        className="w-full cursor-pointer py-3.5 text-base font-medium"
+      {/* shareable solve artifact — a spoiler-free brag (ADR-0004) */}
+      <div
+        className="flex w-full flex-col items-center gap-3"
         style={{
-          color: 'var(--brand-600)',
+          background: 'var(--surface-elevated)',
           border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-button)',
+          borderRadius: 'var(--radius-card)',
+          padding: 'var(--space-4)',
         }}
       >
-        {copied ? 'Link copied' : 'Share puzzle'}
-      </button>
+        <div
+          style={{
+            whiteSpace: 'pre',
+            lineHeight: 1.05,
+            fontSize: '1.5rem',
+            textAlign: 'center',
+          }}
+        >
+          {shareGrid(gameState, hintedCells)}
+        </div>
+        <button
+          type="button"
+          onClick={handleShare}
+          className="w-full cursor-pointer py-3 text-base font-medium"
+          style={{
+            color: 'var(--brand-600)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-button)',
+          }}
+        >
+          {copied ? 'Copied' : 'Share result'}
+        </button>
+      </div>
 
       <button
         type="button"
@@ -256,10 +299,6 @@ export function SolvedScreen({
       >
         Done
       </button>
-
-      <p className="text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
-        The shareable solve artifact arrives in a later build.
-      </p>
     </div>
   );
 }

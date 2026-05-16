@@ -343,6 +343,10 @@ export function useGame(initial?: {
     return `${window.location.origin}${window.location.pathname}#${encoded}`;
   }, [gameState, difficulty]);
 
+  /** Snapshot of the cells the hint engine surfaced this game — read by
+   *  the Solved screen to colour the shareable solve artifact. */
+  const getHintedCells = useCallback(() => new Set(hintedCells.current), []);
+
   return {
     gameState,
     difficulty,
@@ -365,6 +369,7 @@ export function useGame(initial?: {
     setHintMode,
     toggleNotes,
     getShareUrl,
+    getHintedCells,
     undo,
     redo,
   };

@@ -68,6 +68,7 @@ export function SolvingScreen({
     handleHint,
     toggleNotes,
     getShareUrl,
+    getHintedCells,
     undo,
     redo,
   } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize, seed });
@@ -287,6 +288,7 @@ export function SolvingScreen({
           selfAppliedMoves={selfAppliedMoves}
           isDaily={isDaily}
           getShareUrl={getShareUrl}
+          getHintedCells={getHintedCells}
           onExit={onExit}
         />
       ) : (
