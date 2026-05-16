@@ -65,25 +65,27 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 12. **✅ Mastery chip + mastery moments** — `MasteryChip` (`learning · familiar · mastered`), surfaced in Stats and on the Solved screen. Done 2026-05-15. The mid-solve crossing moment is deferred — it depends on self-applied detection (deferred slice below); until that lands, `mastered` is unreachable.
 13. **✅ Stats surface** — solve performance / technique mastery / streaks, empty-state until ≥5 solves. Done 2026-05-15. Percentile band and contradiction-chain record omitted (no backend / not tracked); the premium gate on technique mastery lands with the Phase 4 paywall.
 
+> **Phase 3–5 autonomous run, 2026-05-16.** Phase 3 done; Capacitor scaffolded; Phase 4 Settings done + paywall built (unwired). Two background agents produced `docs/soft-launch-plan.md` and `docs/app-store-launch.md`. Decisions taken and what's still on Jonas: see [`docs/handover-2026-05-16.md`](handover-2026-05-16.md).
+
 ### Phase 3 — Retention + viral
 
-14. **Daily puzzle + streak** — deterministic seed per UTC day (ADR-0010), local streak counter. Client-only, no server.
-15. **Share artifact** — colored mini-grid (green/yellow/red per cell by hint usage and corrections) + solve time, share-to-clipboard. Tier-0 viral.
-16. **Re-entry line on Home** — a warm "Welcome back" line after a 7+ day gap. Local "last opened" check; no dedicated screen.
+14. **✅ Daily puzzle + streak** — seeded generator (mulberry32) + `src/lib/daily.ts` (UTC-day seed, weekday→difficulty); Home daily card + streak line. Client-only (ADR-0010). Done 2026-05-16.
+15. **✅ Share artifact** — `src/lib/shareArtifact.ts`: a spoiler-free emoji-grid text block (clue / unaided / hinted per cell) + time. v1 is text not an image — deliberate (see handover). Native share sheet on iOS. Done 2026-05-16.
+16. **✅ Re-entry line on Home** — `src/lib/lastSeen.ts`, a warm line after a 7+ day gap. Done 2026-05-16.
 
 ### Phase 4 — Monetization
 
-17. **StoreKit / RevenueCat setup** — subscription products per ADR-0008. No backend, no account — StoreKit only. Restore-purchase flow.
-18. **Paywall** — one component, two trigger surfaces (Hard tap, contradiction-hint tap). Designed in Open Design (`09-paywall-hard-tap`, `10-paywall-contradiction`).
-19. **Settings (trimmed)** — theme, sound, haptics, Restore Purchase, Manage Subscription, How to play, About. No account row, no sign-in.
+17. **StoreKit / RevenueCat setup** — NOT started. Blocked on Apple Developer enrolment + App Store Connect products + the resolved free/premium split. See handover.
+18. **◑ Paywall** — `src/components/Paywall.tsx` built (full-screen offer, plans, Apple disclosure) but **not mounted** — no feature gated, no live purchase. Triggers depend on the re-derived split (ADR-0007 vs 0012). Done as a component 2026-05-16; wiring deferred.
+19. **✅ Settings (trimmed)** — How to Play + About; replaces the stub the App Store audit flagged. Theme/sound/haptics deferred (features don't exist yet). Done 2026-05-16.
 
 ### Phase 5 — Ship
 
-20. **◑ Analytics integration** — Mimir wired in (2026-05-15): the SDK is injected by a `vite.config` plugin when `VITE_MIMIR_*` is set; `src/lib/analytics.ts` emits semantic events (puzzle started/solved/shared, hint used, tutorial completed/skipped, stage reached); pageviews + click autocapture come free. Verified end-to-end in dev (event → `/_m/api/ingest` → 202). **Remaining:** paywall / IAP events (Phase 4), and — to capture anything from the *deployed* app — Mimir must be hosted at a public URL and `VITE_MIMIR_SCRIPT_URL` / `VITE_MIMIR_ENDPOINT` / `VITE_MIMIR_TOKEN` set as repo variables/secret. `mimir.test` is local-only, so prod analytics is dormant until then.
-21. **Capacitor iOS scaffolding** — wrap the web build. StatusBar / SafeArea. ADR-pending: Capacitor vs native shell.
-22. **App Store assets** — icon, screenshots (5–8), description, keywords. Built in Open Design.
-23. **TestFlight beta** — 10–20 testers. Two-week cycle before soft launch.
-24. **Soft launch — NZ + CA** (`docs/market-research.md` §4 Phase 1). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
+20. **◑ Analytics integration** — Mimir wired (2026-05-15): SDK injected by a `vite.config` plugin when `VITE_MIMIR_*` is set; `src/lib/analytics.ts` emits semantic events; verified dev (event → `/_m/api/ingest` → 202). **Remaining:** paywall/IAP events (Phase 4); prod analytics is dormant until Mimir is publicly hosted and the repo variables/secret are set.
+21. **✅ Capacitor iOS scaffolding** — `@capacitor/*` 8, `capacitor.config.ts`, `ios/` Xcode project (SPM-based), conditional `base`, status-bar init. Done 2026-05-16. Build to device: `npm run sync:ios` then Xcode.
+22. **App Store assets** — icon, screenshots, description, keywords. Prep + drafts in `docs/app-store-launch.md`; assets themselves not built.
+23. **TestFlight beta** — 10–20 testers. Pipeline documented in `docs/app-store-launch.md`; Apple-account-gated.
+24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
 
 ---
 
