@@ -75,5 +75,14 @@ export const analytics = {
   purchaseStarted(plan: string): void {
     track('purchase_started', { sku: plan });
   },
+  signedUp(): void {
+    track('signed_up');
+  },
+  signedIn(): void {
+    track('signed_in');
+  },
+  signedOut(): void {
+    track('signed_out');
+  },
 };
 

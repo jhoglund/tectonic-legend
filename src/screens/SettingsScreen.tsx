@@ -1,7 +1,9 @@
 import { useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { RedeemCodeSheet } from '../components/RedeemCodeSheet';
+import { AuthSheet } from '../components/AuthSheet';
 import { useProfile } from '../lib/profileContext';
+import { useAuth } from '../lib/authContext';
 import { isPremium } from '../lib/profile';
 
 /** Working version string — bump on each release. */
@@ -39,15 +41,18 @@ function Rule({ heading, body }: { heading: string; body: string }) {
 }
 
 /**
- * Settings tab — v1 Phase 4, backlog item 19. Trimmed to what the app
- * actually does today: the rules and an About section. Theme, sound,
- * and haptics are deferred until those features exist; Restore Purchase
- * / Manage Subscription land with the StoreKit work. No account row,
- * no sign-in — v1 is local-only (ADR-0011).
+ * Settings tab — v1 Phase 4, backlog item 19. The Account section
+ * (sign in / sign out) lands with accounts (ADR-0013); it is hidden
+ * entirely when Supabase is not configured, so the app still reads as
+ * local-only in that case. Theme, sound, and haptics are deferred
+ * until those features exist; Restore Purchase / Manage Subscription
+ * land with the StoreKit work.
  */
 export function SettingsScreen() {
   const { profile } = useProfile();
+  const { status, user, signOut } = useAuth();
   const [redeemOpen, setRedeemOpen] = useState(false);
+  const [authOpen, setAuthOpen] = useState(false);
 
   const premium = isPremium(profile);
   const planStatus = !premium
@@ -60,6 +65,76 @@ export function SettingsScreen() {
     <div>
       <ScreenHeader title="Settings" />
       <div className="flex flex-col gap-4 px-4 pt-2 pb-8">
+        {/* account — hidden when Supabase is not configured */}
+        {status !== 'disabled' && (
+          <div>
+            <p className="mb-2 px-1 text-xs font-semibold" style={sectionLabel}>
+              ACCOUNT
+            </p>
+            <div className="flex flex-col gap-3" style={card}>
+              {status === 'signed-in' && user ? (
+                <>
+                  <div className="flex items-center justify-between gap-3">
+                    <span
+                      className="text-sm"
+                      style={{ color: 'var(--text-secondary)' }}
+                    >
+                      Signed in
+                    </span>
+                    <span
+                      className="truncate text-sm font-medium"
+                      style={{ color: 'var(--text-primary)' }}
+                    >
+                      {user.email}
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => void signOut()}
+                    className="cursor-pointer py-2.5 text-sm font-medium"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-button)',
+                    }}
+                  >
+                    Log out
+                  </button>
+                </>
+              ) : status === 'loading' ? (
+                <p
+                  className="py-1 text-sm"
+                  style={{ color: 'var(--text-tertiary)' }}
+                >
+                  Checking your account…
+                </p>
+              ) : (
+                <>
+                  <p
+                    className="text-sm"
+                    style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
+                  >
+                    Sign in to keep your progress safe and sync it across your
+                    devices.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => setAuthOpen(true)}
+                    className="cursor-pointer py-2.5 text-sm font-medium"
+                    style={{
+                      color: 'var(--brand-600)',
+                      border: '1px solid var(--border)',
+                      borderRadius: 'var(--radius-button)',
+                    }}
+                  >
+                    Sign in or create account
+                  </button>
+                </>
+              )}
+            </div>
+          </div>
+        )}
+
         {/* plan */}
         <div>
           <p className="mb-2 px-1 text-xs font-semibold" style={sectionLabel}>
@@ -163,6 +238,7 @@ export function SettingsScreen() {
         open={redeemOpen}
         onClose={() => setRedeemOpen(false)}
       />
+      <AuthSheet open={authOpen} onClose={() => setAuthOpen(false)} />
     </div>
   );
 }
