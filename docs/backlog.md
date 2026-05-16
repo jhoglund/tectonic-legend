@@ -91,6 +91,16 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 23. **TestFlight beta** — 10–20 testers. Pipeline documented in `docs/app-store-launch.md`; Apple-account-gated.
 24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
 
+### Accounts — custom backend
+
+Decided 2026-05-16 ([ADR-0013](decisions/ADR-0013-accounts-on-a-custom-backend.md)) — reverses the local-only v1. Player accounts so progress survives uninstall and syncs across devices. Full design + data model + API contract: [`docs/accounts-plan.md`](accounts-plan.md). **Recommended to land as the first post-soft-launch feature** (it doesn't gate the launch's retention signal; the sync model migrates launched local-only users cleanly). A1 must come before A2–A3.
+
+- **A1. `tectonic-api` backend** — new private repo: Postgres + Drizzle, a Hono API for `/auth/*` and `/profile`, argon2id + access/refresh tokens. Runnable locally on docker Postgres. *Blocked on Jonas:* hosting target, DB instance, the repo, production secrets.
+- **A2. Client auth** — `accountsApi` client, an auth context, Sign in / Sign up screens, and the Account screen in Settings with **Log out** (the original ask).
+- **A3. Profile sync** — `ProfileProvider` pulls on sign-in / debounced-pushes on change; first sign-in adopts the local profile. Last-write-wins by `updatedAt`.
+- **A4. Privacy rework** — data now leaves the device: update `docs/app-store-launch.md`, the privacy manifest, and the App Store privacy labels. A Privacy Policy URL becomes mandatory.
+- **A5. Sign in with Apple** — fast-follow once Apple Developer enrolment lands.
+
 ---
 
 ## Later
