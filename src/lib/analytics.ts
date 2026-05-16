@@ -63,4 +63,7 @@ export const analytics = {
   stageReached(stage: number, stageName: string): void {
     track('stage_reached', { stage, stageName });
   },
+  voucherRedeemed(days: number): void {
+    track('voucher_redeemed', { days, lifetime: days === 0 });
+  },
 };

@@ -5,11 +5,14 @@ import {
   recordTutorialCompletion,
   markStageCelebrated,
   skipTutorials,
+  redeemVoucher,
+  isPremium,
   loadProfile,
   saveProfile,
   type PlayerProfile,
   type SolveOutcome,
 } from './profile';
+import { mintVoucher } from './vouchers';
 import { TECHNIQUE_NAMES } from './progression';
 
 /** A solve outcome that self-applies naked-single `selfApplied` times. */
@@ -187,6 +190,54 @@ describe('skipTutorials', () => {
   it('leaves no stage-up card pending — the skipper opted out', () => {
     const p = skipTutorials(defaultProfile());
     expect(p.celebratedStage).toBe(p.stage);
+  });
+});
+
+describe('redeemVoucher / isPremium', () => {
+  it('a fresh profile is not premium', () => {
+    expect(isPremium(defaultProfile())).toBe(false);
+  });
+
+  it('a lifetime voucher grants premium with no expiry', () => {
+    const result = redeemVoucher(defaultProfile(), mintVoucher(0));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(result.profile.tier).toBe('premium');
+    expect(result.profile.premiumExpiresAt).toBeUndefined();
+    expect(isPremium(result.profile)).toBe(true);
+  });
+
+  it('a timed voucher grants premium that lapses', () => {
+    const result = redeemVoucher(defaultProfile(), mintVoucher(30));
+    expect(result.ok).toBe(true);
+    if (!result.ok) return;
+    expect(isPremium(result.profile)).toBe(true);
+    // force the grant into the past
+    const lapsed = {
+      ...result.profile,
+      premiumExpiresAt: new Date(Date.now() - 1000).toISOString(),
+    };
+    expect(isPremium(lapsed)).toBe(false);
+  });
+
+  it('rejects an invalid code, and a code already redeemed', () => {
+    expect(redeemVoucher(defaultProfile(), 'NOPE').ok).toBe(false);
+    const code = mintVoucher(7);
+    const first = redeemVoucher(defaultProfile(), code);
+    expect(first.ok).toBe(true);
+    if (!first.ok) return;
+    const second = redeemVoucher(first.profile, code);
+    expect(second).toEqual({ ok: false, reason: 'already-redeemed' });
+  });
+
+  it('a timed voucher never downgrades a lifetime grant', () => {
+    const lifetime = redeemVoucher(defaultProfile(), mintVoucher(0));
+    expect(lifetime.ok).toBe(true);
+    if (!lifetime.ok) return;
+    const timed = redeemVoucher(lifetime.profile, mintVoucher(30));
+    expect(timed.ok).toBe(true);
+    if (!timed.ok) return;
+    expect(timed.profile.premiumExpiresAt).toBeUndefined();
   });
 });
 

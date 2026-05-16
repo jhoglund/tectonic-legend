@@ -1,12 +1,14 @@
 import { useCallback, useState, type ReactNode } from 'react';
 import {
   type SolveOutcome,
+  type RedeemResult,
   loadProfile,
   saveProfile,
   recordSolve,
   recordTutorialCompletion,
   markStageCelebrated,
   skipTutorials,
+  redeemVoucher,
 } from './profile';
 import type { PlayerStage } from './progression';
 import { ProfileContext } from './profileContext';
@@ -48,6 +50,18 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     setProfile(next);
   }, [profile]);
 
+  const handleRedeemVoucher = useCallback(
+    (code: string): RedeemResult => {
+      const result = redeemVoucher(profile, code);
+      if (result.ok) {
+        saveProfile(result.profile);
+        setProfile(result.profile);
+      }
+      return result;
+    },
+    [profile],
+  );
+
   return (
     <ProfileContext.Provider
       value={{
@@ -56,6 +70,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         recordTutorial: handleRecordTutorial,
         celebrateStage: handleCelebrateStage,
         skipTutorials: handleSkipTutorials,
+        redeemVoucher: handleRedeemVoucher,
       }}
     >
       {children}

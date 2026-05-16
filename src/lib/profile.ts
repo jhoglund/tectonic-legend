@@ -8,6 +8,7 @@ import {
   emptyMastery,
   nextStageFor,
 } from './progression';
+import { verifyVoucher } from './vouchers';
 
 /**
  * The player profile — local-only persistence for the difficulty
@@ -41,6 +42,8 @@ export interface PlayerProfile {
   streak: { current: number; longest: number; lastSolveDate: string };
   tier: 'free' | 'premium';
   premiumExpiresAt?: string;
+  /** Voucher codes redeemed on this device — blocks per-device reuse. */
+  redeemedVouchers: string[];
   settings: { theme: string; sound: boolean; haptics: boolean };
   schemaVersion: 1;
 }
@@ -81,6 +84,7 @@ export function defaultProfile(): PlayerProfile {
     solveHistory: [],
     streak: { current: 0, longest: 0, lastSolveDate: '' },
     tier: 'free',
+    redeemedVouchers: [],
     settings: { theme: 'system', sound: true, haptics: true },
     schemaVersion: 1,
   };
@@ -231,9 +235,74 @@ function normalizeProfile(parsed: Record<string, unknown>): PlayerProfile {
       (parsed.celebratedStage as PlayerStage | undefined) ??
       (parsed.stage as PlayerStage | undefined) ??
       0,
+    redeemedVouchers: Array.isArray(parsed.redeemedVouchers)
+      ? (parsed.redeemedVouchers as string[])
+      : [],
     streak: { ...base.streak, ...(parsed.streak as object) },
     settings: { ...base.settings, ...(parsed.settings as object) },
     schemaVersion: 1,
+  };
+}
+
+/**
+ * Whether the profile currently has premium access — `tier` is the raw
+ * stored value, but a timed grant (`premiumExpiresAt`) can have lapsed,
+ * so this is the source of truth for entitlement checks.
+ */
+export function isPremium(profile: PlayerProfile): boolean {
+  if (profile.tier !== 'premium') return false;
+  if (!profile.premiumExpiresAt) return true; // lifetime grant
+  return Date.parse(profile.premiumExpiresAt) > Date.now();
+}
+
+/** Outcome of a voucher redemption. */
+export type RedeemResult =
+  | { ok: true; profile: PlayerProfile; days: number }
+  | { ok: false; reason: 'invalid' | 'already-redeemed' };
+
+/**
+ * Redeem a voucher code (backlog item 17a). Pure — verifies the code,
+ * grants premium (lifetime or timed; a timed grant extends an existing
+ * one and never downgrades a lifetime), and records the code so it
+ * cannot be reused on this device.
+ */
+export function redeemVoucher(
+  profile: PlayerProfile,
+  code: string,
+): RedeemResult {
+  const normalized = code.trim().toUpperCase();
+  const grant = verifyVoucher(normalized);
+  if (!grant) return { ok: false, reason: 'invalid' };
+  if (profile.redeemedVouchers.includes(normalized)) {
+    return { ok: false, reason: 'already-redeemed' };
+  }
+
+  const alreadyLifetime =
+    profile.tier === 'premium' && !profile.premiumExpiresAt;
+  let premiumExpiresAt: string | undefined;
+  if (grant.days === 0 || alreadyLifetime) {
+    // Lifetime grant, or a timed grant on top of lifetime — stay lifetime.
+    premiumExpiresAt = undefined;
+  } else {
+    // Timed grant — extend from the later of now or the current expiry.
+    const from =
+      profile.tier === 'premium' && profile.premiumExpiresAt
+        ? Math.max(Date.now(), Date.parse(profile.premiumExpiresAt))
+        : Date.now();
+    premiumExpiresAt = new Date(
+      from + grant.days * 86_400_000,
+    ).toISOString();
+  }
+
+  return {
+    ok: true,
+    days: grant.days,
+    profile: {
+      ...profile,
+      tier: 'premium',
+      premiumExpiresAt,
+      redeemedVouchers: [...profile.redeemedVouchers, normalized],
+    },
   };
 }
 

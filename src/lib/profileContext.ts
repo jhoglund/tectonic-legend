@@ -1,5 +1,5 @@
 import { createContext, useContext } from 'react';
-import type { PlayerProfile, SolveOutcome } from './profile';
+import type { PlayerProfile, SolveOutcome, RedeemResult } from './profile';
 import type { PlayerStage } from './progression';
 
 /**
@@ -17,6 +17,8 @@ export interface ProfileContextValue {
   celebrateStage: () => void;
   /** Skip the Newcomer tutorials and jump to Beginner. */
   skipTutorials: () => void;
+  /** Redeem a voucher code; persists on success. Returns the outcome. */
+  redeemVoucher: (code: string) => RedeemResult;
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);
