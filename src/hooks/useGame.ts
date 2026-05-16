@@ -40,12 +40,19 @@ function gridSizeDimensions(size: GridSize): [number, number] {
   return size === '8x8' ? [8, 8] : [5, 5];
 }
 
-export function useGame(initial?: {
-  difficulty: Difficulty;
-  gridSize: GridSize;
-  /** Deterministic generator seed — set for the daily puzzle. */
-  seed?: number;
-}) {
+export function useGame(
+  initial?: {
+    difficulty: Difficulty;
+    gridSize: GridSize;
+    /** Deterministic generator seed — set for the daily puzzle. */
+    seed?: number;
+  },
+  /** Premium gate for contradiction-chain hints (the paywall trigger). */
+  gate?: {
+    contradictionHintsAllowed: boolean;
+    onContradictionBlocked: () => void;
+  },
+) {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -265,6 +272,16 @@ export function useGame(initial?: {
     if (activeMode === 'logic') {
       const h = findHint(gameState.grid, gameState.puzzle.layout);
       if (h) {
+        // Contradiction-chain hints are premium (soft-launch plan §3) —
+        // a free player here hits the primary paywall trigger.
+        if (
+          h.type === 'contradiction' &&
+          gate &&
+          !gate.contradictionHintsAllowed
+        ) {
+          gate.onContradictionBlocked();
+          return;
+        }
         setHint(h);
         setSelectedCell([h.row, h.col]);
         setTechniquesUsed((prev) => ({ ...prev, [h.type]: (prev[h.type] ?? 0) + 1 }));
@@ -331,7 +348,7 @@ export function useGame(initial?: {
       const h = findCheckHint(gameState.grid, gameState.puzzle.layout, gameState.puzzle.solution, gameState.isClue);
       setHint(h);
     }
-  }, [gameState, selectedCell, hintMode, commit]);
+  }, [gameState, selectedCell, hintMode, commit, gate]);
 
   const toggleNotes = useCallback(() => {
     setNotesMode((prev) => !prev);

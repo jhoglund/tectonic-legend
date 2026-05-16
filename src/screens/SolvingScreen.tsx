@@ -9,6 +9,9 @@ import { AbandonAlert } from '../components/AbandonAlert';
 import { SolvedScreen } from './SolvedScreen';
 import { useGame } from '../hooks/useGame';
 import { analytics } from '../lib/analytics';
+import { useProfile } from '../lib/profileContext';
+import { usePaywall } from '../lib/paywallContext';
+import { isPremium } from '../lib/profile';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
 
@@ -52,6 +55,17 @@ export function SolvingScreen({
   isDaily = false,
   onExit,
 }: SolvingScreenProps) {
+  const { profile } = useProfile();
+  const { openPaywall } = usePaywall();
+  // Contradiction-chain hints are premium — gate them at the hint engine.
+  const hintGate = useMemo(
+    () => ({
+      contradictionHintsAllowed: isPremium(profile),
+      onContradictionBlocked: () => openPaywall('contradiction_hint'),
+    }),
+    [profile, openPaywall],
+  );
+
   const {
     gameState,
     selectedCell,
@@ -71,7 +85,10 @@ export function SolvingScreen({
     getHintedCells,
     undo,
     redo,
-  } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize, seed });
+  } = useGame(
+    { difficulty: initialDifficulty, gridSize: initialGridSize, seed },
+    hintGate,
+  );
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
   const chain = hint?.chain ?? null;

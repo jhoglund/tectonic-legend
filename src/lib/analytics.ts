@@ -66,4 +66,14 @@ export const analytics = {
   voucherRedeemed(days: number): void {
     track('voucher_redeemed', { days, lifetime: days === 0 });
   },
+  paywallShown(trigger: string): void {
+    track('paywall_shown', { trigger });
+  },
+  paywallDismissed(trigger: string): void {
+    track('paywall_dismissed', { trigger });
+  },
+  purchaseStarted(plan: string): void {
+    track('purchase_started', { sku: plan });
+  },
 };
+

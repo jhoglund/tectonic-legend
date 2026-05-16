@@ -2,6 +2,8 @@ import { useMemo, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { MasteryChip } from '../components/MasteryChip';
 import { useProfile } from '../lib/profileContext';
+import { usePaywall } from '../lib/paywallContext';
+import { isPremium } from '../lib/profile';
 import { TECHNIQUE_NAMES, TECHNIQUE_LABELS } from '../lib/progression';
 import type { Difficulty } from '../engine/types';
 
@@ -70,6 +72,8 @@ function StatRow({ label, value }: { label: string; value: string }) {
  */
 export function StatsScreen() {
   const { profile } = useProfile();
+  const { openPaywall } = usePaywall();
+  const premium = isPremium(profile);
   const { solveHistory, streak, techniques } = profile;
   // Captured once at mount — the week/month windows stay stable across
   // re-renders (calling Date.now() in render is impure).
@@ -170,15 +174,41 @@ export function StatsScreen() {
             ))}
           </div>
 
-          <p
-            className="mt-4 mb-2 text-xs font-medium"
-            style={{ color: 'var(--text-tertiary)' }}
-          >
-            Techniques in your last 20 solves
-          </p>
-          {histogram.hasAny ? (
-            <div className="flex flex-col gap-2">
-              {TECHNIQUE_NAMES.filter((t) => histogram.tally.has(t)).map((t) => {
+          {!premium ? (
+            // The chips above are free for everyone; the deep dashboard
+            // (the last-20-solves histogram) is premium — soft-launch
+            // plan §3. A tap here is the mastery-stats paywall trigger.
+            <button
+              type="button"
+              onClick={() => openPaywall('mastery_stats')}
+              className="mt-4 w-full cursor-pointer px-3 py-3 text-left text-sm"
+              style={{
+                border: '1px dashed var(--border)',
+                borderRadius: 'var(--radius-card)',
+                color: 'var(--text-secondary)',
+                lineHeight: 1.5,
+              }}
+            >
+              <span
+                className="font-semibold"
+                style={{ color: 'var(--brand-600)' }}
+              >
+                Unlock the mastery dashboard
+              </span>
+              <br />
+              See which techniques you lean on across your recent solves.
+            </button>
+          ) : (
+            <>
+              <p
+                className="mt-4 mb-2 text-xs font-medium"
+                style={{ color: 'var(--text-tertiary)' }}
+              >
+                Techniques in your last 20 solves
+              </p>
+              {histogram.hasAny ? (
+                <div className="flex flex-col gap-2">
+                  {TECHNIQUE_NAMES.filter((t) => histogram.tally.has(t)).map((t) => {
                 const n = histogram.tally.get(t)!;
                 return (
                   <div key={t} className="flex items-center gap-2">
@@ -219,10 +249,16 @@ export function StatsScreen() {
                 );
               })}
             </div>
-          ) : (
-            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-              No hints used recently — you have been solving these yourself.
-            </p>
+              ) : (
+                <p
+                  className="text-sm"
+                  style={{ color: 'var(--text-secondary)' }}
+                >
+                  No hints used recently — you have been solving these
+                  yourself.
+                </p>
+              )}
+            </>
           )}
         </div>
 

@@ -61,10 +61,18 @@ interface PaywallProps {
   onSubscribe: (plan: PaywallPlan) => void;
   /** Caller wires this to a StoreKit restore. */
   onRestore: () => void;
+  /** Opens the voucher-redeem path — the working unlock until StoreKit. */
+  onRedeem: () => void;
 }
 
 /** Full-screen premium offer. */
-export function Paywall({ open, onClose, onSubscribe, onRestore }: PaywallProps) {
+export function Paywall({
+  open,
+  onClose,
+  onSubscribe,
+  onRestore,
+  onRedeem,
+}: PaywallProps) {
   const [selected, setSelected] = useState<PaywallPlan>('annual');
   if (!open) return null;
 
@@ -219,6 +227,18 @@ export function Paywall({ open, onClose, onSubscribe, onRestore }: PaywallProps)
           }}
         >
           Continue
+        </button>
+        <button
+          type="button"
+          onClick={onRedeem}
+          className="cursor-pointer py-3 text-base font-medium"
+          style={{
+            color: 'var(--brand-600)',
+            border: '1px solid var(--border)',
+            borderRadius: 'var(--radius-button)',
+          }}
+        >
+          Redeem a code
         </button>
         <button
           type="button"

@@ -5,6 +5,7 @@ import { HomeTab } from './screens/HomeTab';
 import { StatsScreen } from './screens/StatsScreen';
 import { SettingsScreen } from './screens/SettingsScreen';
 import { ProfileProvider } from './lib/ProfileProvider';
+import { PaywallProvider } from './lib/PaywallProvider';
 
 /**
  * App shell — a phone-width column with a three-tab bottom bar
@@ -18,25 +19,27 @@ function App() {
 
   return (
     <ProfileProvider>
-      <div style={{ background: 'var(--surface)', minHeight: '100dvh' }}>
-        {/* Phone-width column, centred via margin auto. Not a flex child —
-            flex items default to min-width:auto and would refuse to cap. */}
-        <div
-          className="mx-auto flex flex-col"
-          style={{ maxWidth: '430px', minHeight: '100dvh' }}
-        >
-          <main className="flex-1 overflow-auto">
-            {tab === 'home' ? (
-              <HomeTab />
-            ) : tab === 'stats' ? (
-              <StatsScreen />
-            ) : (
-              <SettingsScreen />
-            )}
-          </main>
-          <TabBar active={tab} onChange={setTab} />
+      <PaywallProvider>
+        <div style={{ background: 'var(--surface)', minHeight: '100dvh' }}>
+          {/* Phone-width column, centred via margin auto. Not a flex child —
+              flex items default to min-width:auto and would refuse to cap. */}
+          <div
+            className="mx-auto flex flex-col"
+            style={{ maxWidth: '430px', minHeight: '100dvh' }}
+          >
+            <main className="flex-1 overflow-auto">
+              {tab === 'home' ? (
+                <HomeTab />
+              ) : tab === 'stats' ? (
+                <StatsScreen />
+              ) : (
+                <SettingsScreen />
+              )}
+            </main>
+            <TabBar active={tab} onChange={setTab} />
+          </div>
         </div>
-      </div>
+      </PaywallProvider>
     </ProfileProvider>
   );
 }
