@@ -7,6 +7,7 @@ import { StageUpCard } from '../components/StageUpCard';
 import { useProfile } from '../lib/profileContext';
 import { analytics } from '../lib/analytics';
 import { dailyPuzzleSpec } from '../lib/daily';
+import { checkReentry } from '../lib/lastSeen';
 import type { Difficulty, GridSize } from '../engine/types';
 
 interface ActiveGame {
@@ -30,6 +31,8 @@ export function HomeTab() {
   const [game, setGame] = useState<ActiveGame | null>(null);
   // Bumped on every start so SolvingScreen remounts with a fresh puzzle.
   const [gameKey, setGameKey] = useState(0);
+  // Days since the last visit — stamped once on mount (backlog item 16).
+  const [reentryDays] = useState(checkReentry);
 
   function handleStart(difficulty: Difficulty, gridSize: GridSize) {
     analytics.puzzleStarted(difficulty, gridSize);
@@ -74,6 +77,7 @@ export function HomeTab() {
         <StageUpCard stage={profile.stage} onContinue={celebrateStage} />
       ) : (
         <HomeLanding
+          reentryDays={reentryDays}
           onNewPuzzle={() => setPickerOpen(true)}
           onStartDaily={handleStartDaily}
         />

@@ -2,6 +2,7 @@ import { ScreenHeader } from '../components/ScreenHeader';
 import { useProfile } from '../lib/profileContext';
 import { STAGE_NAMES } from '../lib/progression';
 import { dailyPuzzleSpec } from '../lib/daily';
+import { REENTRY_THRESHOLD_DAYS } from '../lib/lastSeen';
 import type { Difficulty } from '../engine/types';
 
 const DIFFICULTY_LABEL: Record<Difficulty, string> = {
@@ -12,6 +13,8 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 interface HomeLandingProps {
+  /** Days since the last visit, or null if recent / first open. */
+  reentryDays: number | null;
   onNewPuzzle: () => void;
   onStartDaily: () => void;
 }
@@ -33,18 +36,32 @@ const label: React.CSSProperties = {
  * anchor, ADR-0010), and a New puzzle entry point. A 7-day-plus gap
  * since the last visit surfaces a quiet "welcome back" line.
  */
-export function HomeLanding({ onNewPuzzle, onStartDaily }: HomeLandingProps) {
+export function HomeLanding({
+  reentryDays,
+  onNewPuzzle,
+  onStartDaily,
+}: HomeLandingProps) {
   const { profile } = useProfile();
   const daily = dailyPuzzleSpec();
   const dailyDone = profile.solveHistory.some(
     (s) => s.isDailyPuzzle && s.date.slice(0, 10) === daily.dateKey,
   );
   const streak = profile.streak.current;
+  const showReentry =
+    reentryDays !== null && reentryDays >= REENTRY_THRESHOLD_DAYS;
 
   return (
     <div>
       <ScreenHeader title="Tectonic" />
       <div className="flex flex-col gap-4 px-4 pt-2 pb-8">
+        {/* a warm line after a long gap (backlog item 16) */}
+        {showReentry && (
+          <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+            Welcome back — it’s been {reentryDays} days. Today’s puzzle is
+            ready when you are.
+          </p>
+        )}
+
         {/* stage */}
         <div style={card}>
           <p className="mb-1 text-xs font-semibold" style={label}>
