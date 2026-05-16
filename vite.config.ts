@@ -46,7 +46,9 @@ export default defineConfig(({ mode }) => {
       : null
 
   return {
-    base: '/tectonic-for-the-win/',
+    // GitHub Pages serves under a sub-path; the Capacitor iOS bundle
+    // loads from the app root. `vite build --mode capacitor` picks `/`.
+    base: mode === 'capacitor' ? '/' : '/tectonic-for-the-win/',
     plugins: [react(), tailwindcss(), mimirPlugin],
     server: {
       host: '127.0.0.1',
