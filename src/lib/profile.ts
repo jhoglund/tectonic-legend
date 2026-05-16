@@ -20,6 +20,10 @@ import { verifyVoucher } from './vouchers';
 const STORAGE_KEY = 'tectonic.profile';
 const SOLVE_HISTORY_CAP = 1000;
 
+/** A pristine profile carries the epoch as `updatedAt` so any profile
+ *  with real progress wins last-write-wins reconciliation against it. */
+const EPOCH = new Date(0).toISOString();
+
 /** One completed solve, as stored in the profile's history. */
 export interface SolveRecord {
   date: string; // ISO timestamp
@@ -45,6 +49,9 @@ export interface PlayerProfile {
   /** Voucher codes redeemed on this device — blocks per-device reuse. */
   redeemedVouchers: string[];
   settings: { theme: string; sound: boolean; haptics: boolean };
+  /** ISO timestamp of the last meaningful change. Drives last-write-wins
+   *  account sync (ADR-0013); a pristine profile carries the epoch. */
+  updatedAt: string;
   schemaVersion: 1;
 }
 
@@ -86,6 +93,7 @@ export function defaultProfile(): PlayerProfile {
     tier: 'free',
     redeemedVouchers: [],
     settings: { theme: 'system', sound: true, haptics: true },
+    updatedAt: EPOCH,
     schemaVersion: 1,
   };
 }
@@ -182,6 +190,7 @@ export function recordSolve(
     techniques,
     solveHistory,
     streak,
+    updatedAt: date,
   };
   return { profile: updated, stageUp: stage !== profile.stage ? stage : null };
 }
@@ -207,12 +216,22 @@ export function recordTutorialCompletion(
     if (next === null) break;
     stage = next;
   }
-  const updated: PlayerProfile = { ...profile, tutorialsCompleted, stage };
+  const updated: PlayerProfile = {
+    ...profile,
+    tutorialsCompleted,
+    stage,
+    updatedAt: new Date().toISOString(),
+  };
   return { profile: updated, stageUp: stage !== profile.stage ? stage : null };
 }
 
-/** Fill any missing fields of a parsed profile from the defaults. */
-function normalizeProfile(parsed: Record<string, unknown>): PlayerProfile {
+/**
+ * Fill any missing fields of a parsed profile from the defaults. Also
+ * used to sanitise a profile blob pulled from the account backend.
+ */
+export function normalizeProfile(
+  parsed: Record<string, unknown>,
+): PlayerProfile {
   const base = defaultProfile();
   const techniques = freshTechniques();
   const storedTechniques = parsed.techniques as
@@ -240,6 +259,13 @@ function normalizeProfile(parsed: Record<string, unknown>): PlayerProfile {
       : [],
     streak: { ...base.streak, ...(parsed.streak as object) },
     settings: { ...base.settings, ...(parsed.settings as object) },
+    // A profile saved before this field existed is a returning player's
+    // current state — treat it as freshly updated so it is not lost to a
+    // last-write-wins comparison on first sign-in.
+    updatedAt:
+      typeof parsed.updatedAt === 'string'
+        ? parsed.updatedAt
+        : new Date().toISOString(),
     schemaVersion: 1,
   };
 }
@@ -302,6 +328,7 @@ export function redeemVoucher(
       tier: 'premium',
       premiumExpiresAt,
       redeemedVouchers: [...profile.redeemedVouchers, normalized],
+      updatedAt: new Date().toISOString(),
     },
   };
 }
@@ -311,7 +338,11 @@ export function redeemVoucher(
  * stage-up card so it never repeats (progression.md §5).
  */
 export function markStageCelebrated(profile: PlayerProfile): PlayerProfile {
-  return { ...profile, celebratedStage: profile.stage };
+  return {
+    ...profile,
+    celebratedStage: profile.stage,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 /**
@@ -338,7 +369,13 @@ export function skipTutorials(profile: PlayerProfile): PlayerProfile {
     if (next === null) break;
     stage = next;
   }
-  return { ...profile, tutorialsCompleted, stage, celebratedStage: stage };
+  return {
+    ...profile,
+    tutorialsCompleted,
+    stage,
+    celebratedStage: stage,
+    updatedAt: new Date().toISOString(),
+  };
 }
 
 /** Load the profile from localStorage, or a fresh one if absent/invalid. */

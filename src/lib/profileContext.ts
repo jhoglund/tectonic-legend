@@ -1,6 +1,7 @@
 import { createContext, useContext } from 'react';
 import type { PlayerProfile, SolveOutcome, RedeemResult } from './profile';
 import type { PlayerStage } from './progression';
+import type { SyncState } from './profileSync';
 
 /**
  * App-wide player-profile store contract. One source of truth so the
@@ -9,6 +10,8 @@ import type { PlayerStage } from './progression';
  */
 export interface ProfileContextValue {
   profile: PlayerProfile;
+  /** Account-sync status — `idle` when signed out (accounts plan §4). */
+  syncState: SyncState;
   /** Ingest a finished solve; returns the stage advanced into, if any. */
   recordSolve: (outcome: SolveOutcome) => PlayerStage | null;
   /** Record one completed tutorial; returns the stage advanced into. */

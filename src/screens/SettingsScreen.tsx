@@ -49,7 +49,7 @@ function Rule({ heading, body }: { heading: string; body: string }) {
  * land with the StoreKit work.
  */
 export function SettingsScreen() {
-  const { profile } = useProfile();
+  const { profile, syncState } = useProfile();
   const { status, user, signOut } = useAuth();
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
@@ -88,6 +88,23 @@ export function SettingsScreen() {
                       {user.email}
                     </span>
                   </div>
+                  {syncState !== 'idle' && (
+                    <p
+                      className="text-xs"
+                      style={{
+                        color:
+                          syncState === 'error'
+                            ? 'var(--danger)'
+                            : 'var(--text-tertiary)',
+                      }}
+                    >
+                      {syncState === 'syncing'
+                        ? 'Syncing your progress…'
+                        : syncState === 'error'
+                          ? 'Couldn’t sync — will retry on next sign-in.'
+                          : 'Your progress is synced.'}
+                    </p>
+                  )}
                   <button
                     type="button"
                     onClick={() => void signOut()}
@@ -221,7 +238,10 @@ export function SettingsScreen() {
               style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
             >
               Tectonic is a logic puzzle of cages and numbers — no guessing,
-              just reasoning. Your progress is kept on this device only.
+              just reasoning.{' '}
+              {status === 'disabled'
+                ? 'Your progress is kept on this device only.'
+                : 'Your progress is saved on this device, and synced to your account when you’re signed in.'}
             </p>
           </div>
         </div>

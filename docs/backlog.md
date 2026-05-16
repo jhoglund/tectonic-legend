@@ -97,7 +97,7 @@ Decided 2026-05-16 ([ADR-0013](decisions/ADR-0013-supabase-as-the-backend.md)) �
 
 - **A1. Supabase foundation** — *done.* `@supabase/supabase-js`, the env-driven `src/lib/supabase.ts` client, and `supabase/schema.sql` (the `profiles` table + RLS). The project exists and `.env.local` is wired. *Still on Jonas:* apply `supabase/schema.sql` in the SQL editor — needed before A3 sync works.
 - **A2. Client auth** — *done.* `AuthProvider` + `useAuth` over Supabase Auth, the `AuthSheet` bottom sheet (sign in / create account), and the Account section in Settings with **Log out** (the original ask). Password reset is deferred — it needs a recovery-link landing UI; tracked as a follow-up.
-- **A3. Profile sync** — `ProfileProvider` pulls on sign-in / debounced-upserts on change; first sign-in adopts the local profile. Last-write-wins by `updatedAt`. *(next)*
+- **A3. Profile sync** — *done.* `PlayerProfile` gained an `updatedAt`; `ProfileProvider` pulls + reconciles on sign-in, debounced-upserts on change, and adopts the local profile on first sign-in. Last-write-wins by `updatedAt` (`src/lib/profileSync.ts`). Settings shows the sync status. *End-to-end verification pending a live sign-in* — needs a confirmed Supabase user.
 - **A4. Privacy rework** — data now leaves the device: update `docs/app-store-launch.md`, the privacy manifest, and the App Store privacy labels. A Privacy Policy URL becomes mandatory.
 - **A5. Sign in with Apple** — fast-follow (Supabase OAuth provider) once Apple Developer enrolment lands.
 
