@@ -37,6 +37,8 @@ interface SolvedScreenProps {
   techniquesUsed: Record<string, number>;
   /** Unaided technique applications this solve, keyed by Hint.type. */
   selfAppliedMoves: Record<string, number>;
+  /** Whether this solve was the daily puzzle. */
+  isDaily: boolean;
   getShareUrl: () => string | null;
   onExit: () => void;
 }
@@ -54,6 +56,7 @@ export function SolvedScreen({
   gridSize,
   techniquesUsed,
   selfAppliedMoves,
+  isDaily,
   getShareUrl,
   onExit,
 }: SolvedScreenProps) {
@@ -94,7 +97,7 @@ export function SolvedScreen({
       difficulty,
       gridSize,
       timeMs: elapsedSeconds * 1000,
-      isDailyPuzzle: false,
+      isDailyPuzzle: isDaily,
       techniques,
     });
 

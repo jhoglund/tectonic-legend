@@ -40,7 +40,12 @@ function gridSizeDimensions(size: GridSize): [number, number] {
   return size === '8x8' ? [8, 8] : [5, 5];
 }
 
-export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }) {
+export function useGame(initial?: {
+  difficulty: Difficulty;
+  gridSize: GridSize;
+  /** Deterministic generator seed — set for the daily puzzle. */
+  seed?: number;
+}) {
   const [difficulty, setDifficulty] = useState<Difficulty>('easy');
   const [gridSize, setGridSize] = useState<GridSize>('5x5');
   const [gameState, setGameState] = useState<GameState | null>(null);
@@ -73,7 +78,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     [gameState],
   );
 
-  const startNewGame = useCallback((diff: Difficulty, size?: GridSize) => {
+  const startNewGame = useCallback((diff: Difficulty, size?: GridSize, seed?: number) => {
     const actualSize = size ?? gridSize;
     setIsGenerating(true);
     setDifficulty(diff);
@@ -87,7 +92,7 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
 
     setTimeout(() => {
       const [rows, cols] = gridSizeDimensions(actualSize);
-      const puzzle = generatePuzzle(rows, cols, diff);
+      const puzzle = generatePuzzle(rows, cols, diff, seed);
       setGameState(createGameState(puzzle));
       setPast([]);
       setFuture([]);
@@ -125,7 +130,11 @@ export function useGame(initial?: { difficulty: Difficulty; gridSize: GridSize }
     // otherwise generate a fresh Easy 5x5.
     const t = setTimeout(() => {
       if (!loadFromUrl()) {
-        startNewGame(initial?.difficulty ?? 'easy', initial?.gridSize ?? '5x5');
+        startNewGame(
+          initial?.difficulty ?? 'easy',
+          initial?.gridSize ?? '5x5',
+          initial?.seed,
+        );
       }
     }, 0);
     return () => clearTimeout(t);

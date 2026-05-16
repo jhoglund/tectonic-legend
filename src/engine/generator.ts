@@ -4,6 +4,24 @@ import { solve, countSolutions } from './solver';
 import { buildNeighborCache, buildCellGroupMap } from './validator';
 
 /**
+ * Randomness source for generation. Defaults to Math.random; swapped to
+ * a seeded PRNG inside generatePuzzle when a seed is given, so the daily
+ * puzzle is the same for every player on a given date (ADR-0010).
+ */
+let rng: () => number = Math.random;
+
+/** mulberry32 — a small, fast, deterministic PRNG. */
+function mulberry32(seed: number): () => number {
+  let a = seed >>> 0;
+  return function () {
+    a = (a + 0x6d2b79f5) | 0;
+    let t = Math.imul(a ^ (a >>> 15), 1 | a);
+    t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
+    return ((t ^ (t >>> 14)) >>> 0) / 4294967296;
+  };
+}
+
+/**
  * Generate a random group/cage layout for a grid using region-growing.
  */
 export function generateLayout(
@@ -149,26 +167,34 @@ export function generateLayout(
 export function generatePuzzle(
   rows: number,
   cols: number,
-  difficulty: Difficulty
+  difficulty: Difficulty,
+  seed?: number
 ): Puzzle {
-  const isLarge = rows * cols > 50;
-  const maxGroupSize = 5;
-  const minGroupSize = isLarge ? 3 : 2;
-  const timeLimit = difficulty === 'expert' ? 30000 : isLarge ? 30000 : 5000;
-  const deadline = Date.now() + timeLimit;
-  for (let attempt = 0; Date.now() < deadline; attempt++) {
-    const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
+  // A seed makes the whole run deterministic — same seed, same puzzle —
+  // which is how the daily puzzle stays identical for every player.
+  rng = seed === undefined ? Math.random : mulberry32(seed);
+  try {
+    const isLarge = rows * cols > 50;
+    const maxGroupSize = 5;
+    const minGroupSize = isLarge ? 3 : 2;
+    const timeLimit = difficulty === 'expert' ? 30000 : isLarge ? 30000 : 5000;
+    const deadline = Date.now() + timeLimit;
+    for (let attempt = 0; Date.now() < deadline; attempt++) {
+      const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
 
-    if (layout.groups.some(g => g.cells.length > maxGroupSize || g.cells.length < minGroupSize)) continue;
+      if (layout.groups.some(g => g.cells.length > maxGroupSize || g.cells.length < minGroupSize)) continue;
 
-    const grid = fillGrid(layout);
-    if (!grid) continue;
+      const grid = fillGrid(layout);
+      if (!grid) continue;
 
-    const puzzle = carveClues(layout, grid, difficulty);
-    if (puzzle) return puzzle;
+      const puzzle = carveClues(layout, grid, difficulty);
+      if (puzzle) return puzzle;
+    }
+
+    throw new Error('Failed to generate puzzle — please try again');
+  } finally {
+    rng = Math.random;
   }
-
-  throw new Error('Failed to generate puzzle — please try again');
 }
 
 type UndoEntry = { r: number; c: number; prevVal: number; prevCands: Set<number>; removed: [number, number, number][] };
@@ -409,11 +435,11 @@ function getOrthogonalNeighbors(
 
 function shuffle<T>(arr: T[]): void {
   for (let i = arr.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
+    const j = Math.floor(rng() * (i + 1));
     [arr[i], arr[j]] = [arr[j], arr[i]];
   }
 }
 
 function randInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
+  return Math.floor(rng() * (max - min + 1)) + min;
 }

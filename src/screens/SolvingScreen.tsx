@@ -31,6 +31,10 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 interface SolvingScreenProps {
   initialDifficulty: Difficulty;
   initialGridSize: GridSize;
+  /** Deterministic seed — set when this is the daily puzzle. */
+  seed?: number;
+  /** Whether this session is the daily puzzle (recorded on the solve). */
+  isDaily?: boolean;
   onExit: () => void;
 }
 
@@ -44,6 +48,8 @@ interface SolvingScreenProps {
 export function SolvingScreen({
   initialDifficulty,
   initialGridSize,
+  seed,
+  isDaily = false,
   onExit,
 }: SolvingScreenProps) {
   const {
@@ -64,7 +70,7 @@ export function SolvingScreen({
     getShareUrl,
     undo,
     redo,
-  } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize });
+  } = useGame({ difficulty: initialDifficulty, gridSize: initialGridSize, seed });
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
   const chain = hint?.chain ?? null;
@@ -279,6 +285,7 @@ export function SolvingScreen({
           gridSize={initialGridSize}
           techniquesUsed={techniquesUsed}
           selfAppliedMoves={selfAppliedMoves}
+          isDaily={isDaily}
           getShareUrl={getShareUrl}
           onExit={onExit}
         />

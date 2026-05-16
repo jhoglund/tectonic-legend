@@ -64,6 +64,20 @@ describe('generatePuzzle', () => {
       expect(group.cells.length).toBeLessThanOrEqual(5);
     }
   });
+
+  it('is deterministic for a given seed — the basis of the daily puzzle', () => {
+    const a = generatePuzzle(5, 5, 'medium', 4242);
+    const b = generatePuzzle(5, 5, 'medium', 4242);
+    expect(b.clues).toEqual(a.clues);
+    expect(b.solution).toEqual(a.solution);
+    expect(b.layout.cellGroup).toEqual(a.layout.cellGroup);
+  });
+
+  it('produces different puzzles for different seeds', () => {
+    const a = generatePuzzle(5, 5, 'medium', 1);
+    const b = generatePuzzle(5, 5, 'medium', 2);
+    expect(b.solution).not.toEqual(a.solution);
+  });
 });
 
 describe('generateLayout', () => {
