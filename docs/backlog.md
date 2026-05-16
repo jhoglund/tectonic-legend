@@ -76,10 +76,10 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 ### Phase 4 — Monetization
 
 17. **StoreKit / RevenueCat setup** — NOT started. Blocked on Apple Developer enrolment + App Store Connect products + the resolved free/premium split. See handover.
-17a. **Subscription offers — vouchers & temporary discounts** (added 2026-05-16). Let Jonas grant comped access and run time-boxed discounts, using Apple's native offer mechanisms — **no backend and no custom admin UI** (App Store Connect is the console). Depends on item 17.
-    - **Vouchers → Offer Codes.** One-time or custom codes generated in App Store Connect; can grant a free or steeply-discounted period — the path to comp a friend, reviewer, or press. App side: a "Redeem code" affordance (StoreKit 2 code-redemption sheet) in Settings or on the paywall.
-    - **Temporary discounts → Introductory & Promotional Offers.** Introductory offer = free trial / intro price for new subscribers (near table-stakes for a subscription launch). Promotional / win-back offers = a discounted price for a set window, targeted at lapsed or existing subscribers.
-    - Apple's native offers cover the brief with zero extra infra; RevenueCat, if adopted (ADR-0008), layers its own offer/entitlement tooling on top. Lettered (17a) to avoid renumbering 18–24.
+17a. **◑ Subscription offers — vouchers & temporary discounts** (added 2026-05-16). Grant comped access and run time-boxed discounts.
+    - **✅ Local vouchers** — `src/lib/vouchers.ts` + redeem flow in Settings: self-verifying `TEC-XXXX-XXXX` codes carrying a lifetime or N-day grant, validated offline. Premium entitlement on the profile (`isPremium`, timed-grant expiry). No Apple account, no backend. Done 2026-05-16 — see [`docs/vouchers.md`](vouchers.md). The timed (N-day) code is the local stand-in for a temporary offer.
+    - **Apple-native (deferred, needs item 17).** App Store **Offer Codes** for store-side vouchers; **Introductory & Promotional Offers** for real price discounts (free trial, win-back). App Store Connect is the console — no custom admin UI. RevenueCat, if adopted (ADR-0008), layers its own offer/entitlement tooling on top.
+    - Lettered (17a) to avoid renumbering 18–24.
 18. **◑ Paywall** — `src/components/Paywall.tsx` built (full-screen offer, plans, Apple disclosure) but **not mounted** — no feature gated, no live purchase. Triggers depend on the re-derived split (ADR-0007 vs 0012). Done as a component 2026-05-16; wiring deferred.
 19. **✅ Settings (trimmed)** — How to Play + About; replaces the stub the App Store audit flagged. Theme/sound/haptics deferred (features don't exist yet). Done 2026-05-16.
 
