@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Selected cell — cage-tinted treatment</title>
+<style>
+/* Light-mode colour study. Tokens mirrored from src/index.css; dark-mode
+   OKLCH tuning is deferred to graduation (see BRIEF). */
+:root{
+  --brand-600:#0891b2;
+  --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+  --border:#e5e5e5;
+  --surface-cell-selected:#e0f7fa;
+  --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  --text-cell-selected:oklch(42% 0.076 256);
+  --cell-text:oklch(4% 0 0);
+  --cage-1:oklch(96.5% 0.074 88); --cage-2:oklch(92% 0.036 0);
+  --cage-3:oklch(88% 0.038 256); --cage-4:oklch(88.5% 0.048 180);
+  --cage-5:oklch(96.5% 0.006 83);
+  --border-cage:oklch(54% 0 0); --border-cage-width:2px; --border-inner-width:1px;
+  --cage-1-inner:oklch(from var(--cage-1) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-2-inner:oklch(from var(--cage-2) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-3-inner:oklch(from var(--cage-3) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-4-inner:oklch(from var(--cage-4) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-5-inner:oklch(from var(--cage-5) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-1-player:oklch(from var(--cage-1) 0.42 calc(c * 2) h);
+  --cage-2-player:oklch(from var(--cage-2) 0.42 calc(c * 2) h);
+  --cage-3-player:oklch(from var(--cage-3) 0.42 calc(c * 2) h);
+  --cage-4-player:oklch(from var(--cage-4) 0.42 calc(c * 2) h);
+  --cage-5-player:oklch(from var(--cage-5) 0.42 calc(c * 2) h);
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+}
+.cage-1{--cell-fill:var(--cage-1);--cell-inner:var(--cage-1-inner);--cell-player:var(--cage-1-player);}
+.cage-2{--cell-fill:var(--cage-2);--cell-inner:var(--cage-2-inner);--cell-player:var(--cage-2-player);}
+.cage-3{--cell-fill:var(--cage-3);--cell-inner:var(--cage-3-inner);--cell-player:var(--cage-3-player);}
+.cage-4{--cell-fill:var(--cage-4);--cell-inner:var(--cage-4-inner);--cell-player:var(--cage-4-player);}
+.cage-5{--cell-fill:var(--cage-5);--cell-inner:var(--cage-5-inner);--cell-player:var(--cage-5-player);}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-ui);background:var(--surface);color:var(--text-primary);
+  padding:40px 24px 80px;-webkit-font-smoothing:antialiased;}
+.page-head{max-width:760px;margin:0 auto 28px;}
+.page-head h1{font-size:25px;font-weight:700;letter-spacing:-0.01em;}
+.page-head p{color:var(--text-secondary);font-size:14px;margin-top:10px;line-height:1.6;}
+.grid-row{display:flex;flex-wrap:wrap;gap:30px;max-width:1100px;margin:0 auto;}
+.variant{display:flex;flex-direction:column;gap:12px;}
+.variant h2{font-size:16px;font-weight:700;}
+.variant .desc{font-size:13px;color:var(--text-secondary);line-height:1.5;max-width:280px;}
+.variant .spec{font-family:var(--font-mono);font-size:10.5px;color:var(--text-tertiary);
+  line-height:1.5;max-width:280px;}
+
+.board{display:inline-grid;grid-template-columns:repeat(5,58px);
+  border:var(--border-cage-width) solid var(--border-cage);border-radius:8px;
+  overflow:hidden;background:var(--surface-board);}
+.cell{width:58px;height:58px;display:grid;place-items:center;position:relative;
+  background:var(--cell-fill);cursor:pointer;-webkit-tap-highlight-color:transparent;
+  transition:background-color 120ms ease-out,box-shadow 120ms ease-out;}
+.digit{font-family:var(--font-mono);font-size:24px;font-weight:500;
+  font-variant-numeric:tabular-nums;transition:color 120ms ease-out;}
+.v-clue{color:var(--cell-text);font-weight:700;}
+.v-player{color:var(--cell-player);}
+
+/* === reference — the current treatment ============================ */
+.var-ref .cell.sel{background:var(--surface-cell-selected);
+  box-shadow:inset 0 0 0 2px var(--brand-600);}
+.var-ref .cell.sel .digit{color:var(--text-cell-selected);}
+
+/* === soft — a gentle darker tint, dark ink ======================== */
+.var-soft .cell.sel{
+  background:oklch(from var(--cell-fill) calc(l - 0.13) calc(c * 1.7) h);
+  box-shadow:inset 0 0 0 2px oklch(from var(--cell-fill) calc(l - 0.38) calc(c * 2.1) h);}
+.var-soft .cell.sel .digit{
+  color:oklch(from var(--cell-fill) calc(l - 0.60) calc(c * 2.4) h);}
+
+/* === deep — a stronger darker tint, darkest ink =================== */
+.var-deep .cell.sel{
+  background:oklch(from var(--cell-fill) calc(l - 0.24) calc(c * 2) h);
+  box-shadow:inset 0 0 0 2px oklch(from var(--cell-fill) calc(l - 0.46) calc(c * 2.5) h);}
+.var-deep .cell.sel .digit{
+  color:oklch(from var(--cell-fill) calc(l - 0.64) calc(c * 2.6) h);}
+
+/* === dark — a dark cage tint with light ink ======================= */
+.var-dark .cell.sel{
+  background:oklch(from var(--cell-fill) calc(l - 0.50) calc(c * 2.3) h);
+  box-shadow:inset 0 0 0 2px oklch(from var(--cell-fill) calc(l - 0.62) calc(c * 2.6) h);}
+.var-dark .cell.sel .digit{
+  color:oklch(from var(--cell-fill) 0.98 calc(c * 0.5) h);}
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>Selected cell — cage-tinted treatment</h1>
+  <p>Instead of the fixed cyan surface + brand ring, the active cell becomes a
+  darker tint of its own cage colour, with the value ink and the ring drawn from
+  the same hue. Tap any cell to toggle it selected; one cell per cage is
+  pre-selected so every cage colour is visible. A light-mode study —
+  dark-mode OKLCH tuning is deferred to graduation. Session: 2026-05-17.</p>
+</header>
+<div class="grid-row" id="variants"></div>
+
+<script>
+const CAGE5 = ['AABBB', 'AABCC', 'ADDCC', 'EDDFC', 'EEFFF'];
+
+/* one cell per cage, pre-selected so all five cage colours show */
+const PRESELECT = { A: [1, 1], B: [0, 3], C: [1, 4], D: [2, 1], E: [4, 0], F: [4, 2] };
+
+const VARIANTS = [
+  {
+    cls: 'var-ref', name: 'Reference — current',
+    desc: 'The treatment shipping today: a fixed cyan surface with the brand-teal ring.',
+    spec: 'bg surface-cell-selected · ring brand-600 · ink text-cell-selected',
+  },
+  {
+    cls: 'var-soft', name: 'Soft tint',
+    desc: 'A gentle darker tint of the cage, a dark same-hue ring, dark same-hue ink.',
+    spec: 'bg l−0.13 c×1.7 · ring l−0.38 c×2.1 · ink l−0.60 c×2.4',
+  },
+  {
+    cls: 'var-deep', name: 'Deep tint',
+    desc: 'A stronger darker tint — more present on the board, still dark ink.',
+    spec: 'bg l−0.24 c×2.0 · ring l−0.46 c×2.5 · ink l−0.64 c×2.6',
+  },
+  {
+    cls: 'var-dark', name: 'Dark cell, light ink',
+    desc: 'The cell goes to a deep cage tint; the value flips to light for contrast.',
+    spec: 'bg l−0.50 c×2.3 · ring l−0.62 c×2.6 · ink 0.98 c×0.5',
+  },
+];
+
+/** Greedy graph-colour the cages so neighbours differ (mirrors Board.tsx). */
+function colourCages(grid) {
+  const rows = grid.length, cols = grid[0].length;
+  const adj = {};
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const g = grid[r][c];
+    (adj[g] = adj[g] || {});
+    for (const [dr, dc] of [[0, 1], [1, 0], [0, -1], [-1, 0]]) {
+      const nr = r + dr, nc = c + dc;
+      if (nr >= 0 && nr < rows && nc >= 0 && nc < cols && grid[nr][nc] !== g) {
+        adj[g][grid[nr][nc]] = true;
+      }
+    }
+  }
+  const colour = {};
+  for (const id of Object.keys(adj).sort()) {
+    const used = {};
+    for (const n in adj[id]) if (colour[n] != null) used[colour[n]] = true;
+    let k = 0; while (used[k]) k++;
+    colour[id] = k;
+  }
+  return colour;
+}
+
+function edge(kind) {
+  return kind === 'cage'
+    ? 'var(--border-cage-width) solid var(--border-cage)'
+    : 'var(--border-inner-width) solid var(--cell-inner)';
+}
+
+function buildBoard(variantCls) {
+  const grid = CAGE5.map((s) => s.split(''));
+  const rows = grid.length, cols = grid[0].length;
+  const colour = colourCages(grid);
+  const cageCells = {};
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    (cageCells[grid[r][c]] = cageCells[grid[r][c]] || []).push([r, c]);
+  }
+  const idxIn = {};
+  for (const id in cageCells) cageCells[id].forEach((rc, i) => { idxIn[rc] = i; });
+
+  const board = document.createElement('div');
+  board.className = 'board ' + variantCls;
+  for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) {
+    const id = grid[r][c];
+    const cell = document.createElement('div');
+    cell.className = 'cell cage-' + ((colour[id] % 5) + 1);
+    // grid lines (top/left), simple — this study is about the cell colour
+    if (r > 0) cell.style.borderTop = edge(grid[r - 1][c] !== id ? 'cage' : 'inner');
+    if (c > 0) cell.style.borderLeft = edge(grid[r][c - 1] !== id ? 'cage' : 'inner');
+    const size = cageCells[id].length;
+    const val = (idxIn[[r, c]] % size) + 1;
+    const blank = (r * 7 + c * 5) % 10 < 2;
+    if (!blank) {
+      const d = document.createElement('span');
+      d.className = 'digit ' + ((r + c) % 2 === 0 ? 'v-clue' : 'v-player');
+      d.textContent = val;
+      cell.appendChild(d);
+    }
+    if (PRESELECT[id] && PRESELECT[id][0] === r && PRESELECT[id][1] === c) {
+      cell.classList.add('sel');
+    }
+    cell.addEventListener('click', () => cell.classList.toggle('sel'));
+    board.appendChild(cell);
+  }
+  return board;
+}
+
+const root = document.getElementById('variants');
+for (const v of VARIANTS) {
+  const wrap = document.createElement('div');
+  wrap.className = 'variant';
+  const h2 = document.createElement('h2');
+  h2.textContent = v.name;
+  const desc = document.createElement('p');
+  desc.className = 'desc';
+  desc.textContent = v.desc;
+  wrap.append(h2, desc, buildBoard(v.cls));
+  const spec = document.createElement('p');
+  spec.className = 'spec';
+  spec.textContent = v.spec;
+  wrap.appendChild(spec);
+  root.appendChild(wrap);
+}
+</script>
+</body>
+</html>
