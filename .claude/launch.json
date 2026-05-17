@@ -12,6 +12,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "7580", "--directory", "prototypes/2026-05-17-solving-shapes"],
       "port": 7580
+    },
+    {
+      "name": "state-animations",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7581", "--directory", "prototypes/2026-05-17-state-animations"],
+      "port": 7581
     }
   ]
 }

@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>State animations — exploration</title>
+<style>
+/* --- design tokens, mirrored from src/index.css ------------------- */
+:root{
+  --brand-100:#cffafe; --brand-600:#0891b2; --brand-700:#0e7490;
+  --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+  --border:#e5e5e5;
+  --surface-active:#e5e5e5; --surface-pressed:#404040; --text-on-pressed:#ffffff;
+  --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  --success:#10b981; --danger:#dc2626;
+  --cage-1:oklch(96.5% 0.074 88); --cage-2:oklch(92% 0.036 0);
+  --cage-3:oklch(88% 0.038 256); --cage-4:oklch(88.5% 0.048 180);
+  --cage-5:oklch(96.5% 0.006 83);
+  --border-cage:oklch(54% 0 0); --border-cage-width:2px;
+  --cage-1-player:oklch(from var(--cage-1) 0.42 calc(c * 2) h);
+  --cage-3-player:oklch(from var(--cage-3) 0.42 calc(c * 2) h);
+  --cage-4-player:oklch(from var(--cage-4) 0.42 calc(c * 2) h);
+  --cell-text:oklch(4% 0 0);
+  --text-cell-selected:oklch(42% 0.076 256);
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+  --radius-button:8px; --radius-card:12px; --radius-chip:999px;
+  --shadow-modal:0 12px 40px rgba(0,0,0,0.18);
+  /* motion — categorical, from design-tokens §10 */
+  --motion-fast:120ms; --motion-base:200ms;
+  --ease-out:ease-out; --ease-soft:cubic-bezier(0.2,0.8,0.2,1);
+}
+@media (prefers-color-scheme:dark){
+  :root{
+    --brand-100:#155057; --brand-600:#06b6d4; --brand-700:#0e7490;
+    --surface:#0a0a0a; --surface-elevated:#171717; --surface-board:#0f1419;
+    --border:#2a2a2a;
+    --surface-active:#2a2a2a; --surface-pressed:#e5e5e5; --text-on-pressed:#0a0a0a;
+    --text-primary:#fafafa; --text-secondary:#a3a3a3; --text-tertiary:#737373;
+    --cage-1:oklch(36.5% 0.052 88); --cage-2:oklch(32% 0.025 0);
+    --cage-3:oklch(28% 0.027 256); --cage-4:oklch(28.5% 0.034 180);
+    --cage-5:oklch(36.5% 0.004 83); --cell-text:oklch(96% 0 0);
+    --text-cell-selected:oklch(85% 0.054 256);
+    --cage-1-player:oklch(from var(--cage-1) 0.85 calc(c * 2) h);
+    --cage-3-player:oklch(from var(--cage-3) 0.85 calc(c * 2) h);
+    --cage-4-player:oklch(from var(--cage-4) 0.85 calc(c * 2) h);
+  }
+}
+.cage-1{background:var(--cage-1);--cell-player:var(--cage-1-player);}
+.cage-3{background:var(--cage-3);--cell-player:var(--cage-3-player);}
+.cage-4{background:var(--cage-4);--cell-player:var(--cage-4-player);}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-ui);background:var(--surface);color:var(--text-primary);
+  padding:40px 24px 80px;-webkit-font-smoothing:antialiased;}
+.page-head{max-width:760px;margin:0 auto 32px;}
+.page-head h1{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
+.page-head p{color:var(--text-secondary);font-size:14px;margin-top:10px;line-height:1.6;}
+
+.card{max-width:760px;margin:0 auto 22px;background:var(--surface-elevated);
+  border:1px solid var(--border);border-radius:var(--radius-card);padding:24px;}
+.card h2{font-size:17px;font-weight:700;}
+.card .lead{color:var(--text-secondary);font-size:13.5px;margin-top:6px;line-height:1.55;}
+.row{display:flex;flex-wrap:wrap;gap:24px;margin-top:20px;}
+.variant{display:flex;flex-direction:column;gap:10px;}
+.variant .name{font-size:12px;font-weight:600;letter-spacing:0.04em;
+  text-transform:uppercase;color:var(--text-tertiary);}
+.variant .spec{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);}
+.replay{align-self:flex-start;font-family:var(--font-mono);font-size:11px;
+  color:var(--brand-600);background:none;border:0;cursor:pointer;padding:0;}
+
+/* --- buttons -------------------------------------------------------- */
+.btnrow{display:flex;gap:8px;}
+.btn{height:38px;padding:0 14px;font-size:13px;font-weight:500;font-family:var(--font-ui);
+  border:1px solid var(--border);border-radius:var(--radius-button);
+  background:var(--surface-elevated);color:var(--text-primary);cursor:pointer;}
+.btn.is-active{background:var(--surface-active);border-color:var(--surface-active);}
+.btn:active{background:var(--surface-pressed);border-color:var(--surface-pressed);
+  color:var(--text-on-pressed);}
+.btn--fast{transition:background var(--motion-fast) var(--ease-out),
+  border-color var(--motion-fast) var(--ease-out),color var(--motion-fast) var(--ease-out);}
+.btn--base{transition:background var(--motion-base) var(--ease-out),
+  border-color var(--motion-base) var(--ease-out),color var(--motion-base) var(--ease-out);}
+
+/* --- board cells ---------------------------------------------------- */
+.cell{width:66px;height:66px;display:grid;place-items:center;position:relative;
+  border:var(--border-cage-width) solid var(--border-cage);cursor:pointer;
+  -webkit-tap-highlight-color:transparent;}
+.digit{font-family:var(--font-mono);font-size:30px;font-weight:500;
+  font-variant-numeric:tabular-nums;color:var(--cell-player);}
+
+@keyframes grow{from{transform:scale(0.6);opacity:0;}to{transform:scale(1);opacity:1;}}
+@keyframes growInk{
+  from{transform:scale(0.7);color:var(--brand-600);}
+  to{transform:scale(1);color:var(--cell-player);}}
+@keyframes soft{from{transform:scale(0.92);opacity:0;}to{transform:scale(1);opacity:1;}}
+.anim-grow{animation:grow var(--motion-fast) var(--ease-out);}
+.anim-ink{animation:growInk var(--motion-base) var(--ease-out);}
+.anim-soft{animation:soft var(--motion-base) var(--ease-out);}
+
+/* --- selection ring ------------------------------------------------- */
+.ringcell{transition:box-shadow var(--motion-fast) var(--ease-out),
+  background var(--motion-fast) var(--ease-out);}
+.ringcell.sel{background:var(--surface-elevated);
+  box-shadow:inset 0 0 0 2px var(--brand-600);}
+.ringcell .digit{transition:color var(--motion-base) var(--ease-out);}
+.ringcell.sel .digit{color:var(--text-cell-selected);}
+
+.ring2::after{content:'';position:absolute;inset:0;
+  box-shadow:inset 0 0 0 2px var(--brand-600);
+  opacity:0;transform:scale(1.14);
+  transition:opacity 160ms var(--ease-out),transform 160ms var(--ease-out);}
+.ring2.sel::after{opacity:1;transform:scale(1);}
+.ring2 .digit{transition:color var(--motion-base) var(--ease-out);}
+.ring2.sel .digit{color:var(--text-cell-selected);}
+
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:0.01ms!important;transition-duration:0.01ms!important;}
+}
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>State animations — exploration</h1>
+  <p>Gentle transitions for the moments a control or cell changes state — button
+  states, a number entering the grid, the active-cell ring. Durations are the
+  categorical motion tokens (fast 120ms / base 200ms, ease-out); no overshoot,
+  no springs. Tap any sample to play it. Session: 2026-05-17.</p>
+</header>
+
+<!-- 1. button state transitions -->
+<section class="card">
+  <h2>1 · Button state change</h2>
+  <p class="lead">Tap a button to toggle its active (e.g. Notes-on) state; press
+  and hold for the pressed state. The variants differ only in how the colour
+  change is timed.</p>
+  <div class="row" id="buttons"></div>
+</section>
+
+<!-- 2. number entering a cell -->
+<section class="card">
+  <h2>2 · Number enters a cell</h2>
+  <p class="lead">A placed number grows into place as its colour settles in.
+  Tap a cell to place a number; tap again to clear and replay.</p>
+  <div class="row" id="cells"></div>
+</section>
+
+<!-- 3. selection ring -->
+<section class="card">
+  <h2>3 · Active-cell ring</h2>
+  <p class="lead">The brand ring eases in when a cell becomes the active one,
+  and the value settles to the selected-cell blue. Tap a cell to toggle.</p>
+  <div class="row" id="rings"></div>
+</section>
+
+<script>
+/* --- 1. buttons --------------------------------------------------- */
+const BTN_VARIANTS = [
+  { name: 'No transition', cls: '', spec: 'state snaps — 0ms' },
+  { name: 'Fast', cls: 'btn--fast', spec: 'background/border/colour · 120ms ease-out' },
+  { name: 'Base', cls: 'btn--base', spec: 'background/border/colour · 200ms ease-out' },
+];
+const buttonsEl = document.getElementById('buttons');
+for (const v of BTN_VARIANTS) {
+  const wrap = document.createElement('div');
+  wrap.className = 'variant';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = v.name;
+  const rowEl = document.createElement('div');
+  rowEl.className = 'btnrow';
+  for (const label of ['Notes', 'Hint', 'Clear']) {
+    const b = document.createElement('button');
+    b.type = 'button';
+    b.className = 'btn' + (v.cls ? ' ' + v.cls : '');
+    b.textContent = label;
+    b.addEventListener('click', () => b.classList.toggle('is-active'));
+    rowEl.appendChild(b);
+  }
+  const spec = document.createElement('div');
+  spec.className = 'spec';
+  spec.textContent = v.spec;
+  wrap.append(name, rowEl, spec);
+  buttonsEl.appendChild(wrap);
+}
+
+/* --- 2. number cells ---------------------------------------------- */
+const CELL_VARIANTS = [
+  { name: 'Grow', cage: 'cage-1', anim: 'anim-grow', spec: 'scale 0.6→1 + fade · 120ms ease-out' },
+  { name: 'Grow + ink settle', cage: 'cage-3', anim: 'anim-ink', spec: 'scale 0.7→1, brand→ink · 200ms ease-out' },
+  { name: 'Soft', cage: 'cage-4', anim: 'anim-soft', spec: 'scale 0.92→1 + fade · 200ms ease-out' },
+];
+const cellsEl = document.getElementById('cells');
+for (const v of CELL_VARIANTS) {
+  const wrap = document.createElement('div');
+  wrap.className = 'variant';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = v.name;
+  const cell = document.createElement('div');
+  cell.className = 'cell ' + v.cage;
+  const place = () => {
+    const existing = cell.querySelector('.digit');
+    if (existing) { existing.remove(); return; }
+    const d = document.createElement('span');
+    d.className = 'digit ' + v.anim;
+    d.textContent = String(1 + Math.floor(Math.random() * 5));
+    cell.appendChild(d);
+  };
+  cell.addEventListener('click', place);
+  const replay = document.createElement('button');
+  replay.type = 'button';
+  replay.className = 'replay';
+  replay.textContent = '▶ replay';
+  replay.addEventListener('click', () => {
+    cell.querySelector('.digit')?.remove();
+    place();
+  });
+  const spec = document.createElement('div');
+  spec.className = 'spec';
+  spec.textContent = v.spec;
+  wrap.append(name, cell, replay, spec);
+  cellsEl.appendChild(wrap);
+}
+
+/* --- 3. selection ring -------------------------------------------- */
+const RING_VARIANTS = [
+  { name: 'Fade in', cls: 'ringcell', cage: 'cage-1', spec: 'box-shadow ring · 120ms ease-out' },
+  { name: 'Scale in', cls: 'ring2', cage: 'cage-4', spec: 'ring scales 1.14→1 + fade · 160ms ease-out' },
+];
+const ringsEl = document.getElementById('rings');
+for (const v of RING_VARIANTS) {
+  const wrap = document.createElement('div');
+  wrap.className = 'variant';
+  const name = document.createElement('div');
+  name.className = 'name';
+  name.textContent = v.name;
+  const cell = document.createElement('div');
+  cell.className = 'cell ' + v.cls + ' ' + v.cage;
+  const d = document.createElement('span');
+  d.className = 'digit';
+  d.textContent = '4';
+  cell.appendChild(d);
+  cell.addEventListener('click', () => cell.classList.toggle('sel'));
+  const spec = document.createElement('div');
+  spec.className = 'spec';
+  spec.textContent = v.spec;
+  wrap.append(name, cell, spec);
+  ringsEl.appendChild(wrap);
+}
+</script>
+</body>
+</html>
