@@ -4,10 +4,10 @@
 
 ## What ran
 
-Ten Solving-screen shape variants, generated directly by Claude Code
-(not the Open Design loop) at Jonas's request. All ten live on a single
-page — [`index.html`](index.html) — each rendered at both a 5×5 and an
-8×8 grid, with a sticky 01–10 nav.
+Eleven Solving-screen shape variants, generated directly by Claude Code
+(not the Open Design loop) at Jonas's request. All eleven live on a
+single page — [`index.html`](index.html) — each rendered at both a 5×5
+and an 8×8 grid, with a sticky 01–11 nav.
 
 | # | Anchor | Direction |
 |---|--------|-----------|
@@ -21,6 +21,7 @@ page — [`index.html`](index.html) — each rendered at both a 5×5 and an
 | 08 | [`#v08`](index.html#v08) | Card-framed |
 | 09 | [`#v09`](index.html#v09) | Full-bleed grid |
 | 10 | [`#v10`](index.html#v10) | Inset grid (~10px) |
+| 11 | [`#v11`](index.html#v11) | Refined candidate — round keys, Undo in toolbar, gray active, content-width board |
 
 ## Review notes
 

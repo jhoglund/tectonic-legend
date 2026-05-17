@@ -127,7 +127,10 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 .tool{flex:1;padding:var(--proto-btnh) 0;font-size:13px;font-weight:500;font-family:var(--font-ui);
   border-radius:var(--proto-rbtn);border:1px solid var(--border);background:var(--surface-elevated);
   color:var(--text-primary);cursor:pointer;}
-.tool.active{background:var(--brand-100);border-color:var(--brand-100);color:var(--brand-600);}
+.tool.active{background:var(--proto-active-bg,var(--brand-100));
+  border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
+.tool-undo{display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo svg{width:16px;height:16px;}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
   background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-primary);
@@ -249,31 +252,43 @@ const hintcard = `
             <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
           </div>`;
 
-const toolbar = `
+const toolbar = (withUndo) => `
           <div class="toolbar">
             <button class="tool active">Notes</button>
             <button class="tool">Hint</button>
             <button class="tool">Validate</button>
-            <button class="tool">Clear</button>
+            <button class="tool">Clear</button>${
+              withUndo
+                ? `
+            <button class="tool tool-undo" aria-label="Undo">${ICON_UNDO}</button>`
+                : ''
+            }
           </div>`;
 
-const keypad = `
+const keypad = (withUndo) => `
           <div class="keypad">
             <button class="key">1</button>
             <button class="key">2</button>
             <button class="key">3</button>
             <button class="key">4</button>
-            <button class="key">5</button>
-            <button class="key key-undo">${ICON_UNDO}</button>
+            <button class="key">5</button>${
+              withUndo
+                ? `
+            <button class="key key-undo" aria-label="Undo">${ICON_UNDO}</button>`
+                : ''
+            }
           </div>`;
 
 const wrap = (cls, inner) => `<div class="${cls}">${inner}</div>`;
 
-/** One full phone screen. `framed` boxes board / toolbar / keypad in cards. */
-function screen(title, key, layout, framed, fill) {
+/** One full phone screen. `framed` boxes board / toolbar / keypad in
+ *  cards; `undoInToolbar` moves Undo from the keypad to the toolbar. */
+function screen(title, key, layout, framed, fill, undoInToolbar) {
+  const tbInner = toolbar(undoInToolbar);
+  const kpInner = keypad(!undoInToolbar);
   const bd = framed ? wrap('framecard', board(key, fill)) : board(key, fill);
-  const tb = framed ? wrap('framecard', toolbar) : toolbar;
-  const kp = framed ? wrap('framecard', keypad) : keypad;
+  const tb = framed ? wrap('framecard', tbInner) : tbInner;
+  const kp = framed ? wrap('framecard', kpInner) : kpInner;
   const stack =
     layout === 'keypad-first' ? [bd, kp, tb, hintcard] : [bd, hintcard, tb, kp];
   return `${navbar(title)}
@@ -345,6 +360,13 @@ const variants = [
     cell5: 73, cell8: 46, rBoard: 8, rBtn: 8, btnH: 10, rKey: 8, key: 44,
     rCard: 12, gap: 14, layout: 'standard', framed: false, fill: 10,
   },
+  {
+    slug: 'refined', name: 'Refined candidate',
+    desc: 'A converged direction. Large circular number keys (from 06); Undo moved out of the keypad to the end of the toolbar, at the same height as the other buttons; a light-gray active state instead of brand tint; and the board scaled to the content width so it sits flush with the hint card and toolbar (the grid size of 10, at the standard 16px margin).',
+    cell5: 70, cell8: 44, rBoard: 10, rBtn: 8, btnH: 10, rKey: 999, key: 58,
+    rCard: 12, gap: 16, layout: 'standard', framed: false, fill: 16,
+    undoInToolbar: true, activeGray: true,
+  },
 ];
 
 /** Board-wrap width for a full-width variant. The phone is 388px wide
@@ -360,10 +382,14 @@ const specLine = (v) => {
     v.fill === null ? `cells ${v.cell5}/${v.cell8}px`
     : v.fill === 0 ? 'board full-bleed'
     : `board full-width −${v.fill}px`;
-  return `${fillTxt} · board r${v.rBoard} · ` +
+  let s = `${fillTxt} · board r${v.rBoard} · ` +
     `buttons r${v.rBtn === 999 ? 'pill' : v.rBtn} · ` +
     `keys ${v.key}px r${v.rKey === 999 ? 'circle' : v.rKey} · ` +
-    `layout ${v.layout}${v.framed ? ' · framed' : ''}`;
+    `layout ${v.layout}`;
+  if (v.framed) s += ' · framed';
+  if (v.undoInToolbar) s += ' · undo in toolbar';
+  if (v.activeGray) s += ' · gray active';
+  return s;
 };
 
 function sectionVars(v) {
@@ -378,6 +404,11 @@ function sectionVars(v) {
   ];
   const w = boardW(v);
   if (w) vars.push(`--proto-board-w:${w}`);
+  if (v.activeGray) {
+    vars.push('--proto-active-bg:var(--border)');
+    vars.push('--proto-active-fg:var(--text-primary)');
+    vars.push('--proto-active-bd:var(--border)');
+  }
   return vars.join(';');
 }
 
@@ -394,13 +425,13 @@ function sectionHtml(v, idx) {
     <figure>
       <figcaption>5 × 5 grid</figcaption>
       <div class="phone" style="--bcell:${v.cell5}px">
-        ${screen('Medium · 5×5', '5', v.layout, v.framed, v.fill !== null)}
+        ${screen('Medium · 5×5', '5', v.layout, v.framed, v.fill !== null, v.undoInToolbar)}
       </div>
     </figure>
     <figure>
       <figcaption>8 × 8 grid</figcaption>
       <div class="phone" style="--bcell:${v.cell8}px">
-        ${screen('Hard · 8×8', '8', v.layout, v.framed, v.fill !== null)}
+        ${screen('Hard · 8×8', '8', v.layout, v.framed, v.fill !== null, v.undoInToolbar)}
       </div>
     </figure>
   </div>
@@ -421,7 +452,7 @@ function pageHtml() {
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Solving screen — shape exploration · 10 variants</title>
+<title>Solving screen — shape exploration · 11 variants</title>
 <style>
 ${TOKENS}
 ${PAGE_CSS}
@@ -430,11 +461,11 @@ ${PAGE_CSS}
 <body>
 <header class="page-head">
   <h1>Solving screen — shape exploration</h1>
-  <p>Ten design directions for the Solving screen, all on one page — exploring
+  <p>Eleven design directions for the Solving screen, all on one page — exploring
   grid/cell size, corner radius, number-key and toolbar-button shape &amp; size,
-  a keypad-first layout, and two full-width board treatments. Each variant is
-  shown at both a 5×5 and an 8×8 grid. The boards are illustrative, not solvable
-  puzzles. Session: 2026-05-17.</p>
+  a keypad-first layout, and full-width board treatments. Variant 11 is a refined
+  candidate combining the picks so far. Each variant is shown at both a 5×5 and an
+  8×8 grid. The boards are illustrative, not solvable puzzles. Session: 2026-05-17.</p>
 </header>
 <nav class="toc">
 ${toc}

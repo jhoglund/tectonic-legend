@@ -6,7 +6,7 @@
 
 ## What this round explores
 
-Ten design directions for the Solving screen, **all on a single page**
+Eleven design directions for the Solving screen, **all on a single page**
 (`index.html`), varying:
 
 - **Grid / cell size** — how large the board cells are at 5×5 and 8×8.
@@ -22,7 +22,7 @@ Ten design directions for the Solving screen, **all on a single page**
 Every variant is rendered at **both** a 5×5 and an 8×8 grid so the
 layout can be judged coping with the small and the large board.
 
-## The 10 variants
+## The 11 variants
 
 | # | Name | Idea |
 |---|------|------|
@@ -36,6 +36,7 @@ layout can be judged coping with the small and the large board.
 | 08 | Card-framed | Board, toolbar, and keypad each in their own elevated card. |
 | 09 | Full-bleed grid | The board spans the full screen width, edge-to-edge, no margin. |
 | 10 | Inset grid (~10px) | Full width less a ~10px margin each side — a slim breathing gap. |
+| 11 | Refined candidate | Round keys (from 06), Undo at the end of the toolbar, light-gray active state, board at content width (grid size of 10, standard 16px margin). |
 
 ## Constraints honoured
 

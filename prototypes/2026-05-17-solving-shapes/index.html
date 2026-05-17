@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Solving screen — shape exploration · 10 variants</title>
+<title>Solving screen — shape exploration · 11 variants</title>
 <style>
 
 :root{
@@ -113,7 +113,10 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 .tool{flex:1;padding:var(--proto-btnh) 0;font-size:13px;font-weight:500;font-family:var(--font-ui);
   border-radius:var(--proto-rbtn);border:1px solid var(--border);background:var(--surface-elevated);
   color:var(--text-primary);cursor:pointer;}
-.tool.active{background:var(--brand-100);border-color:var(--brand-100);color:var(--brand-600);}
+.tool.active{background:var(--proto-active-bg,var(--brand-100));
+  border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
+.tool-undo{display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo svg{width:16px;height:16px;}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
   background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-primary);
@@ -129,11 +132,11 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 <body>
 <header class="page-head">
   <h1>Solving screen — shape exploration</h1>
-  <p>Ten design directions for the Solving screen, all on one page — exploring
+  <p>Eleven design directions for the Solving screen, all on one page — exploring
   grid/cell size, corner radius, number-key and toolbar-button shape &amp; size,
-  a keypad-first layout, and two full-width board treatments. Each variant is
-  shown at both a 5×5 and an 8×8 grid. The boards are illustrative, not solvable
-  puzzles. Session: 2026-05-17.</p>
+  a keypad-first layout, and full-width board treatments. Variant 11 is a refined
+  candidate combining the picks so far. Each variant is shown at both a 5×5 and an
+  8×8 grid. The boards are illustrative, not solvable puzzles. Session: 2026-05-17.</p>
 </header>
 <nav class="toc">
   <a href="#v01" title="Baseline">01</a>
@@ -146,6 +149,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
   <a href="#v08" title="Card-framed">08</a>
   <a href="#v09" title="Full-bleed grid">09</a>
   <a href="#v10" title="Inset grid (~10px)">10</a>
+  <a href="#v11" title="Refined candidate">11</a>
 </nav>
 <section id="v01" style="--proto-rboard:6px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:8px;--proto-key:44px;--proto-rcard:12px;--proto-gap:16px">
   <div class="section-head">
@@ -185,7 +189,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -221,7 +225,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -266,7 +270,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -302,7 +306,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -347,7 +351,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -383,7 +387,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -428,7 +432,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -464,7 +468,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -497,7 +501,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
           <div class="toolbar">
@@ -533,7 +537,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
           <div class="toolbar">
@@ -578,7 +582,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
           <div class="toolbar">
@@ -614,7 +618,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
           <div class="toolbar">
@@ -671,7 +675,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -707,7 +711,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -752,7 +756,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div></div>
         </div>
       </div>
@@ -788,7 +792,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div></div>
         </div>
       </div>
@@ -833,7 +837,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -869,7 +873,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -914,7 +918,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
         </div>
       </div>
@@ -950,7 +954,88 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="key">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
-            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+            <button class="key key-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v11" style="--proto-rboard:10px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:999px;--proto-key:58px;--proto-rcard:12px;--proto-gap:16px;--proto-board-w:354px;--proto-active-bg:var(--border);--proto-active-fg:var(--text-primary);--proto-active-bd:var(--border)">
+  <div class="section-head">
+    <h2>11 · Refined candidate</h2>
+    <p class="desc">A converged direction. Large circular number keys (from 06); Undo moved out of the keypad to the end of the toolbar, at the same height as the other buttons; a light-gray active state instead of brand tint; and the board scaled to the content width so it sits flush with the hint card and toolbar (the grid size of 10, at the standard 16px margin).</p>
+    <p class="spec">board full-width −16px · board r10 · buttons r8 · keys 58px rcircle · layout standard · undo in toolbar · gray active</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:70px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+            <button class="tool tool-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:44px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+            <button class="tool tool-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
           </div>
         </div>
       </div>
