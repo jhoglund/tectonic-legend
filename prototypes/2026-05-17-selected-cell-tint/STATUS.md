@@ -1,6 +1,7 @@
 # Status — 2026-05-17-selected-cell-tint
 
-**State:** first round produced — awaiting review. Not graduated.
+**State:** **Soft tint graduated** into the Solve screen (2026-05-17).
+The other variants are kept as the visual record.
 
 ## What ran
 
@@ -16,14 +17,16 @@ config `selected-cell-tint`, port 7582).
 | Deep tint | Stronger darker cage tint, darkest same-hue ink |
 | Dark cell, light ink | Deep cage tint, light ink |
 
-## Review notes
+## Graduation
 
-_(to be filled on review — which variant.)_
+The **Soft tint** variant was picked and reproduced in `src/`:
 
-## Next
+- `src/index.css` — `.cell-selected` / `.cell-selected-ink` rules derive the
+  background, ring (`--cell-sel-ring`), and value ink from `--cell-fill` via
+  OKLCH, with a dark-mode `@media` override (cages are already dark, so it
+  lifts lighter there).
+- `src/components/Cell.tsx` — the selected cell takes those classes; the
+  ring layer reads `--cell-sel-ring`.
+- `specs/design-tokens.md` §2a documents the treatment.
 
-When a variant is picked it graduates per `specs/design-workflow.md` §5:
-the OKLCH transforms become `--cell-selected-*` tokens (light + dark) in
-`src/index.css` + `specs/design-tokens.md`, `Cell.tsx` uses them for the
-selected cell's background / ring / value ink, and this file is updated to
-`graduated → commit <sha>`.
+The other variants stay above as the visual record.

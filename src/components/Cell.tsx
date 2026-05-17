@@ -45,7 +45,9 @@ const HIGHLIGHT_COLOR: Record<string, string> = {
  * the edges a neighbour draws, so it lands exactly on the grid line and
  * — raised above its neighbours — replaces it rather than doubling it.
  * A player-entered value grows into place via `cell-value-enter`. Both
- * keyframes live in src/index.css.
+ * keyframes live in src/index.css. The selected cell's background, ring,
+ * and value ink are a darker tint of its own cage colour — the
+ * `.cell-selected` / `.cell-selected-ink` classes in src/index.css.
  */
 export function Cell({
   value,
@@ -64,27 +66,23 @@ export function Cell({
 }: CellProps) {
   // Cage fill comes from the design tokens via the `.cage-N` class.
   const cageClass = `cage-${(colorIndex % 5) + 1}`;
-  // Transient hint / error states override the fill via a class; the
-  // selected cell uses the selection surface (set inline below).
+  // Transient hint / error states override the fill via a Tailwind
+  // class and take precedence over the selection tint.
   const stateBgClass = isHinted ? 'bg-amber-300' : isError ? 'bg-red-200' : '';
   const dimClass = isDimmed ? 'opacity-30' : '';
+  // The selected cell gets the `.cell-selected` cage-tint class — a
+  // darker tint of its own cage — unless hint / error already own it.
+  const selectedTint = isSelected && !stateBgClass;
 
-  // Background: hint / error use a class; the selected cell takes the
-  // selection surface; everything else takes its cage fill.
-  const background = stateBgClass
-    ? undefined
-    : isSelected
-      ? 'var(--surface-cell-selected)'
-      : 'var(--cell-fill)';
+  // Background: hint / error and the selected cell come from classes;
+  // every other cell takes its cage fill inline.
+  const background =
+    stateBgClass || selectedTint ? undefined : 'var(--cell-fill)';
 
-  // Value ink: error red (class), else the active cell's darker blue,
-  // else bold clue ink or the player's cage-tinted ink.
+  // Value ink — error red and the selected cell come from classes; a
+  // clue is bold dark ink, a player entry the cage-tinted ink.
   const valueWeight = isClue ? 'font-bold' : 'font-medium';
-  const valueColor = isSelected
-    ? 'var(--text-cell-selected)'
-    : isClue
-      ? 'var(--cell-text)'
-      : 'var(--cell-player)';
+  const valueColor = isClue ? 'var(--cell-text)' : 'var(--cell-player)';
 
   // Box-shadow stack — the cell's grid lines as insets, cage entries
   // first so the darker 2px line always paints over the 1px inner line
@@ -119,16 +117,15 @@ export function Cell({
   // top/left this cell draws, and on the bottom/right of a board-edge
   // cell (which draws its own frame there); outset on an interior
   // bottom/right, where the neighbour draws the line. Raised by z-index,
-  // it then replaces that line instead of doubling it.
+  // it then replaces that line instead of doubling it. Its colour is the
+  // cage-tinted ring (`--cell-sel-ring`, set by `.cell-selected`), with
+  // the brand colour as a fallback for the rare selected-while-hinted.
+  const rc = 'var(--cell-sel-ring, var(--brand-600))';
   const ringShadow = [
-    'inset 0 2px 0 0 var(--brand-600)',
-    'inset 2px 0 0 0 var(--brand-600)',
-    borders.right === 'cage'
-      ? 'inset -2px 0 0 0 var(--brand-600)'
-      : '2px 0 0 0 var(--brand-600)',
-    borders.bottom === 'cage'
-      ? 'inset 0 -2px 0 0 var(--brand-600)'
-      : '0 2px 0 0 var(--brand-600)',
+    `inset 0 2px 0 0 ${rc}`,
+    `inset 2px 0 0 0 ${rc}`,
+    borders.right === 'cage' ? `inset -2px 0 0 0 ${rc}` : `2px 0 0 0 ${rc}`,
+    borders.bottom === 'cage' ? `inset 0 -2px 0 0 ${rc}` : `0 2px 0 0 ${rc}`,
   ].join(', ');
 
   // A board-corner cell rounds that corner, so its frame box-shadow
@@ -147,7 +144,7 @@ export function Cell({
   return (
     <div
       className={`relative flex cursor-pointer select-none items-center justify-center
-        ${cageClass} ${stateBgClass} ${dimClass}`}
+        ${cageClass} ${stateBgClass} ${dimClass} ${selectedTint ? 'cell-selected' : ''}`}
       style={{
         aspectRatio: '1',
         containerType: 'inline-size',
@@ -204,11 +201,13 @@ export function Cell({
           // Keyed by value so a freshly entered number remounts and
           // replays the grow-in animation.
           key={value}
-          className={`${valueWeight} ${isError ? 'text-red-600' : ''}`}
+          className={`${valueWeight} ${isError ? 'text-red-600' : ''} ${
+            selectedTint ? 'cell-selected-ink' : ''
+          }`}
           style={{
             fontSize: '42cqw',
             lineHeight: 1,
-            ...(isError ? {} : { color: valueColor }),
+            ...(isError || selectedTint ? {} : { color: valueColor }),
             // A player-entered value grows into place and its colour
             // settles in; clues are given, so they simply appear.
             ...(isClue ? {} : { animation: 'cell-value-enter var(--motion-base)' }),

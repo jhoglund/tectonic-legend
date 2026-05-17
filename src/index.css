@@ -195,6 +195,29 @@
 .cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); --cell-player: var(--cage-4-player); }
 .cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); --cell-player: var(--cage-5-player); }
 
+/* Selected cell — a darker tint of its own cage colour (the "Soft tint",
+   graduated from prototypes/2026-05-17-selected-cell-tint). The cell
+   carries --cell-fill via its .cage-N class; --cell-sel-ring is read by
+   the ring layer in Cell.tsx; .cell-selected-ink tints the value. */
+.cell-selected {
+  background-color: oklch(from var(--cell-fill) calc(l - 0.13) calc(c * 1.7) h);
+  --cell-sel-ring: oklch(from var(--cell-fill) calc(l - 0.38) calc(c * 2.1) h);
+}
+.cell-selected-ink {
+  color: oklch(from var(--cell-fill) calc(l - 0.6) calc(c * 2.4) h);
+}
+@media (prefers-color-scheme: dark) {
+  /* Dark cages are already dark — the active cell lifts lighter and
+     more saturated instead, so it still stands out. */
+  .cell-selected {
+    background-color: oklch(from var(--cell-fill) calc(l + 0.15) calc(c * 1.6) h);
+    --cell-sel-ring: oklch(from var(--cell-fill) calc(l + 0.3) calc(c * 1.8) h);
+  }
+  .cell-selected-ink {
+    color: oklch(from var(--cell-fill) calc(l + 0.52) calc(c * 1.5) h);
+  }
+}
+
 /* Solving-screen controls — graduated from the 2026-05-17 solving-shapes
    prototype (variant 11). Class-based, not inline-styled, so the :active
    (pressed) state can override the resting fill — an inline style would

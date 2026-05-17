@@ -81,6 +81,10 @@ The board container paints the outer frame; each cell paints only its top + left
 
 Clue values use `cell-text` (bold). Player-entered values use `cell-player` — a darker, more saturated shade of that cell's own cage fill (`cage-N-player`, §2) — at medium weight, so given numbers and the player's own entries read clearly apart on any cage colour. Error values override to the danger colour.
 
+### Selected cell
+
+The active cell is a **darker tint of its own cage fill** — background, ring, and value ink all derived from `--cell-fill` via OKLCH (lightness down, chroma up; in dark mode it lifts *lighter* instead, since the cages are already dark). Implemented as the `.cell-selected` / `.cell-selected-ink` rules in `src/index.css`, not fixed tokens — the treatment re-derives per cage. Graduated from `prototypes/2026-05-17-selected-cell-tint` (the "Soft tint" variant). `surface-cell-selected` / `text-cell-selected` (§2/§3) are retained but superseded for the board.
+
 ## 3. Color — text
 
 | Token | Light | Dark |
