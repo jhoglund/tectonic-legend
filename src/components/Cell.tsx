@@ -1,4 +1,4 @@
-import type { CellEdge, CellBorders } from './cellBorders';
+import type { CellBorders } from './cellBorders';
 
 export type CellHighlight = 'assumption' | 'deduction' | 'contradiction' | 'conclusion' | null;
 
@@ -18,21 +18,14 @@ interface CellProps {
   onClick: () => void;
 }
 
-const HIGHLIGHT_RINGS: Record<string, string> = {
-  assumption: 'ring-2 ring-amber-500 ring-inset',
-  deduction: 'ring-2 ring-blue-400 ring-inset',
-  contradiction: 'ring-2 ring-red-500 ring-inset',
-  conclusion: 'ring-2 ring-green-500 ring-inset',
+/** Box-shadow colour for each contradiction-chain highlight. Semantic
+ *  tokens — see design-tokens §4. */
+const HIGHLIGHT_COLOR: Record<string, string> = {
+  assumption: 'var(--cell-assumption)',
+  deduction: 'var(--cell-deduction)',
+  contradiction: 'var(--cell-contradiction)',
+  conclusion: 'var(--cell-conclusion)',
 };
-
-/** CSS `border` shorthand for one edge, using the board tokens. */
-function edgeStyle(edge: CellEdge): string | undefined {
-  if (edge === 'none') return undefined;
-  if (edge === 'cage') {
-    return 'var(--border-cage-width) solid var(--border-cage)';
-  }
-  return 'var(--border-inner-width) solid var(--cell-inner)';
-}
 
 /**
  * One board cell. The cell is square (`aspect-ratio: 1`) and sizes
@@ -40,6 +33,13 @@ function edgeStyle(edge: CellEdge): string | undefined {
  * screen width in the 2026-05-17 solving-shapes graduation (variant
  * 11), so cells no longer carry fixed pixel sizes. Each cell is a query
  * container; the value font scales with the cell via `cqw` units.
+ *
+ * Grid lines are drawn as **inset box-shadows**, not CSS borders, for
+ * two reasons: box-shadows paint in list order, so the 2px cage line —
+ * listed first — always wins a shared corner over the 1px inner line
+ * (the darker border on top); and the selected cell can instead take a
+ * single *outset* ring on top of its neighbours, reading as a uniform
+ * ring rather than compounding with a neighbour's darker cage border.
  */
 export function Cell({
   value,
@@ -61,7 +61,6 @@ export function Cell({
   // Transient hint / error states override the fill via a class; the
   // selected cell uses the selection surface (set inline below).
   const stateBgClass = isHinted ? 'bg-amber-300' : isError ? 'bg-red-200' : '';
-  const ringClass = cellHighlight ? HIGHLIGHT_RINGS[cellHighlight] : '';
   const dimClass = isDimmed ? 'opacity-30' : '';
 
   // Background: hint / error use a class; the selected cell takes the
@@ -81,21 +80,44 @@ export function Cell({
       ? 'var(--cell-text)'
       : 'var(--cell-player)';
 
+  // Box-shadow stack. The selected cell takes an outset brand ring
+  // (raised above neighbours via z-index). Every other cell draws its
+  // top/left grid lines as insets — cage entries first so the darker
+  // 2px line always paints over the 1px inner line at a shared corner.
+  const shadows: string[] = [];
+  if (isSelected) {
+    shadows.push('0 0 0 2px var(--brand-600)');
+  } else {
+    if (cellHighlight) {
+      shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
+    }
+    const cage: string[] = [];
+    const inner: string[] = [];
+    if (borders.top === 'cage') {
+      cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
+    } else if (borders.top === 'inner') {
+      inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
+    }
+    if (borders.left === 'cage') {
+      cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
+    } else if (borders.left === 'inner') {
+      inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
+    }
+    shadows.push(...cage, ...inner);
+  }
+
   return (
     <div
       className={`relative flex cursor-pointer select-none items-center justify-center transition-all duration-200
-        ${cageClass} ${stateBgClass} ${ringClass} ${dimClass}`}
+        ${cageClass} ${stateBgClass} ${dimClass}`}
       style={{
         aspectRatio: '1',
         containerType: 'inline-size',
-        borderTop: edgeStyle(borders.top),
-        borderLeft: edgeStyle(borders.left),
         ...(background ? { background } : {}),
-        // The selected cell is marked by the brand ring (graduated from
-        // the solving-shapes prototype, variant 11).
-        ...(isSelected
-          ? { boxShadow: 'inset 0 0 0 2px var(--brand-600)' }
-          : {}),
+        ...(shadows.length ? { boxShadow: shadows.join(', ') } : {}),
+        // Raise the selected cell so its outset ring sits above the
+        // neighbouring cells' grid lines.
+        ...(isSelected ? { zIndex: 5 } : {}),
       }}
       onClick={onClick}
     >
