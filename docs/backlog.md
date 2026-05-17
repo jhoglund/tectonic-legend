@@ -3,7 +3,7 @@
 > Single tracker for in-progress, planned, and intent-only work. Solo project — kept lightweight.
 > Decisions live in [`decisions/`](decisions/). Open questions are at the bottom.
 
-**Last updated:** 2026-05-15
+**Last updated:** 2026-05-17
 
 ---
 
@@ -100,6 +100,21 @@ Decided 2026-05-16 ([ADR-0013](decisions/ADR-0013-supabase-as-the-backend.md)) �
 - **A3. Profile sync** — *done.* `PlayerProfile` gained an `updatedAt`; `ProfileProvider` pulls + reconciles on sign-in, debounced-upserts on change, and adopts the local profile on first sign-in. Last-write-wins by `updatedAt` (`src/lib/profileSync.ts`). Settings shows the sync status. *End-to-end verification pending a live sign-in* — needs a confirmed Supabase user.
 - **A4. Privacy rework** — data now leaves the device: update `docs/app-store-launch.md`, the privacy manifest, and the App Store privacy labels. A Privacy Policy URL becomes mandatory.
 - **A5. Sign in with Apple** — fast-follow (Supabase OAuth provider) once Apple Developer enrolment lands.
+
+---
+
+## Improvements & follow-ups
+
+Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase.
+
+- **I1. Improve the share result card.** Make the mini-grid look better, add some stats, and give the card a title or stronger button copy. Builds on the share artifact (item 15), a spoiler-free text emoji-grid today.
+- **I2. Improve the Technique card.** Explore a progress bar that gradually rises toward mastery; reaching mastery / a "Legend" status should be genuinely hard. Explore the progression algorithm — likely a mix of solve speed, hints-used vs. unaided, validation errors, and difficulty/level. Touches `specs/progression.md` (the mastery model) and the "Mastery thresholds" + "Legend tier" open questions.
+- **I3. Validate button — success feedback.** When the board is fully valid, the Validate button turns green, then slowly fades back to gray.
+- **I4. Multi-provider login.** Extend the auth screen to support Sign in with Apple, Google, and possibly more — Supabase Auth provides these as OAuth providers. Expands A5 (Apple-only).
+- **I5. Developer debug UI.** A dev-tools surface in the preferences/Settings screen, gated behind role management. Test flows on demand — login, onboarding, signup, technique-mastery levels, and more — plus a submenu for direct access to individual screens.
+- **I6. Improve the start screen.** A richer Home — possibly a mini grid and more.
+- **I7. Floating pill nav bar.** Replace the global bottom tab bar with an iOS-native floating button bar — rounded corners (pill).
+- **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
 
 ---
 
