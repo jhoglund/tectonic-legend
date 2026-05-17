@@ -212,6 +212,11 @@ function renderBoard(rowsArr, sel, fill){
     if(bottomEdge==='cage') cage.push('inset 0 calc(-1 * var(--border-cage-width)) 0 0 var(--border-cage)');
     if(rightEdge==='cage') cage.push('inset calc(-1 * var(--border-cage-width)) 0 0 0 var(--border-cage)');
     cell.style.boxShadow=cage.concat(inner).join(', ');
+    // A board-corner cell rounds that corner so its frame box-shadow
+    // (and selection ring) follow the board radius.
+    var RK={tl:'borderTopLeftRadius',tr:'borderTopRightRadius',bl:'borderBottomLeftRadius',br:'borderBottomRightRadius'};
+    var boardCorner=(r===0&&c===0)?'tl':(r===0&&c===cols-1)?'tr':(r===rows-1&&c===0)?'bl':(r===rows-1&&c===cols-1)?'br':'';
+    if(boardCorner) cell.style[RK[boardCorner]]='var(--proto-rboard)';
     // Close a cage corner that falls inside this cell but is reached by
     // neither of its own (inner) edges.
     if(cornerTL){
@@ -229,6 +234,7 @@ function renderBoard(rowsArr, sel, fill){
         +'inset 0 2px 0 0 var(--brand-600), inset 2px 0 0 0 var(--brand-600), '
         +(rightEdge==='cage'?'inset -2px 0 0 0 var(--brand-600)':'2px 0 0 0 var(--brand-600)')+', '
         +(bottomEdge==='cage'?'inset 0 -2px 0 0 var(--brand-600)':'0 2px 0 0 var(--brand-600)')+';';
+      if(boardCorner) ring.style[RK[boardCorner]]='var(--proto-rboard)';
       cell.appendChild(ring);
     }
     if(!blank){
