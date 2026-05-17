@@ -129,7 +129,8 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
   color:var(--text-primary);cursor:pointer;}
 .tool.active{background:var(--proto-active-bg,var(--brand-100));
   border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
-.tool-undo{display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo{flex:0 0 auto;aspect-ratio:1;padding:0;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
 .tool-undo svg{width:16px;height:16px;}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
@@ -362,9 +363,9 @@ const variants = [
   },
   {
     slug: 'refined', name: 'Refined candidate',
-    desc: 'A converged direction. Large circular number keys (from 06); Undo moved out of the keypad to the end of the toolbar, at the same height as the other buttons; a light-gray active state instead of brand tint; and the board scaled to the content width so it sits flush with the hint card and toolbar (the grid size of 10, at the standard 16px margin).',
+    desc: 'A converged direction. Large circular number keys (from 06); a round Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state instead of brand tint; the board scaled to the content width, flush with the toolbar (grid size of 10, standard 16px margin); and the stack ordered grid → number keys → toolbar → hint card.',
     cell5: 70, cell8: 44, rBoard: 10, rBtn: 8, btnH: 10, rKey: 999, key: 58,
-    rCard: 12, gap: 16, layout: 'standard', framed: false, fill: 16,
+    rCard: 12, gap: 16, layout: 'keypad-first', framed: false, fill: 16,
     undoInToolbar: true, activeGray: true,
   },
 ];

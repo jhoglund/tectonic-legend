@@ -115,7 +115,8 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
   color:var(--text-primary);cursor:pointer;}
 .tool.active{background:var(--proto-active-bg,var(--brand-100));
   border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
-.tool-undo{display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo{flex:0 0 auto;aspect-ratio:1;padding:0;border-radius:999px;
+  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
 .tool-undo svg{width:16px;height:16px;}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
@@ -964,8 +965,8 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 <section id="v11" style="--proto-rboard:10px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:999px;--proto-key:58px;--proto-rcard:12px;--proto-gap:16px;--proto-board-w:354px;--proto-active-bg:var(--border);--proto-active-fg:var(--text-primary);--proto-active-bd:var(--border)">
   <div class="section-head">
     <h2>11 · Refined candidate</h2>
-    <p class="desc">A converged direction. Large circular number keys (from 06); Undo moved out of the keypad to the end of the toolbar, at the same height as the other buttons; a light-gray active state instead of brand tint; and the board scaled to the content width so it sits flush with the hint card and toolbar (the grid size of 10, at the standard 16px margin).</p>
-    <p class="spec">board full-width −16px · board r10 · buttons r8 · keys 58px rcircle · layout standard · undo in toolbar · gray active</p>
+    <p class="desc">A converged direction. Large circular number keys (from 06); a round Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state instead of brand tint; the board scaled to the content width, flush with the toolbar (grid size of 10, standard 16px margin); and the stack ordered grid → number keys → toolbar → hint card.</p>
+    <p class="spec">board full-width −16px · board r10 · buttons r8 · keys 58px rcircle · layout keypad-first · undo in toolbar · gray active</p>
   </div>
   <div class="stage">
     <figure>
@@ -981,9 +982,12 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
           <div class="statusrow">1:32 · 9 left</div>
           <div class="board-wrap"><div data-board="5" data-fill="1"></div></div>
           
-          <div class="hintcard">
-            <span class="chip">Hidden single</span>
-            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
           </div>
           
           <div class="toolbar">
@@ -994,12 +998,9 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="tool tool-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
-          <div class="keypad">
-            <button class="key">1</button>
-            <button class="key">2</button>
-            <button class="key">3</button>
-            <button class="key">4</button>
-            <button class="key">5</button>
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
           </div>
         </div>
       </div>
@@ -1017,9 +1018,12 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
           <div class="statusrow">1:32 · 9 left</div>
           <div class="board-wrap"><div data-board="8" data-fill="1"></div></div>
           
-          <div class="hintcard">
-            <span class="chip">Hidden single</span>
-            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
           </div>
           
           <div class="toolbar">
@@ -1030,12 +1034,9 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
             <button class="tool tool-undo" aria-label="Undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
           </div>
           
-          <div class="keypad">
-            <button class="key">1</button>
-            <button class="key">2</button>
-            <button class="key">3</button>
-            <button class="key">4</button>
-            <button class="key">5</button>
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
           </div>
         </div>
       </div>
