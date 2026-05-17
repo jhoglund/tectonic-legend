@@ -331,6 +331,60 @@ export function SolvingScreen({
             showErrors={showErrors}
           />
 
+          {/* number keypad */}
+          <Keypad maxNumber={maxNumber} onNumber={handleNumberInput} />
+
+          {/* toolbar — Notes / Hint / Validate / Clear, then a round Undo */}
+          <div className="flex w-full gap-2">
+            {(
+              [
+                { label: 'Notes', onClick: toggleNotes, active: notesMode },
+                { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
+                showingErrors
+                  ? { label: 'Remove', onClick: handleRemoveErrors, active: true, tone: 'danger' as const }
+                  : { label: 'Validate', onClick: validate, active: showErrors },
+                { label: 'Clear', onClick: handleClear, active: false },
+              ] as { label: string; onClick: () => void; active: boolean; tone?: 'danger' }[]
+            ).map((tool) => (
+              <button
+                key={tool.label}
+                type="button"
+                onClick={tool.onClick}
+                className={`solve-tool${
+                  tool.tone === 'danger'
+                    ? ' is-danger'
+                    : tool.active
+                      ? ' is-active'
+                      : ''
+                }`}
+              >
+                {tool.label}
+              </button>
+            ))}
+            <button
+              type="button"
+              onClick={undo}
+              disabled={!canUndo}
+              aria-label="Undo"
+              className="solve-undo"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  transform="rotate(90 12 12)"
+                  fillRule="evenodd"
+                  clipRule="evenodd"
+                  d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"
+                />
+              </svg>
+            </button>
+          </div>
+
           {/* hint area */}
           {hint && chain && chainLength > 0 ? (
             <ContradictionStepper
@@ -365,53 +419,6 @@ export function SolvingScreen({
               </p>
             </div>
           ) : null}
-
-          {/* toolbar */}
-          <div className="flex w-full gap-2">
-            {(
-              [
-                { label: 'Notes', onClick: toggleNotes, active: notesMode },
-                { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
-                showingErrors
-                  ? { label: 'Remove', onClick: handleRemoveErrors, active: true, tone: 'danger' as const }
-                  : { label: 'Validate', onClick: validate, active: showErrors },
-                { label: 'Clear', onClick: handleClear, active: false },
-              ] as { label: string; onClick: () => void; active: boolean; tone?: 'danger' }[]
-            ).map((tool) => {
-              const danger = tool.tone === 'danger';
-              return (
-                <button
-                  key={tool.label}
-                  type="button"
-                  onClick={tool.onClick}
-                  className="flex-1 cursor-pointer py-2.5 text-[13px] font-medium"
-                  style={{
-                    borderRadius: 'var(--radius-button)',
-                    border: `1px solid ${danger ? 'var(--danger)' : 'var(--border)'}`,
-                    background: danger
-                      ? 'var(--cage-2)'
-                      : tool.active
-                        ? 'var(--brand-100)'
-                        : 'var(--surface-elevated)',
-                    color: danger
-                      ? 'var(--danger)'
-                      : tool.active
-                        ? 'var(--brand-600)'
-                        : 'var(--text-primary)',
-                  }}
-                >
-                  {tool.label}
-                </button>
-              );
-            })}
-          </div>
-
-          <Keypad
-            maxNumber={maxNumber}
-            onNumber={handleNumberInput}
-            onUndo={undo}
-            canUndo={canUndo}
-          />
         </div>
       )}
 

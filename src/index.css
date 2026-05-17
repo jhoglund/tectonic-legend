@@ -24,6 +24,12 @@
   --surface-cell-selected: #e0f7fa;
   --border: #e5e5e5;
 
+  /* --- Controls: solving toolbar & keypad (ADR — variant 11) -- */
+  --surface-active: #e5e5e5;            /* toolbar button — toggle-on */
+  --surface-pressed: #404040;           /* control — momentary press */
+  --text-on-pressed: #ffffff;
+  --text-cell-selected: oklch(42% 0.076 256); /* the active cell's value */
+
   /* --- Text --------------------------------------------------- */
   --text-primary: #0a0a0a;
   --text-secondary: #525252;
@@ -137,6 +143,10 @@
     --surface-cell-clue: #262626;
     --surface-cell-selected: #164e5b;
     --border: #2a2a2a;
+    --surface-active: #2a2a2a;
+    --surface-pressed: #e5e5e5;
+    --text-on-pressed: #0a0a0a;
+    --text-cell-selected: oklch(85% 0.054 256);
 
     /* Text */
     --text-primary: #fafafa;
@@ -184,6 +194,78 @@
 .cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); --cell-player: var(--cage-3-player); }
 .cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); --cell-player: var(--cage-4-player); }
 .cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); --cell-player: var(--cage-5-player); }
+
+/* Solving-screen controls — graduated from the 2026-05-17 solving-shapes
+   prototype (variant 11). Class-based, not inline-styled, so the :active
+   (pressed) state can override the resting fill — an inline style would
+   always win over an :active rule. */
+.solve-tool {
+  flex: 1;
+  height: 40px;
+  font-size: 13px;
+  font-weight: 500;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-button);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.solve-tool.is-active {
+  background: var(--surface-active);
+  border-color: var(--surface-active);
+}
+.solve-tool.is-danger {
+  background: var(--cage-2);
+  border-color: var(--danger);
+  color: var(--danger);
+}
+.solve-tool:active {
+  background: var(--surface-pressed);
+  border-color: var(--surface-pressed);
+  color: var(--text-on-pressed);
+}
+.solve-undo {
+  flex: 0 0 auto;
+  width: 40px;
+  height: 40px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip);
+  background: var(--surface-elevated);
+  color: var(--text-secondary);
+  cursor: pointer;
+}
+.solve-undo:active:not(:disabled) {
+  background: var(--surface-pressed);
+  border-color: var(--surface-pressed);
+  color: var(--text-on-pressed);
+}
+.solve-undo:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+.solve-key {
+  flex: 1;
+  aspect-ratio: 1;
+  max-width: 64px;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-chip);
+  background: var(--surface-elevated);
+  color: var(--text-primary);
+  font-family: var(--font-mono);
+  font-size: 1.2rem;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+  cursor: pointer;
+}
+.solve-key:active {
+  background: var(--surface-pressed);
+  border-color: var(--surface-pressed);
+  color: var(--text-on-pressed);
+}
 
 /* Base — applies the UI font + surface tokens app-wide. */
 body {

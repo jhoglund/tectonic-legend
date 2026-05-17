@@ -1,6 +1,7 @@
 # Status — 2026-05-17-solving-shapes
 
-**State:** first round produced — awaiting review. Not graduated.
+**State:** **variant 11 graduated** into the Solve screen (2026-05-17).
+Variants 01–10 remain as the visual record of the exploration.
 
 ## What ran
 
@@ -23,16 +24,19 @@ and an 8×8 grid, with a sticky 01–11 nav.
 | 10 | [`#v10`](index.html#v10) | Inset grid (~10px) |
 | 11 | [`#v11`](index.html#v11) | Refined candidate — round keys, Undo in toolbar, gray active, content-width board |
 
-## Review notes
+## Graduation
 
-_(to be filled on review — which direction, or which axes to carry
-into a refined round.)_
+Variant 11 was accepted and reproduced in `src/`:
 
-## Next
+- `src/screens/SolvingScreen.tsx` — stack reordered to grid → keypad →
+  toolbar → hint; Undo moved into the toolbar as a round button.
+- `src/components/Keypad.tsx` — circular number keys, no Undo.
+- `src/components/Board.tsx` + `Cell.tsx` — the board grows to the full
+  content width; cells are square and size-responsive, value font in
+  `cqw`; the selected cell takes the selection surface + brand ring and
+  its value renders in `--text-cell-selected` (the darker blue).
+- New tokens `--surface-active`, `--surface-pressed`, `--text-on-pressed`,
+  `--text-cell-selected` in `src/index.css` + `specs/design-tokens.md`;
+  the pressed state is the `:active` feedback on `.solve-tool` / `.solve-key`.
 
-If a direction is picked, it graduates per `specs/design-workflow.md`
-§5: reproduce the decisions in `src/screens/SolvingScreen.tsx` (and
-`Keypad.tsx` / the toolbar / `Board.tsx`), add any new tokens to both
-`src/index.css` and `specs/design-tokens.md`, and update this file to
-`graduated → commit <sha>`. If a refined round is wanted, it is a
-config edit in `build.mjs` copied to a `-v2` session folder.
+Variants 01–10 are kept as the permanent visual record.

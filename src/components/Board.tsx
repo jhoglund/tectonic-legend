@@ -67,17 +67,19 @@ export function Board({
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
-  const compact = rows > 5 || cols > 5;
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
 
   return (
+    // The board grows to the full content width (solving-shapes
+    // graduation, variant 11): equal `1fr` tracks, square cells.
     <div
-      className="inline-grid"
+      className="grid"
       style={{
-        gridTemplateColumns: `repeat(${cols}, auto)`,
+        width: '100%',
+        gridTemplateColumns: `repeat(${cols}, 1fr)`,
         border: 'var(--border-cage-width) solid var(--border-cage)',
-        borderRadius: '6px',
+        borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
       }}
     >
@@ -111,7 +113,6 @@ export function Board({
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}
-              compact={compact}
               onClick={() => onCellClick(r, c)}
             />
           );

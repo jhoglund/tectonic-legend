@@ -36,8 +36,12 @@ The product feels like a cool, focused puzzle space — not a warm consumer app.
 | `surface-cell-clue` | `#f5f5f5` | `#262626` |
 | `surface-cell-selected` | `#e0f7fa` | `#164e5b` |
 | `border` | `#e5e5e5` | `#2a2a2a` |
+| `surface-active` | `#e5e5e5` | `#2a2a2a` |
+| `surface-pressed` | `#404040` | `#e5e5e5` |
 
 > `border-cage` is defined under §2a (the board palette) — it is an OKLCH neutral.
+>
+> `surface-active` / `surface-pressed` are the Solving-screen control states (variant-11 graduation): `surface-active` is the toggle-on tint for a toolbar button (e.g. Notes on); `surface-pressed` is the negative momentary press fill (dark in light mode, light in dark mode), paired with `text-on-pressed`.
 
 ## 2a. Board & cage colors
 
@@ -88,6 +92,10 @@ Clue values use `cell-text` (bold). Player-entered values use `cell-player` — 
 | `text-cell-clue` | `#525252` | `#a3a3a3` |
 | `text-cell-error` | `#dc2626` | `#f87171` |
 | `text-ghost-value` | `#a3a3a3` | `#737373` |
+| `text-on-pressed` | `#ffffff` | `#0a0a0a` |
+| `text-cell-selected` | `oklch(42% 0.076 256)` | `oklch(85% 0.054 256)` |
+
+`text-cell-selected` is the ink for the **selected (active) cell's value** — a darker blue, so the active cell reads clearly however it is tinted by its cage. `text-on-pressed` is the value/label colour on a pressed control (see `surface-pressed`, §2).
 
 ## 4. Color — hint chain (the contradiction stepper)
 
@@ -125,8 +133,8 @@ Dark mode lightens each by ~15% to maintain contrast on a dark board.
 | `text-body` | 16px / 24px | Default body |
 | `text-small` | 14px / 20px | Secondary text |
 | `text-caption` | 12px / 16px | Chips, labels |
-| `text-cell` | 24px / 1 (5×5) / 18px / 1 (8×8) | Cell value |
-| `text-cell-note` | 10px / 1 | Pencil mark |
+| `text-cell` | 42cqw / 1 | Cell value — proportional (`cqw`) since the board grew to the screen width (variant-11 graduation); the cell is a query container |
+| `text-cell-note` | 16cqw / 1 | Pencil mark |
 
 - **Weights:** 400 / 500 / 600. No 700 — it reads as marketing-loud.
 

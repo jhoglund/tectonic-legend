@@ -15,7 +15,6 @@ interface CellProps {
   groupSize: number;
   colorIndex: number;
   borders: CellBorders;
-  compact: boolean;
   onClick: () => void;
 }
 
@@ -35,6 +34,13 @@ function edgeStyle(edge: CellEdge): string | undefined {
   return 'var(--border-inner-width) solid var(--cell-inner)';
 }
 
+/**
+ * One board cell. The cell is square (`aspect-ratio: 1`) and sizes
+ * itself from the board's responsive grid track — the board grew to the
+ * screen width in the 2026-05-17 solving-shapes graduation (variant
+ * 11), so cells no longer carry fixed pixel sizes. Each cell is a query
+ * container; the value font scales with the cell via `cqw` units.
+ */
 export function Cell({
   value,
   isClue,
@@ -48,62 +54,76 @@ export function Cell({
   groupSize,
   colorIndex,
   borders,
-  compact,
   onClick,
 }: CellProps) {
   // Cage fill comes from the design tokens via the `.cage-N` class.
-  // Transient states (hint / selection / error) override the fill.
   const cageClass = `cage-${(colorIndex % 5) + 1}`;
-  const stateBgClass = isHinted
-    ? 'bg-amber-300'
-    : isSelected
-      ? 'bg-blue-300'
-      : isError
-        ? 'bg-red-200'
-        : '';
-
+  // Transient hint / error states override the fill via a class; the
+  // selected cell uses the selection surface (set inline below).
+  const stateBgClass = isHinted ? 'bg-amber-300' : isError ? 'bg-red-200' : '';
   const ringClass = cellHighlight ? HIGHLIGHT_RINGS[cellHighlight] : '';
-
-  const sizeClass = compact
-    ? 'w-8 h-8 sm:w-9 sm:h-9'
-    : 'w-12 h-12 sm:w-14 sm:h-14';
-
-  const textSize = compact ? 'text-sm' : 'text-xl';
-  const noteTextSize = compact ? 'text-[6px]' : 'text-[9px]';
   const dimClass = isDimmed ? 'opacity-30' : '';
 
-  // Clue vs. player entry: clues are bold in --cell-text; player entries
-  // are medium-weight in --cell-player — a darker shade of this cell's
-  // own cage fill — so the two read apart clearly on any cage colour.
+  // Background: hint / error use a class; the selected cell takes the
+  // selection surface; everything else takes its cage fill.
+  const background = stateBgClass
+    ? undefined
+    : isSelected
+      ? 'var(--surface-cell-selected)'
+      : 'var(--cell-fill)';
+
+  // Value ink: error red (class), else the active cell's darker blue,
+  // else bold clue ink or the player's cage-tinted ink.
   const valueWeight = isClue ? 'font-bold' : 'font-medium';
-  const valueColor = isClue ? 'var(--cell-text)' : 'var(--cell-player)';
+  const valueColor = isSelected
+    ? 'var(--text-cell-selected)'
+    : isClue
+      ? 'var(--cell-text)'
+      : 'var(--cell-player)';
 
   return (
     <div
-      className={`flex items-center justify-center cursor-pointer select-none relative
-        ${sizeClass} ${cageClass} ${stateBgClass} ${ringClass} ${dimClass} transition-all duration-200`}
+      className={`relative flex cursor-pointer select-none items-center justify-center transition-all duration-200
+        ${cageClass} ${stateBgClass} ${ringClass} ${dimClass}`}
       style={{
+        aspectRatio: '1',
+        containerType: 'inline-size',
         borderTop: edgeStyle(borders.top),
         borderLeft: edgeStyle(borders.left),
-        ...(stateBgClass ? {} : { background: 'var(--cell-fill)' }),
+        ...(background ? { background } : {}),
+        // The selected cell is marked by the brand ring (graduated from
+        // the solving-shapes prototype, variant 11).
+        ...(isSelected
+          ? { boxShadow: 'inset 0 0 0 2px var(--brand-600)' }
+          : {}),
       }}
       onClick={onClick}
     >
       {ghostValue !== 0 && value === 0 ? (
-        <span className={`${textSize} text-amber-500 font-semibold opacity-70`}>{ghostValue}</span>
+        <span
+          className="font-semibold text-amber-500 opacity-70"
+          style={{ fontSize: '42cqw', lineHeight: 1 }}
+        >
+          {ghostValue}
+        </span>
       ) : value !== 0 ? (
         <span
-          className={`${textSize} ${valueWeight} ${isError ? 'text-red-600' : ''}`}
-          style={isError ? undefined : { color: valueColor }}
+          className={`${valueWeight} ${isError ? 'text-red-600' : ''}`}
+          style={{
+            fontSize: '42cqw',
+            lineHeight: 1,
+            ...(isError ? {} : { color: valueColor }),
+          }}
         >
           {value}
         </span>
       ) : notes.size > 0 ? (
-        <div className="grid grid-cols-3 gap-0 w-full h-full p-0.5">
+        <div className="grid h-full w-full grid-cols-3 gap-0 p-0.5">
           {Array.from({ length: groupSize }, (_, i) => i + 1).map((n) => (
             <span
               key={n}
-              className={`${noteTextSize} text-slate-400 flex items-center justify-center leading-none`}
+              className="flex items-center justify-center leading-none text-slate-400"
+              style={{ fontSize: '16cqw' }}
             >
               {notes.has(n) ? n : ''}
             </span>
