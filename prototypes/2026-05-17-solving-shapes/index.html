@@ -96,8 +96,8 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 .statusrow{font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary);font-variant-numeric:tabular-nums;}
 .board-wrap{display:flex;justify-content:center;width:var(--proto-board-w,100%);}
 [data-board]{display:contents;}
-.proto-board{display:inline-grid;border:var(--border-cage-width) solid var(--border-cage);
-  border-radius:var(--proto-rboard);overflow:hidden;background:var(--surface-board);}
+.proto-board{display:inline-grid;border-radius:var(--proto-rboard);
+  overflow:hidden;background:var(--surface-board);}
 .proto-board.fill{width:100%;}
 .proto-cell{width:var(--bcell);height:var(--bcell);display:flex;align-items:center;
   justify-content:center;background:var(--cell-fill);position:relative;}
@@ -1093,40 +1093,45 @@ function renderBoard(rowsArr, sel, fill){
     var idx=idxInCage[r+'_'+c];
     var cell=document.createElement('div');
     cell.className='proto-cell cage-'+((color[id]%5)+1);
-    var topEdge=r===0?'none':(grid[r-1][c]!==id?'cage':'inner');
-    var leftEdge=c===0?'none':(grid[r][c-1]!==id?'cage':'inner');
+    // The outer frame is drawn by the edge cells themselves (row 0 /
+    // col 0 / last row / last col), not a board border — so a selected
+    // edge cell's ring can replace it cleanly.
+    var topEdge=r===0?'cage':(grid[r-1][c]!==id?'cage':'inner');
+    var leftEdge=c===0?'cage':(grid[r][c-1]!==id?'cage':'inner');
+    var bottomEdge=r===rows-1?'cage':'none';
+    var rightEdge=c===cols-1?'cage':'none';
     var cornerTL=topEdge==='inner'&&leftEdge==='inner'&&grid[r-1][c-1]!==id;
     var blank=((r*7 + c*5) % 10) < 3;
     var val=(idx % size)+1;
     var isSel=sel && sel[0]===r && sel[1]===c;
     // Grid lines as box-shadows: cage entries first so the darker line
-    // wins a shared corner. The selected cell's ring is inset on the
-    // top/left edges it owns, outset on the right/bottom its neighbours
-    // own, so it lands on the grid lines rather than beside them.
-    var shadows=[];
-    if(isSel){
-      cell.classList.add('sel');
-      shadows.push(
-        'inset 0 2px 0 0 var(--brand-600)',
-        'inset 2px 0 0 0 var(--brand-600)',
-        '2px 0 0 0 var(--brand-600)',
-        '0 2px 0 0 var(--brand-600)'
-      );
-    } else {
-      var cage=[], inner=[];
-      if(topEdge==='cage') cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
-      else if(topEdge==='inner') inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
-      if(leftEdge==='cage') cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
-      else if(leftEdge==='inner') inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
-      shadows=cage.concat(inner);
-    }
-    if(shadows.length) cell.style.boxShadow=shadows.join(', ');
+    // wins a shared corner.
+    var cage=[], inner=[];
+    if(topEdge==='cage') cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
+    else if(topEdge==='inner') inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
+    if(leftEdge==='cage') cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
+    else if(leftEdge==='inner') inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
+    if(bottomEdge==='cage') cage.push('inset 0 calc(-1 * var(--border-cage-width)) 0 0 var(--border-cage)');
+    if(rightEdge==='cage') cage.push('inset calc(-1 * var(--border-cage-width)) 0 0 0 var(--border-cage)');
+    cell.style.boxShadow=cage.concat(inner).join(', ');
     // Close a cage corner that falls inside this cell but is reached by
     // neither of its own (inner) edges.
-    if(!isSel && cornerTL){
+    if(cornerTL){
       var patch=document.createElement('span');
       patch.style.cssText='position:absolute;top:0;left:0;width:var(--border-cage-width);height:var(--border-cage-width);background:var(--border-cage);';
       cell.appendChild(patch);
+    }
+    // Selection ring — a child layer, inset on the edges the cell draws
+    // itself (incl. a board-edge cell's frame), outset on interior edges
+    // a neighbour draws, so it replaces the line instead of doubling it.
+    if(isSel){
+      cell.classList.add('sel');
+      var ring=document.createElement('span');
+      ring.style.cssText='position:absolute;inset:0;pointer-events:none;box-shadow:'
+        +'inset 0 2px 0 0 var(--brand-600), inset 2px 0 0 0 var(--brand-600), '
+        +(rightEdge==='cage'?'inset -2px 0 0 0 var(--brand-600)':'2px 0 0 0 var(--brand-600)')+', '
+        +(bottomEdge==='cage'?'inset 0 -2px 0 0 var(--brand-600)':'0 2px 0 0 var(--brand-600)')+';';
+      cell.appendChild(ring);
     }
     if(!blank){
       var isClue=((r+c)%2)===0;
