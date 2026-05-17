@@ -19,6 +19,10 @@ export interface CellBorders {
    *  — so neither cage segment reaches into this cell. The cell must
    *  paint a small cage-coloured patch to close the corner. */
   cornerTL: boolean;
+  /** Which board corner this cell sits at, or null. A corner cell
+   *  rounds that corner so its frame box-shadow follows the board's
+   *  radius (the frame is drawn by the cell, not the container). */
+  boardCorner: 'tl' | 'tr' | 'bl' | 'br' | null;
 }
 
 /**
@@ -52,8 +56,21 @@ export function computeBorders(
         : 'inner';
 
   // The outer frame — only the last row / column draw it.
-  const bottom: CellEdge = row === rows - 1 ? 'cage' : 'none';
-  const right: CellEdge = col === cols - 1 ? 'cage' : 'none';
+  const lastRow = row === rows - 1;
+  const lastCol = col === cols - 1;
+  const bottom: CellEdge = lastRow ? 'cage' : 'none';
+  const right: CellEdge = lastCol ? 'cage' : 'none';
+
+  const boardCorner: CellBorders['boardCorner'] =
+    row === 0 && col === 0
+      ? 'tl'
+      : row === 0 && lastCol
+        ? 'tr'
+        : lastRow && col === 0
+          ? 'bl'
+          : lastRow && lastCol
+            ? 'br'
+            : null;
 
   // The top-left corner is a cage corner this cell must close itself
   // only when both its edges are `inner` (so the up- and left-neighbours
@@ -64,5 +81,5 @@ export function computeBorders(
     left === 'inner' &&
     cellToGroup.get(posKey(row - 1, col - 1)) !== myGroup;
 
-  return { top, left, bottom, right, cornerTL };
+  return { top, left, bottom, right, cornerTL, boardCorner };
 }

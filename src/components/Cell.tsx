@@ -131,6 +131,19 @@ export function Cell({
       : '0 2px 0 0 var(--brand-600)',
   ].join(', ');
 
+  // A board-corner cell rounds that corner, so its frame box-shadow
+  // (and the selection ring) follow the board's radius.
+  const cornerRadius =
+    borders.boardCorner === 'tl'
+      ? { borderTopLeftRadius: 'var(--radius-card)' }
+      : borders.boardCorner === 'tr'
+        ? { borderTopRightRadius: 'var(--radius-card)' }
+        : borders.boardCorner === 'bl'
+          ? { borderBottomLeftRadius: 'var(--radius-card)' }
+          : borders.boardCorner === 'br'
+            ? { borderBottomRightRadius: 'var(--radius-card)' }
+            : {};
+
   return (
     <div
       className={`relative flex cursor-pointer select-none items-center justify-center
@@ -140,6 +153,7 @@ export function Cell({
         containerType: 'inline-size',
         transition:
           'background-color var(--motion-fast), opacity var(--motion-fast)',
+        ...cornerRadius,
         ...(background ? { background } : {}),
         ...(shadows.length ? { boxShadow: shadows.join(', ') } : {}),
         // Raise the selected cell so its ring child's outset segments
@@ -172,6 +186,7 @@ export function Cell({
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
+            ...cornerRadius,
             boxShadow: ringShadow,
             animation: 'cell-ring-in var(--motion-fast)',
           }}
