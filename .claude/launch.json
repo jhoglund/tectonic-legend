@@ -6,6 +6,12 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "port": 7576
+    },
+    {
+      "name": "solving-shapes",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7580", "--directory", "prototypes/2026-05-17-solving-shapes"],
+      "port": 7580
     }
   ]
 }
