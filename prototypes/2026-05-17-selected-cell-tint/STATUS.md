@@ -30,3 +30,12 @@ The **Soft tint** variant was picked and reproduced in `src/`:
 - `specs/design-tokens.md` §2a documents the treatment.
 
 The other variants stay above as the visual record.
+
+## Possible revisit
+
+Jonas also likes the **Dark cell, light ink** variant and may switch to it
+later. The prototype keeps that variant intact, so the swap is just
+re-deriving the three `.cell-selected` / `.cell-selected-ink` OKLCH transforms
+in `src/index.css` to the `var-dark` spec (`bg l−0.50 c×2.3 · ring l−0.62
+c×2.6 · ink 0.98 c×0.5`, plus matching dark-mode values). No structural
+change — `Cell.tsx` already reads the classes.
