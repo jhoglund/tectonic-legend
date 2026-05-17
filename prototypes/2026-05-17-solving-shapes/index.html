@@ -34,6 +34,7 @@
   --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
   --shadow-modal:0 12px 40px rgba(0,0,0,0.18);
+  --proto-pressed-bg:#404040; --proto-pressed-fg:#ffffff;
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -53,6 +54,7 @@
     --cage-3-player:oklch(from var(--cage-3) 0.85 calc(c * 2) h);
     --cage-4-player:oklch(from var(--cage-4) 0.85 calc(c * 2) h);
     --cage-5-player:oklch(from var(--cage-5) 0.85 calc(c * 2) h);
+    --proto-pressed-bg:#e5e5e5; --proto-pressed-fg:#0a0a0a;
   }
 }
 .cage-1{--cell-fill:var(--cage-1);--cell-inner:var(--cage-1-inner);--cell-player:var(--cage-1-player);}
@@ -115,9 +117,12 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
   color:var(--text-primary);cursor:pointer;}
 .tool.active{background:var(--proto-active-bg,var(--brand-100));
   border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
-.tool-undo{flex:0 0 auto;aspect-ratio:1;padding:0;border-radius:999px;
-  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo{flex:0 0 auto;width:var(--proto-undo-d);height:var(--proto-undo-d);
+  padding:0;border-radius:999px;display:flex;align-items:center;
+  justify-content:center;color:var(--text-secondary);}
 .tool-undo svg{width:16px;height:16px;}
+.tool.pressed,.key.pressed{background:var(--proto-pressed-bg);
+  color:var(--proto-pressed-fg);border-color:var(--proto-pressed-bg);}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
   background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-primary);
@@ -962,10 +967,10 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
     </figure>
   </div>
 </section>
-<section id="v11" style="--proto-rboard:10px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:999px;--proto-key:58px;--proto-rcard:12px;--proto-gap:16px;--proto-board-w:354px;--proto-active-bg:var(--border);--proto-active-fg:var(--text-primary);--proto-active-bd:var(--border)">
+<section id="v11" style="--proto-rboard:10px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:999px;--proto-key:58px;--proto-rcard:12px;--proto-gap:16px;--proto-board-w:354px;--proto-active-bg:var(--border);--proto-active-fg:var(--text-primary);--proto-active-bd:var(--border);--proto-undo-d:37px">
   <div class="section-head">
     <h2>11 · Refined candidate</h2>
-    <p class="desc">A converged direction. Large circular number keys (from 06); a round Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state instead of brand tint; the board scaled to the content width, flush with the toolbar (grid size of 10, standard 16px margin); and the stack ordered grid → number keys → toolbar → hint card.</p>
+    <p class="desc">A converged direction. Large circular number keys (from 06); a circular Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state, and a negative pressed state (dark fill, white text) — one number key is shown pressed; the board scaled to the content width, flush with the toolbar; stack ordered grid → number keys → toolbar → hint card.</p>
     <p class="spec">board full-width −16px · board r10 · buttons r8 · keys 58px rcircle · layout keypad-first · undo in toolbar · gray active</p>
   </div>
   <div class="stage">
@@ -985,7 +990,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
           <div class="keypad">
             <button class="key">1</button>
             <button class="key">2</button>
-            <button class="key">3</button>
+            <button class="key pressed">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
           </div>
@@ -1021,7 +1026,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
           <div class="keypad">
             <button class="key">1</button>
             <button class="key">2</button>
-            <button class="key">3</button>
+            <button class="key pressed">3</button>
             <button class="key">4</button>
             <button class="key">5</button>
           </div>

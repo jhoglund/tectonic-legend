@@ -47,6 +47,7 @@ const TOKENS = `
   --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
   --shadow-modal:0 12px 40px rgba(0,0,0,0.18);
+  --proto-pressed-bg:#404040; --proto-pressed-fg:#ffffff;
 }
 @media (prefers-color-scheme:dark){
   :root{
@@ -66,6 +67,7 @@ const TOKENS = `
     --cage-3-player:oklch(from var(--cage-3) 0.85 calc(c * 2) h);
     --cage-4-player:oklch(from var(--cage-4) 0.85 calc(c * 2) h);
     --cage-5-player:oklch(from var(--cage-5) 0.85 calc(c * 2) h);
+    --proto-pressed-bg:#e5e5e5; --proto-pressed-fg:#0a0a0a;
   }
 }
 .cage-1{--cell-fill:var(--cage-1);--cell-inner:var(--cage-1-inner);--cell-player:var(--cage-1-player);}
@@ -129,9 +131,12 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
   color:var(--text-primary);cursor:pointer;}
 .tool.active{background:var(--proto-active-bg,var(--brand-100));
   border-color:var(--proto-active-bd,var(--brand-100));color:var(--proto-active-fg,var(--brand-600));}
-.tool-undo{flex:0 0 auto;aspect-ratio:1;padding:0;border-radius:999px;
-  display:flex;align-items:center;justify-content:center;color:var(--text-secondary);}
+.tool-undo{flex:0 0 auto;width:var(--proto-undo-d);height:var(--proto-undo-d);
+  padding:0;border-radius:999px;display:flex;align-items:center;
+  justify-content:center;color:var(--text-secondary);}
 .tool-undo svg{width:16px;height:16px;}
+.tool.pressed,.key.pressed{background:var(--proto-pressed-bg);
+  color:var(--proto-pressed-fg);border-color:var(--proto-pressed-bg);}
 .keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
 .key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
   background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-primary);
@@ -266,32 +271,39 @@ const toolbar = (withUndo) => `
             }
           </div>`;
 
-const keypad = (withUndo) => `
+const keypad = (withUndo, pressedKey) => {
+  const digits = [1, 2, 3, 4, 5]
+    .map(
+      (n) =>
+        `<button class="key${n === pressedKey ? ' pressed' : ''}">${n}</button>`,
+    )
+    .join('\n            ');
+  return `
           <div class="keypad">
-            <button class="key">1</button>
-            <button class="key">2</button>
-            <button class="key">3</button>
-            <button class="key">4</button>
-            <button class="key">5</button>${
+            ${digits}${
               withUndo
                 ? `
             <button class="key key-undo" aria-label="Undo">${ICON_UNDO}</button>`
                 : ''
             }
           </div>`;
+};
 
 const wrap = (cls, inner) => `<div class="${cls}">${inner}</div>`;
 
-/** One full phone screen. `framed` boxes board / toolbar / keypad in
- *  cards; `undoInToolbar` moves Undo from the keypad to the toolbar. */
-function screen(title, key, layout, framed, fill, undoInToolbar) {
-  const tbInner = toolbar(undoInToolbar);
-  const kpInner = keypad(!undoInToolbar);
-  const bd = framed ? wrap('framecard', board(key, fill)) : board(key, fill);
-  const tb = framed ? wrap('framecard', tbInner) : tbInner;
-  const kp = framed ? wrap('framecard', kpInner) : kpInner;
+/** One full phone screen for variant `v`. `framed` boxes board /
+ *  toolbar / keypad in cards; `undoInToolbar` moves Undo from the
+ *  keypad to the toolbar; `pressedKey` shows one key in the pressed
+ *  state. */
+function screen(v, title, key) {
+  const fill = v.fill !== null;
+  const tbInner = toolbar(v.undoInToolbar);
+  const kpInner = keypad(!v.undoInToolbar, v.pressedKey);
+  const bd = v.framed ? wrap('framecard', board(key, fill)) : board(key, fill);
+  const tb = v.framed ? wrap('framecard', tbInner) : tbInner;
+  const kp = v.framed ? wrap('framecard', kpInner) : kpInner;
   const stack =
-    layout === 'keypad-first' ? [bd, kp, tb, hintcard] : [bd, hintcard, tb, kp];
+    v.layout === 'keypad-first' ? [bd, kp, tb, hintcard] : [bd, hintcard, tb, kp];
   return `${navbar(title)}
         <div class="screen-body">
           <div class="statusrow">1:32 · 9 left</div>
@@ -363,10 +375,10 @@ const variants = [
   },
   {
     slug: 'refined', name: 'Refined candidate',
-    desc: 'A converged direction. Large circular number keys (from 06); a round Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state instead of brand tint; the board scaled to the content width, flush with the toolbar (grid size of 10, standard 16px margin); and the stack ordered grid → number keys → toolbar → hint card.',
+    desc: 'A converged direction. Large circular number keys (from 06); a circular Undo button at the end of the toolbar, the same height as the other buttons; a light-gray active state, and a negative pressed state (dark fill, white text) — one number key is shown pressed; the board scaled to the content width, flush with the toolbar; stack ordered grid → number keys → toolbar → hint card.',
     cell5: 70, cell8: 44, rBoard: 10, rBtn: 8, btnH: 10, rKey: 999, key: 58,
     rCard: 12, gap: 16, layout: 'keypad-first', framed: false, fill: 16,
-    undoInToolbar: true, activeGray: true,
+    undoInToolbar: true, activeGray: true, pressedKey: 3,
   },
 ];
 
@@ -410,6 +422,7 @@ function sectionVars(v) {
     vars.push('--proto-active-fg:var(--text-primary)');
     vars.push('--proto-active-bd:var(--border)');
   }
+  if (v.undoInToolbar) vars.push(`--proto-undo-d:${2 * v.btnH + 17}px`);
   return vars.join(';');
 }
 
@@ -426,13 +439,13 @@ function sectionHtml(v, idx) {
     <figure>
       <figcaption>5 × 5 grid</figcaption>
       <div class="phone" style="--bcell:${v.cell5}px">
-        ${screen('Medium · 5×5', '5', v.layout, v.framed, v.fill !== null, v.undoInToolbar)}
+        ${screen(v, 'Medium · 5×5', '5')}
       </div>
     </figure>
     <figure>
       <figcaption>8 × 8 grid</figcaption>
       <div class="phone" style="--bcell:${v.cell8}px">
-        ${screen('Hard · 8×8', '8', v.layout, v.framed, v.fill !== null, v.undoInToolbar)}
+        ${screen(v, 'Hard · 8×8', '8')}
       </div>
     </figure>
   </div>
