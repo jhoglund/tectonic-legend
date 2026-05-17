@@ -34,12 +34,16 @@ const HIGHLIGHT_COLOR: Record<string, string> = {
  * 11), so cells no longer carry fixed pixel sizes. Each cell is a query
  * container; the value font scales with the cell via `cqw` units.
  *
- * Grid lines are drawn as **inset box-shadows**, not CSS borders, for
- * two reasons: box-shadows paint in list order, so the 2px cage line —
- * listed first — always wins a shared corner over the 1px inner line
- * (the darker border on top); and the selected cell can instead take a
- * single *outset* ring on top of its neighbours, reading as a uniform
- * ring rather than compounding with a neighbour's darker cage border.
+ * Grid lines are drawn as **inset box-shadows**, not CSS borders, so
+ * they paint in list order — the 2px cage line, listed first, always
+ * wins a shared corner over the 1px inner line. Where a cage boundary
+ * turns a corner that neither of the cell's own edges reaches
+ * (`borders.cornerTL`), the cell paints a small cage patch to close it.
+ *
+ * The selected cell's ring is inset on the top/left edges it owns and
+ * outset on the right/bottom edges its neighbours own, so it lands
+ * exactly on the grid lines rather than beside them — and, raised above
+ * its neighbours, it cleanly replaces them instead of compounding.
  */
 export function Cell({
   value,
@@ -80,13 +84,20 @@ export function Cell({
       ? 'var(--cell-text)'
       : 'var(--cell-player)';
 
-  // Box-shadow stack. The selected cell takes an outset brand ring
-  // (raised above neighbours via z-index). Every other cell draws its
-  // top/left grid lines as insets — cage entries first so the darker
-  // 2px line always paints over the 1px inner line at a shared corner.
+  // Box-shadow stack. The selected cell's ring is inset on the edges it
+  // owns (top/left) and outset on the edges its neighbours own
+  // (right/bottom) so it lands on the grid lines; z-index then lifts it
+  // above the neighbours so it replaces those lines. Every other cell
+  // draws its top/left grid lines as insets — cage entries first so the
+  // darker 2px line always paints over the 1px inner line at a corner.
   const shadows: string[] = [];
   if (isSelected) {
-    shadows.push('0 0 0 2px var(--brand-600)');
+    shadows.push(
+      'inset 0 2px 0 0 var(--brand-600)',
+      'inset 2px 0 0 0 var(--brand-600)',
+      '2px 0 0 0 var(--brand-600)',
+      '0 2px 0 0 var(--brand-600)',
+    );
   } else {
     if (cellHighlight) {
       shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
@@ -121,6 +132,21 @@ export function Cell({
       }}
       onClick={onClick}
     >
+      {/* Cage-corner patch — closes a cage L whose corner falls in this
+          cell but is reached by neither of its own edges. */}
+      {!isSelected && borders.cornerTL && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            top: 0,
+            left: 0,
+            width: 'var(--border-cage-width)',
+            height: 'var(--border-cage-width)',
+            background: 'var(--border-cage)',
+          }}
+        />
+      )}
       {ghostValue !== 0 && value === 0 ? (
         <span
           className="font-semibold text-amber-500 opacity-70"

@@ -8,6 +8,11 @@ export type CellEdge = 'cage' | 'inner' | 'none';
 export interface CellBorders {
   top: CellEdge;
   left: CellEdge;
+  /** True when a cage boundary turns a corner exactly at the cell's
+   *  top-left point, yet both of the cell's own edges there are `inner`
+   *  — so neither cage segment reaches into this cell. The cell must
+   *  paint a small cage-coloured patch to close the corner. */
+  cornerTL: boolean;
 }
 
 /** Which border each cell paints on its top and left edge. Every internal
@@ -36,5 +41,14 @@ export function computeBorders(
         ? 'cage'
         : 'inner';
 
-  return { top, left };
+  // The top-left corner is a cage corner this cell must close itself
+  // only when both its edges are `inner` (so the up- and left-neighbours
+  // share its cage) but the diagonal neighbour is a different cage —
+  // the cage L turns the corner around that diagonal cell.
+  const cornerTL =
+    top === 'inner' &&
+    left === 'inner' &&
+    cellToGroup.get(posKey(row - 1, col - 1)) !== myGroup;
+
+  return { top, left, cornerTL };
 }

@@ -193,14 +193,23 @@ function renderBoard(rowsArr, sel, fill){
     cell.className='proto-cell cage-'+((color[id]%5)+1);
     var topEdge=r===0?'none':(grid[r-1][c]!==id?'cage':'inner');
     var leftEdge=c===0?'none':(grid[r][c-1]!==id?'cage':'inner');
+    var cornerTL=topEdge==='inner'&&leftEdge==='inner'&&grid[r-1][c-1]!==id;
     var blank=((r*7 + c*5) % 10) < 3;
     var val=(idx % size)+1;
-    // Grid lines as box-shadows, cage entries first so the darker line
-    // wins a shared corner; the selected cell takes an outset ring.
+    var isSel=sel && sel[0]===r && sel[1]===c;
+    // Grid lines as box-shadows: cage entries first so the darker line
+    // wins a shared corner. The selected cell's ring is inset on the
+    // top/left edges it owns, outset on the right/bottom its neighbours
+    // own, so it lands on the grid lines rather than beside them.
     var shadows=[];
-    if(sel && sel[0]===r && sel[1]===c){
+    if(isSel){
       cell.classList.add('sel');
-      shadows.push('0 0 0 2px var(--brand-600)');
+      shadows.push(
+        'inset 0 2px 0 0 var(--brand-600)',
+        'inset 2px 0 0 0 var(--brand-600)',
+        '2px 0 0 0 var(--brand-600)',
+        '0 2px 0 0 var(--brand-600)'
+      );
     } else {
       var cage=[], inner=[];
       if(topEdge==='cage') cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
@@ -210,6 +219,13 @@ function renderBoard(rowsArr, sel, fill){
       shadows=cage.concat(inner);
     }
     if(shadows.length) cell.style.boxShadow=shadows.join(', ');
+    // Close a cage corner that falls inside this cell but is reached by
+    // neither of its own (inner) edges.
+    if(!isSel && cornerTL){
+      var patch=document.createElement('span');
+      patch.style.cssText='position:absolute;top:0;left:0;width:var(--border-cage-width);height:var(--border-cage-width);background:var(--border-cage);';
+      cell.appendChild(patch);
+    }
     if(!blank){
       var isClue=((r+c)%2)===0;
       var span=document.createElement('span');
