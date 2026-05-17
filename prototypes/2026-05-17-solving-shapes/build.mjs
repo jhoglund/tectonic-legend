@@ -116,7 +116,7 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 .proto-cell{width:var(--bcell);height:var(--bcell);display:flex;align-items:center;
   justify-content:center;background:var(--cell-fill);position:relative;}
 .proto-board.fill .proto-cell{width:auto;height:auto;aspect-ratio:1;}
-.proto-cell.sel{background:var(--surface-cell-selected);box-shadow:inset 0 0 0 2px var(--brand-600);}
+.proto-cell.sel{background:var(--surface-cell-selected);z-index:5;}
 .proto-cell span{font-size:calc(var(--bcell) * 0.42);line-height:1;}
 .proto-cell .v-clue{font-weight:700;color:var(--cell-text);}
 .proto-cell .v-player{font-weight:500;color:var(--cell-player);}
@@ -150,11 +150,6 @@ figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08e
 
 /* --- the board renderer, embedded verbatim into the page ---------- */
 const RENDERER = `
-function protoEdge(kind){
-  return kind==='cage'
-    ? 'var(--border-cage-width) solid var(--border-cage)'
-    : 'var(--border-inner-width) solid var(--cell-inner)';
-}
 function renderBoard(rowsArr, sel, fill){
   var grid=rowsArr.map(function(s){return s.split('');});
   var rows=grid.length, cols=grid[0].length, r, c, d;
@@ -198,11 +193,23 @@ function renderBoard(rowsArr, sel, fill){
     cell.className='proto-cell cage-'+((color[id]%5)+1);
     var topEdge=r===0?'none':(grid[r-1][c]!==id?'cage':'inner');
     var leftEdge=c===0?'none':(grid[r][c-1]!==id?'cage':'inner');
-    if(topEdge!=='none') cell.style.borderTop=protoEdge(topEdge);
-    if(leftEdge!=='none') cell.style.borderLeft=protoEdge(leftEdge);
     var blank=((r*7 + c*5) % 10) < 3;
     var val=(idx % size)+1;
-    if(sel && sel[0]===r && sel[1]===c) cell.classList.add('sel');
+    // Grid lines as box-shadows, cage entries first so the darker line
+    // wins a shared corner; the selected cell takes an outset ring.
+    var shadows=[];
+    if(sel && sel[0]===r && sel[1]===c){
+      cell.classList.add('sel');
+      shadows.push('0 0 0 2px var(--brand-600)');
+    } else {
+      var cage=[], inner=[];
+      if(topEdge==='cage') cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
+      else if(topEdge==='inner') inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
+      if(leftEdge==='cage') cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
+      else if(leftEdge==='inner') inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
+      shadows=cage.concat(inner);
+    }
+    if(shadows.length) cell.style.boxShadow=shadows.join(', ');
     if(!blank){
       var isClue=((r+c)%2)===0;
       var span=document.createElement('span');
