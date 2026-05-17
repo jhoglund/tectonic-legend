@@ -40,10 +40,12 @@ const HIGHLIGHT_COLOR: Record<string, string> = {
  * turns a corner that neither of the cell's own edges reaches
  * (`borders.cornerTL`), the cell paints a small cage patch to close it.
  *
- * The selected cell's ring is inset on the top/left edges it owns and
- * outset on the right/bottom edges its neighbours own, so it lands
- * exactly on the grid lines rather than beside them — and, raised above
- * its neighbours, it cleanly replaces them instead of compounding.
+ * The selected cell's ring is a separate child layer that fades in
+ * (`cell-ring-in`): inset on the top/left edges the cell owns and
+ * outset on the right/bottom its neighbours own, so it lands exactly on
+ * the grid lines, and — raised above its neighbours — replaces them
+ * rather than compounding. A player-entered value grows into place via
+ * `cell-value-enter`. Both keyframes live in src/index.css.
  */
 export function Cell({
   value,
@@ -84,50 +86,41 @@ export function Cell({
       ? 'var(--cell-text)'
       : 'var(--cell-player)';
 
-  // Box-shadow stack. The selected cell's ring is inset on the edges it
-  // owns (top/left) and outset on the edges its neighbours own
-  // (right/bottom) so it lands on the grid lines; z-index then lifts it
-  // above the neighbours so it replaces those lines. Every other cell
-  // draws its top/left grid lines as insets — cage entries first so the
-  // darker 2px line always paints over the 1px inner line at a corner.
+  // Box-shadow stack — the cell's top/left grid lines as insets, cage
+  // entries first so the darker 2px line always paints over the 1px
+  // inner line at a shared corner; a chain-highlight ring goes on top.
+  // The selection ring is a separate child layer (rendered below).
   const shadows: string[] = [];
-  if (isSelected) {
-    shadows.push(
-      'inset 0 2px 0 0 var(--brand-600)',
-      'inset 2px 0 0 0 var(--brand-600)',
-      '2px 0 0 0 var(--brand-600)',
-      '0 2px 0 0 var(--brand-600)',
-    );
-  } else {
-    if (cellHighlight) {
-      shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
-    }
-    const cage: string[] = [];
-    const inner: string[] = [];
-    if (borders.top === 'cage') {
-      cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
-    } else if (borders.top === 'inner') {
-      inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
-    }
-    if (borders.left === 'cage') {
-      cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
-    } else if (borders.left === 'inner') {
-      inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
-    }
-    shadows.push(...cage, ...inner);
+  if (cellHighlight) {
+    shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
   }
+  const cage: string[] = [];
+  const inner: string[] = [];
+  if (borders.top === 'cage') {
+    cage.push('inset 0 var(--border-cage-width) 0 0 var(--border-cage)');
+  } else if (borders.top === 'inner') {
+    inner.push('inset 0 var(--border-inner-width) 0 0 var(--cell-inner)');
+  }
+  if (borders.left === 'cage') {
+    cage.push('inset var(--border-cage-width) 0 0 0 var(--border-cage)');
+  } else if (borders.left === 'inner') {
+    inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
+  }
+  shadows.push(...cage, ...inner);
 
   return (
     <div
-      className={`relative flex cursor-pointer select-none items-center justify-center transition-all duration-200
+      className={`relative flex cursor-pointer select-none items-center justify-center
         ${cageClass} ${stateBgClass} ${dimClass}`}
       style={{
         aspectRatio: '1',
         containerType: 'inline-size',
+        transition:
+          'background-color var(--motion-fast), opacity var(--motion-fast)',
         ...(background ? { background } : {}),
         ...(shadows.length ? { boxShadow: shadows.join(', ') } : {}),
-        // Raise the selected cell so its outset ring sits above the
-        // neighbouring cells' grid lines.
+        // Raise the selected cell so its ring child's outset segments
+        // sit above the neighbouring cells' grid lines.
         ...(isSelected ? { zIndex: 5 } : {}),
       }}
       onClick={onClick}
@@ -147,6 +140,22 @@ export function Cell({
           }}
         />
       )}
+      {/* Selection ring — a child layer so it fades in cleanly
+          (cell-ring-in); inset on the top/left edges this cell owns,
+          outset on the right/bottom its neighbours own. */}
+      {isSelected && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            boxShadow:
+              'inset 0 2px 0 0 var(--brand-600), inset 2px 0 0 0 var(--brand-600), 2px 0 0 0 var(--brand-600), 0 2px 0 0 var(--brand-600)',
+            animation: 'cell-ring-in var(--motion-fast)',
+          }}
+        />
+      )}
       {ghostValue !== 0 && value === 0 ? (
         <span
           className="font-semibold text-amber-500 opacity-70"
@@ -156,11 +165,17 @@ export function Cell({
         </span>
       ) : value !== 0 ? (
         <span
+          // Keyed by value so a freshly entered number remounts and
+          // replays the grow-in animation.
+          key={value}
           className={`${valueWeight} ${isError ? 'text-red-600' : ''}`}
           style={{
             fontSize: '42cqw',
             lineHeight: 1,
             ...(isError ? {} : { color: valueColor }),
+            // A player-entered value grows into place and its colour
+            // settles in; clues are given, so they simply appear.
+            ...(isClue ? {} : { animation: 'cell-value-enter var(--motion-base)' }),
           }}
         >
           {value}
