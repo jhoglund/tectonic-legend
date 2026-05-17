@@ -72,13 +72,15 @@ export function Board({
 
   return (
     // The board grows to the full content width (solving-shapes
-    // graduation, variant 11): equal `1fr` tracks, square cells.
+    // graduation, variant 11): equal `1fr` tracks, square cells. The
+    // outer frame is drawn by the edge cells themselves (cellBorders),
+    // not as a container border — so a selected edge cell's ring can
+    // replace it cleanly. The radius still clips the corner cells.
     <div
       className="grid"
       style={{
         width: '100%',
         gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        border: 'var(--border-cage-width) solid var(--border-cage)',
         borderRadius: 'var(--radius-card)',
         overflow: 'hidden',
       }}

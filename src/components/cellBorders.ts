@@ -2,12 +2,18 @@ import type { PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 
 /** A cell edge is either a cage boundary, a within-cage line, or unset
- *  ('none' — the board container draws that outer frame instead). */
+ *  ('none' — no line drawn on that edge). */
 export type CellEdge = 'cage' | 'inner' | 'none';
 
 export interface CellBorders {
   top: CellEdge;
   left: CellEdge;
+  /** Bottom / right are only set ('cage') on the board's last row /
+   *  column — that is the outer frame. Interior horizontal and vertical
+   *  lines are owned by the cell below / to the right (as its `top` /
+   *  `left`), so interior cells leave these 'none'. */
+  bottom: CellEdge;
+  right: CellEdge;
   /** True when a cage boundary turns a corner exactly at the cell's
    *  top-left point, yet both of the cell's own edges there are `inner`
    *  — so neither cage segment reaches into this cell. The cell must
@@ -15,31 +21,39 @@ export interface CellBorders {
   cornerTL: boolean;
 }
 
-/** Which border each cell paints on its top and left edge. Every internal
- *  grid line is owned by exactly one cell (the one below / to the right);
- *  the board container paints the outer frame, so row 0 / column 0 cells
- *  paint 'none' on their outer edge. */
+/**
+ * Which border each cell paints. Each cell always paints its `top` and
+ * `left`; the cells on the last row / column also paint the outer frame
+ * as `bottom` / `right`. Drawing the frame on the cells themselves —
+ * rather than as a border on the board container — lets a selected
+ * edge cell's ring replace the frame cleanly, instead of stacking a
+ * second border beside it.
+ */
 export function computeBorders(
   row: number,
   col: number,
   layout: PuzzleLayout,
 ): CellBorders {
-  const { cellToGroup } = layout;
+  const { rows, cols, cellToGroup } = layout;
   const myGroup = cellToGroup.get(posKey(row, col))!;
 
   const top: CellEdge =
     row === 0
-      ? 'none'
+      ? 'cage'
       : cellToGroup.get(posKey(row - 1, col)) !== myGroup
         ? 'cage'
         : 'inner';
 
   const left: CellEdge =
     col === 0
-      ? 'none'
+      ? 'cage'
       : cellToGroup.get(posKey(row, col - 1)) !== myGroup
         ? 'cage'
         : 'inner';
+
+  // The outer frame — only the last row / column draw it.
+  const bottom: CellEdge = row === rows - 1 ? 'cage' : 'none';
+  const right: CellEdge = col === cols - 1 ? 'cage' : 'none';
 
   // The top-left corner is a cage corner this cell must close itself
   // only when both its edges are `inner` (so the up- and left-neighbours
@@ -50,5 +64,5 @@ export function computeBorders(
     left === 'inner' &&
     cellToGroup.get(posKey(row - 1, col - 1)) !== myGroup;
 
-  return { top, left, cornerTL };
+  return { top, left, bottom, right, cornerTL };
 }

@@ -41,11 +41,11 @@ const HIGHLIGHT_COLOR: Record<string, string> = {
  * (`borders.cornerTL`), the cell paints a small cage patch to close it.
  *
  * The selected cell's ring is a separate child layer that fades in
- * (`cell-ring-in`): inset on the top/left edges the cell owns and
- * outset on the right/bottom its neighbours own, so it lands exactly on
- * the grid lines, and — raised above its neighbours — replaces them
- * rather than compounding. A player-entered value grows into place via
- * `cell-value-enter`. Both keyframes live in src/index.css.
+ * (`cell-ring-in`): inset on the edges the cell draws itself, outset on
+ * the edges a neighbour draws, so it lands exactly on the grid line and
+ * — raised above its neighbours — replaces it rather than doubling it.
+ * A player-entered value grows into place via `cell-value-enter`. Both
+ * keyframes live in src/index.css.
  */
 export function Cell({
   value,
@@ -86,10 +86,11 @@ export function Cell({
       ? 'var(--cell-text)'
       : 'var(--cell-player)';
 
-  // Box-shadow stack — the cell's top/left grid lines as insets, cage
-  // entries first so the darker 2px line always paints over the 1px
-  // inner line at a shared corner; a chain-highlight ring goes on top.
-  // The selection ring is a separate child layer (rendered below).
+  // Box-shadow stack — the cell's grid lines as insets, cage entries
+  // first so the darker 2px line always paints over the 1px inner line
+  // at a shared corner; a chain-highlight ring goes on top. `top`/`left`
+  // are always drawn; `bottom`/`right` only on the board's edge cells
+  // (the outer frame). The selection ring is a separate child layer.
   const shadows: string[] = [];
   if (cellHighlight) {
     shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
@@ -106,7 +107,29 @@ export function Cell({
   } else if (borders.left === 'inner') {
     inner.push('inset var(--border-inner-width) 0 0 0 var(--cell-inner)');
   }
+  if (borders.bottom === 'cage') {
+    cage.push('inset 0 calc(-1 * var(--border-cage-width)) 0 0 var(--border-cage)');
+  }
+  if (borders.right === 'cage') {
+    cage.push('inset calc(-1 * var(--border-cage-width)) 0 0 0 var(--border-cage)');
+  }
   shadows.push(...cage, ...inner);
+
+  // The selection ring lands on a grid line on every edge: inset on the
+  // top/left this cell draws, and on the bottom/right of a board-edge
+  // cell (which draws its own frame there); outset on an interior
+  // bottom/right, where the neighbour draws the line. Raised by z-index,
+  // it then replaces that line instead of doubling it.
+  const ringShadow = [
+    'inset 0 2px 0 0 var(--brand-600)',
+    'inset 2px 0 0 0 var(--brand-600)',
+    borders.right === 'cage'
+      ? 'inset -2px 0 0 0 var(--brand-600)'
+      : '2px 0 0 0 var(--brand-600)',
+    borders.bottom === 'cage'
+      ? 'inset 0 -2px 0 0 var(--brand-600)'
+      : '0 2px 0 0 var(--brand-600)',
+  ].join(', ');
 
   return (
     <div
@@ -141,8 +164,7 @@ export function Cell({
         />
       )}
       {/* Selection ring — a child layer so it fades in cleanly
-          (cell-ring-in); inset on the top/left edges this cell owns,
-          outset on the right/bottom its neighbours own. */}
+          (cell-ring-in). See `ringShadow` for the per-edge geometry. */}
       {isSelected && (
         <span
           aria-hidden="true"
@@ -150,8 +172,7 @@ export function Cell({
             position: 'absolute',
             inset: 0,
             pointerEvents: 'none',
-            boxShadow:
-              'inset 0 2px 0 0 var(--brand-600), inset 2px 0 0 0 var(--brand-600), 2px 0 0 0 var(--brand-600), 0 2px 0 0 var(--brand-600)',
+            boxShadow: ringShadow,
             animation: 'cell-ring-in var(--motion-fast)',
           }}
         />
