@@ -6,7 +6,8 @@
 
 ## What this round explores
 
-Eight design directions for the Solving screen, varying:
+Ten design directions for the Solving screen, **all on a single page**
+(`index.html`), varying:
 
 - **Grid / cell size** — how large the board cells are at 5×5 and 8×8.
 - **Corner radius** — board container, toolbar buttons, keypad keys, cards.
@@ -15,11 +16,13 @@ Eight design directions for the Solving screen, varying:
 - **Layout order** — the current board → toolbar → keypad order vs. a
   **keypad-first** layout (number keys directly under the grid, the
   toolbar below them).
+- **Full-width board** — the grid growing to the full width of the
+  screen, and a near-full-width treatment with a ~10px side margin.
 
 Every variant is rendered at **both** a 5×5 and an 8×8 grid so the
 layout can be judged coping with the small and the large board.
 
-## The 8 variants
+## The 10 variants
 
 | # | Name | Idea |
 |---|------|------|
@@ -31,6 +34,8 @@ layout can be judged coping with the small and the large board.
 | 06 | Big circular keypad | Large circular keys under the board; compact pill toolbar; keypad-first. |
 | 07 | Compact & dense | Smaller cells/keys, slim toolbar, tight gaps — fits a small phone. |
 | 08 | Card-framed | Board, toolbar, and keypad each in their own elevated card. |
+| 09 | Full-bleed grid | The board spans the full screen width, edge-to-edge, no margin. |
+| 10 | Inset grid (~10px) | Full width less a ~10px margin each side — a slim breathing gap. |
 
 ## Constraints honoured
 
@@ -53,7 +58,8 @@ layout can be judged coping with the small and the large board.
 
 ## How they were generated
 
-`build.mjs` in this folder emits all 8 variant files + `index.html`
-from one shared renderer and a per-variant config table. Re-run with
+`build.mjs` in this folder emits the single `index.html` (all 10
+variants stacked, with a sticky 01–10 nav) from one shared renderer and
+a per-variant config table. Re-run with
 `node prototypes/2026-05-17-solving-shapes/build.mjs`. It is kept for
 provenance and so a refined round is a config edit, not a rewrite.

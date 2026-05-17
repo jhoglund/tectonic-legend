@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Solving screen — shape exploration · 8 variants</title>
+<title>Solving screen — shape exploration · 10 variants</title>
 <style>
 
 :root{
@@ -61,97 +61,977 @@
 .cage-4{--cell-fill:var(--cage-4);--cell-inner:var(--cage-4-inner);--cell-player:var(--cage-4-player);}
 .cage-5{--cell-fill:var(--cage-5);--cell-inner:var(--cage-5-inner);--cell-player:var(--cage-5-player);}
 
+
 *{box-sizing:border-box;margin:0;padding:0;}
-body{font-family:var(--font-ui);background:var(--surface);color:var(--text-primary);padding:40px 28px 80px;}
-header.page{max-width:1180px;margin:0 auto 32px;}
-header.page h1{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
-header.page p{color:var(--text-secondary);font-size:14px;margin-top:10px;line-height:1.6;max-width:760px;}
-.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(360px,1fr));gap:26px;max-width:1180px;margin:0 auto;}
-.card{display:block;border:1px solid var(--border);border-radius:14px;overflow:hidden;
-  background:var(--surface-elevated);text-decoration:none;color:inherit;transition:box-shadow .15s ease;}
-.card:hover{box-shadow:var(--shadow-modal);}
-.thumb{height:300px;overflow:hidden;background:var(--surface);border-bottom:1px solid var(--border);}
-.thumb iframe{width:1180px;height:940px;border:0;transform:scale(0.32);transform-origin:top left;
-  pointer-events:none;}
-.card-body{padding:16px 18px 18px;}
-.card-body h2{font-size:16px;font-weight:700;}
-.card-body p{font-size:13px;color:var(--text-secondary);margin-top:7px;line-height:1.5;}
-.card-body .spec{font-family:var(--font-mono);font-size:11px;color:var(--text-tertiary);margin-top:9px;}
+html{scroll-behavior:smooth;}
+body{font-family:var(--font-ui);background:var(--surface);color:var(--text-primary);}
+.page-head{max-width:880px;margin:0 auto;padding:40px 24px 8px;}
+.page-head h1{font-size:26px;font-weight:700;letter-spacing:-0.01em;}
+.page-head p{color:var(--text-secondary);font-size:14px;margin-top:10px;line-height:1.6;}
+.toc{position:sticky;top:0;z-index:10;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
+  padding:12px 24px;background:color-mix(in srgb,var(--surface) 88%,transparent);
+  backdrop-filter:blur(8px);border-bottom:1px solid var(--border);}
+.toc a{font-family:var(--font-mono);font-size:12px;font-weight:500;text-decoration:none;
+  color:var(--text-secondary);border:1px solid var(--border);border-radius:999px;
+  padding:4px 10px;background:var(--surface-elevated);}
+.toc a:hover{color:var(--brand-600);border-color:var(--brand-600);}
+section{scroll-margin-top:60px;padding:44px 24px;border-bottom:1px solid var(--border);}
+section:nth-child(even){background:color-mix(in srgb,var(--surface) 96%,var(--text-primary));}
+.section-head{max-width:880px;margin:0 auto 26px;}
+.section-head h2{font-size:21px;font-weight:700;letter-spacing:-0.01em;}
+.section-head .desc{color:var(--text-secondary);font-size:14px;margin-top:8px;line-height:1.55;max-width:720px;}
+.section-head .spec{font-family:var(--font-mono);font-size:12px;color:var(--text-tertiary);margin-top:10px;}
+.stage{display:flex;gap:32px;justify-content:center;flex-wrap:wrap;}
+figure{margin:0;}
+figcaption{text-align:center;font-size:11px;font-weight:600;letter-spacing:0.08em;
+  color:var(--text-tertiary);margin-bottom:10px;text-transform:uppercase;}
+.phone{width:388px;min-height:792px;background:var(--surface);border:1px solid var(--border);
+  border-radius:30px;box-shadow:var(--shadow-modal);overflow:hidden;display:flex;flex-direction:column;}
+.navbar{display:flex;align-items:center;justify-content:space-between;padding:14px 10px 4px;}
+.navbtn{width:40px;height:40px;display:grid;place-items:center;color:var(--brand-600);}
+.navtitle{font-size:16px;font-weight:600;color:var(--text-primary);}
+.screen-body{display:flex;flex-direction:column;align-items:center;gap:var(--proto-gap);padding:8px 16px 30px;}
+.statusrow{font-family:var(--font-mono);font-size:13px;color:var(--text-tertiary);font-variant-numeric:tabular-nums;}
+.board-wrap{display:flex;justify-content:center;width:var(--proto-board-w,100%);}
+[data-board]{display:contents;}
+.proto-board{display:inline-grid;border:var(--border-cage-width) solid var(--border-cage);
+  border-radius:var(--proto-rboard);overflow:hidden;background:var(--surface-board);}
+.proto-board.fill{width:100%;}
+.proto-cell{width:var(--bcell);height:var(--bcell);display:flex;align-items:center;
+  justify-content:center;background:var(--cell-fill);position:relative;}
+.proto-board.fill .proto-cell{width:auto;height:auto;aspect-ratio:1;}
+.proto-cell.sel{background:var(--surface-cell-selected);box-shadow:inset 0 0 0 2px var(--brand-600);}
+.proto-cell span{font-size:calc(var(--bcell) * 0.42);line-height:1;}
+.proto-cell .v-clue{font-weight:700;color:var(--cell-text);}
+.proto-cell .v-player{font-weight:500;color:var(--cell-player);}
+.hintcard{width:100%;background:var(--surface-elevated);border:1px solid var(--border);
+  border-radius:var(--proto-rcard);padding:12px;}
+.chip{display:inline-block;font-size:12px;font-weight:600;color:var(--text-on-brand);
+  background:var(--brand-600);border-radius:999px;padding:2px 10px;}
+.hintcard p{margin-top:8px;font-size:13px;color:var(--text-secondary);line-height:1.5;}
+.toolbar{display:flex;gap:8px;width:100%;}
+.tool{flex:1;padding:var(--proto-btnh) 0;font-size:13px;font-weight:500;font-family:var(--font-ui);
+  border-radius:var(--proto-rbtn);border:1px solid var(--border);background:var(--surface-elevated);
+  color:var(--text-primary);cursor:pointer;}
+.tool.active{background:var(--brand-100);border-color:var(--brand-100);color:var(--brand-600);}
+.keypad{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;width:100%;}
+.key{width:var(--proto-key);height:var(--proto-key);border-radius:var(--proto-rkey);
+  background:var(--surface-elevated);border:1px solid var(--border);color:var(--text-primary);
+  font-family:var(--font-mono);font-size:1.15rem;font-weight:500;font-variant-numeric:tabular-nums;
+  cursor:pointer;display:grid;place-items:center;}
+.key-undo{color:var(--text-secondary);}
+.framecard{width:100%;background:var(--surface-elevated);border:1px solid var(--border);
+  border-radius:var(--proto-rcard);padding:14px;display:flex;flex-direction:column;
+  align-items:center;gap:0;}
+
 </style>
 </head>
 <body>
-<header class="page">
+<header class="page-head">
   <h1>Solving screen — shape exploration</h1>
-  <p>Eight design directions for the Solving screen, exploring grid/cell size,
-  corner radius, number-key and toolbar-button shape &amp; size, and a keypad-first
-  layout. Each variant is shown at both a 5×5 and an 8×8 grid. The boards are
-  illustrative, not solvable puzzles. Session: 2026-05-17.</p>
+  <p>Ten design directions for the Solving screen, all on one page — exploring
+  grid/cell size, corner radius, number-key and toolbar-button shape &amp; size,
+  a keypad-first layout, and two full-width board treatments. Each variant is
+  shown at both a 5×5 and an 8×8 grid. The boards are illustrative, not solvable
+  puzzles. Session: 2026-05-17.</p>
 </header>
-<div class="grid">
-  <a class="card" href="01-baseline/index.html">
-    <div class="thumb"><iframe loading="lazy" src="01-baseline/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>01 · Baseline</h2>
-      <p>The Solving screen as it ships today — the reference point every other variant is judged against. Standard cell size, near-square cells, 8px buttons, 44px keypad keys, toolbar-then-keypad order.</p>
-      <p class="spec">cells 52/34px · board r6 · buttons r8 · keys 44px r8 · layout standard</p>
-    </div>
-  </a>
-  <a class="card" href="02-soft/index.html">
-    <div class="thumb"><iframe loading="lazy" src="02-soft/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>02 · Soft & rounded</h2>
-      <p>Everything generously rounded — a 22px board, fully-pill toolbar buttons, big-radius keypad keys. Slightly larger cells. The friendliest, most approachable read.</p>
-      <p class="spec">cells 54/35px · board r22 · buttons rpill · keys 52px r18 · layout standard</p>
-    </div>
-  </a>
-  <a class="card" href="03-sharp/index.html">
-    <div class="thumb"><iframe loading="lazy" src="03-sharp/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>03 · Sharp & precise</h2>
-      <p>Minimal radius across the board, buttons, and keys — crisp, engineered, logic-puzzle-serious. The opposite pole from "soft".</p>
-      <p class="spec">cells 52/34px · board r2 · buttons r2 · keys 46px r2 · layout standard</p>
-    </div>
-  </a>
-  <a class="card" href="04-big-board/index.html">
-    <div class="thumb"><iframe loading="lazy" src="04-big-board/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>04 · Board-forward</h2>
-      <p>The board is the hero — large cells on both grids, with a deliberately compact toolbar and smaller keypad keys so the puzzle gets the room.</p>
-      <p class="spec">cells 64/42px · board r8 · buttons r8 · keys 40px r8 · layout standard</p>
-    </div>
-  </a>
-  <a class="card" href="05-keypad-first/index.html">
-    <div class="thumb"><iframe loading="lazy" src="05-keypad-first/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>05 · Keypad-first layout</h2>
-      <p>The number keys sit directly under the grid, with the Notes/Hint/Validate/Clear bar below them. Otherwise baseline sizing — this isolates the layout-order change.</p>
-      <p class="spec">cells 52/34px · board r6 · buttons r8 · keys 44px r8 · layout keypad-first</p>
-    </div>
-  </a>
-  <a class="card" href="06-big-keypad/index.html">
-    <div class="thumb"><iframe loading="lazy" src="06-big-keypad/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>06 · Big circular keypad</h2>
-      <p>Large, fully-circular number keys placed right under the grid for thumb reach, with a compact pill toolbar below. Keypad-first layout.</p>
-      <p class="spec">cells 50/33px · board r12 · buttons rpill · keys 58px rcircle · layout keypad-first</p>
-    </div>
-  </a>
-  <a class="card" href="07-compact/index.html">
-    <div class="thumb"><iframe loading="lazy" src="07-compact/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>07 · Compact & dense</h2>
-      <p>Smaller cells, smaller keys, a slim toolbar and tighter gaps — everything pulled in so the whole screen fits comfortably on a small phone without scrolling.</p>
-      <p class="spec">cells 44/30px · board r5 · buttons r6 · keys 38px r6 · layout standard</p>
-    </div>
-  </a>
-  <a class="card" href="08-card-framed/index.html">
-    <div class="thumb"><iframe loading="lazy" src="08-card-framed/index.html"></iframe></div>
-    <div class="card-body">
-      <h2>08 · Card-framed</h2>
-      <p>The board, toolbar, and keypad each sit in their own elevated card with a generous radius — a structured, sectioned screen where each control group reads as a distinct surface.</p>
-      <p class="spec">cells 50/33px · board r16 · buttons r10 · keys 46px r10 · layout standard · framed</p>
-    </div>
-  </a>
-</div>
+<nav class="toc">
+  <a href="#v01" title="Baseline">01</a>
+  <a href="#v02" title="Soft & rounded">02</a>
+  <a href="#v03" title="Sharp & precise">03</a>
+  <a href="#v04" title="Board-forward">04</a>
+  <a href="#v05" title="Keypad-first layout">05</a>
+  <a href="#v06" title="Big circular keypad">06</a>
+  <a href="#v07" title="Compact & dense">07</a>
+  <a href="#v08" title="Card-framed">08</a>
+  <a href="#v09" title="Full-bleed grid">09</a>
+  <a href="#v10" title="Inset grid (~10px)">10</a>
+</nav>
+<section id="v01" style="--proto-rboard:6px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:8px;--proto-key:44px;--proto-rcard:12px;--proto-gap:16px">
+  <div class="section-head">
+    <h2>01 · Baseline</h2>
+    <p class="desc">The Solving screen as it ships today — the reference point every other variant is judged against. Standard cell size, near-square cells, 8px buttons, 44px keypad keys, toolbar-then-keypad order.</p>
+    <p class="spec">cells 52/34px · board r6 · buttons r8 · keys 44px r8 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:52px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:34px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v02" style="--proto-rboard:22px;--proto-rbtn:999px;--proto-btnh:13px;--proto-rkey:18px;--proto-key:52px;--proto-rcard:18px;--proto-gap:16px">
+  <div class="section-head">
+    <h2>02 · Soft & rounded</h2>
+    <p class="desc">Everything generously rounded — a 22px board, fully-pill toolbar buttons, big-radius keypad keys. Slightly larger cells. The friendliest, most approachable read.</p>
+    <p class="spec">cells 54/35px · board r22 · buttons rpill · keys 52px r18 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:54px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:35px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v03" style="--proto-rboard:2px;--proto-rbtn:2px;--proto-btnh:11px;--proto-rkey:2px;--proto-key:46px;--proto-rcard:3px;--proto-gap:16px">
+  <div class="section-head">
+    <h2>03 · Sharp & precise</h2>
+    <p class="desc">Minimal radius across the board, buttons, and keys — crisp, engineered, logic-puzzle-serious. The opposite pole from "soft".</p>
+    <p class="spec">cells 52/34px · board r2 · buttons r2 · keys 46px r2 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:52px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:34px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v04" style="--proto-rboard:8px;--proto-rbtn:8px;--proto-btnh:8px;--proto-rkey:8px;--proto-key:40px;--proto-rcard:10px;--proto-gap:14px">
+  <div class="section-head">
+    <h2>04 · Board-forward</h2>
+    <p class="desc">The board is the hero — large cells on both grids, with a deliberately compact toolbar and smaller keypad keys so the puzzle gets the room.</p>
+    <p class="spec">cells 64/42px · board r8 · buttons r8 · keys 40px r8 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:64px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:42px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v05" style="--proto-rboard:6px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:8px;--proto-key:44px;--proto-rcard:12px;--proto-gap:16px">
+  <div class="section-head">
+    <h2>05 · Keypad-first layout</h2>
+    <p class="desc">The number keys sit directly under the grid, with the Notes/Hint/Validate/Clear bar below them. Otherwise baseline sizing — this isolates the layout-order change.</p>
+    <p class="spec">cells 52/34px · board r6 · buttons r8 · keys 44px r8 · layout keypad-first</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:52px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:34px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v06" style="--proto-rboard:12px;--proto-rbtn:999px;--proto-btnh:9px;--proto-rkey:999px;--proto-key:58px;--proto-rcard:14px;--proto-gap:16px">
+  <div class="section-head">
+    <h2>06 · Big circular keypad</h2>
+    <p class="desc">Large, fully-circular number keys placed right under the grid for thumb reach, with a compact pill toolbar below. Keypad-first layout.</p>
+    <p class="spec">cells 50/33px · board r12 · buttons rpill · keys 58px rcircle · layout keypad-first</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:50px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:33px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v07" style="--proto-rboard:5px;--proto-rbtn:6px;--proto-btnh:7px;--proto-rkey:6px;--proto-key:38px;--proto-rcard:8px;--proto-gap:10px">
+  <div class="section-head">
+    <h2>07 · Compact & dense</h2>
+    <p class="desc">Smaller cells, smaller keys, a slim toolbar and tighter gaps — everything pulled in so the whole screen fits comfortably on a small phone without scrolling.</p>
+    <p class="spec">cells 44/30px · board r5 · buttons r6 · keys 38px r6 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:44px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:30px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v08" style="--proto-rboard:16px;--proto-rbtn:10px;--proto-btnh:11px;--proto-rkey:10px;--proto-key:46px;--proto-rcard:16px;--proto-gap:14px">
+  <div class="section-head">
+    <h2>08 · Card-framed</h2>
+    <p class="desc">The board, toolbar, and keypad each sit in their own elevated card with a generous radius — a structured, sectioned screen where each control group reads as a distinct surface.</p>
+    <p class="spec">cells 50/33px · board r16 · buttons r10 · keys 46px r10 · layout standard · framed</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:50px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="framecard"><div class="board-wrap"><div data-board="5"></div></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          <div class="framecard">
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div></div>
+          <div class="framecard">
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div></div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:33px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="framecard"><div class="board-wrap"><div data-board="8"></div></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          <div class="framecard">
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div></div>
+          <div class="framecard">
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div></div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v09" style="--proto-rboard:0px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:8px;--proto-key:44px;--proto-rcard:12px;--proto-gap:14px;--proto-board-w:386px">
+  <div class="section-head">
+    <h2>09 · Full-bleed grid</h2>
+    <p class="desc">The grid grows edge-to-edge — the board spans the full width of the screen with no side margin, square corners, cells scaling to fill. Maximum board, zero frame.</p>
+    <p class="spec">board full-bleed · board r0 · buttons r8 · keys 44px r8 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:77px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:48px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<section id="v10" style="--proto-rboard:8px;--proto-rbtn:8px;--proto-btnh:10px;--proto-rkey:8px;--proto-key:44px;--proto-rcard:12px;--proto-gap:14px;--proto-board-w:366px">
+  <div class="section-head">
+    <h2>10 · Inset grid (~10px)</h2>
+    <p class="desc">The grid spans the full width less a ~10px margin on each side — nearly edge-to-edge, but with a slim breathing gap so the board still reads as a contained surface.</p>
+    <p class="spec">board full-width −10px · board r8 · buttons r8 · keys 44px r8 · layout standard</p>
+  </div>
+  <div class="stage">
+    <figure>
+      <figcaption>5 × 5 grid</figcaption>
+      <div class="phone" style="--bcell:73px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Medium · 5×5</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="5" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+    <figure>
+      <figcaption>8 × 8 grid</figcaption>
+      <div class="phone" style="--bcell:46px">
+        
+        <div class="navbar">
+          <span class="navbtn"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M15 18l-6-6 6-6"/></svg></span>
+          <span class="navtitle">Hard · 8×8</span>
+          <span class="navbtn"><svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14" rx="1"/><rect x="14" y="5" width="4" height="14" rx="1"/></svg></span>
+        </div>
+        <div class="screen-body">
+          <div class="statusrow">1:32 · 9 left</div>
+          <div class="board-wrap"><div data-board="8" data-fill="1"></div></div>
+          
+          <div class="hintcard">
+            <span class="chip">Hidden single</span>
+            <p>Only one cell in this cage can take a 3 — every other spot already sees a 3.</p>
+          </div>
+          
+          <div class="toolbar">
+            <button class="tool active">Notes</button>
+            <button class="tool">Hint</button>
+            <button class="tool">Validate</button>
+            <button class="tool">Clear</button>
+          </div>
+          
+          <div class="keypad">
+            <button class="key">1</button>
+            <button class="key">2</button>
+            <button class="key">3</button>
+            <button class="key">4</button>
+            <button class="key">5</button>
+            <button class="key key-undo"><svg width="21" height="21" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg></button>
+          </div>
+        </div>
+      </div>
+    </figure>
+  </div>
+</section>
+<script>
+const CAGE5=["AABBB","AABCC","ADDCC","EDDFC","EEFFF"];
+const CAGE8=["AABBCCCD","AABBCEDD","AFFGEEED","HFGGIEJD","HFFGIJJK","HHLIIJKK","MLLLNNKO","MMLNNOOO"];
+
+function protoEdge(kind){
+  return kind==='cage'
+    ? 'var(--border-cage-width) solid var(--border-cage)'
+    : 'var(--border-inner-width) solid var(--cell-inner)';
+}
+function renderBoard(rowsArr, sel, fill){
+  var grid=rowsArr.map(function(s){return s.split('');});
+  var rows=grid.length, cols=grid[0].length, r, c, d;
+  var cageCells={};
+  for(r=0;r<rows;r++){for(c=0;c<cols;c++){
+    var g=grid[r][c]; (cageCells[g]=cageCells[g]||[]).push([r,c]);
+  }}
+  var adj={}, id;
+  for(id in cageCells) adj[id]={};
+  var dirs=[[0,1],[1,0],[0,-1],[-1,0]];
+  for(r=0;r<rows;r++){for(c=0;c<cols;c++){
+    var g2=grid[r][c];
+    for(d=0;d<4;d++){
+      var nr=r+dirs[d][0], nc=c+dirs[d][1];
+      if(nr>=0&&nr<rows&&nc>=0&&nc<cols){
+        var ng=grid[nr][nc];
+        if(ng!==g2) adj[g2][ng]=true;
+      }
+    }
+  }}
+  var ids=Object.keys(cageCells).sort(), i, n;
+  var color={};
+  for(i=0;i<ids.length;i++){
+    id=ids[i]; var used={};
+    for(n in adj[id]){ if(color[n]!=null) used[color[n]]=true; }
+    var k=0; while(used[k]) k++;
+    color[id]=k;
+  }
+  var idxInCage={};
+  for(i=0;i<ids.length;i++){
+    cageCells[ids[i]].forEach(function(rc,j){ idxInCage[rc[0]+'_'+rc[1]]=j; });
+  }
+  var bd=document.createElement('div');
+  bd.className=fill?'proto-board fill':'proto-board';
+  bd.style.gridTemplateColumns='repeat('+cols+', '+(fill?'1fr':'var(--bcell)')+')';
+  for(r=0;r<rows;r++){for(c=0;c<cols;c++){
+    id=grid[r][c];
+    var size=cageCells[id].length;
+    var idx=idxInCage[r+'_'+c];
+    var cell=document.createElement('div');
+    cell.className='proto-cell cage-'+((color[id]%5)+1);
+    var topEdge=r===0?'none':(grid[r-1][c]!==id?'cage':'inner');
+    var leftEdge=c===0?'none':(grid[r][c-1]!==id?'cage':'inner');
+    if(topEdge!=='none') cell.style.borderTop=protoEdge(topEdge);
+    if(leftEdge!=='none') cell.style.borderLeft=protoEdge(leftEdge);
+    var blank=((r*7 + c*5) % 10) < 3;
+    var val=(idx % size)+1;
+    if(sel && sel[0]===r && sel[1]===c) cell.classList.add('sel');
+    if(!blank){
+      var isClue=((r+c)%2)===0;
+      var span=document.createElement('span');
+      span.textContent=val;
+      span.className=isClue?'v-clue':'v-player';
+      cell.appendChild(span);
+    }
+    bd.appendChild(cell);
+  }}
+  return bd;
+}
+document.querySelectorAll('[data-board]').forEach(function(el){
+  var key=el.dataset.board;
+  var cages=key==='5'?CAGE5:CAGE8;
+  var sel=key==='5'?[2,1]:[3,4];
+  el.appendChild(renderBoard(cages, sel, el.dataset.fill==='1'));
+});
+
+</script>
 </body>
 </html>
