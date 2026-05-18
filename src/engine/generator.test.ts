@@ -1,6 +1,7 @@
 import { describe, it, expect } from 'vitest';
 import { generatePuzzle, generateLayout } from './generator';
 import { countSolutions } from './solver';
+import { gradeDifficulty } from './hints';
 import type { PuzzleLayout } from './types';
 
 /** A grid is a valid Tectonic solution when every cage holds exactly
@@ -54,8 +55,19 @@ describe('generatePuzzle', () => {
 
       // A puzzle has at least one empty cell to solve.
       expect(puzzle.clues.flat().some((v) => v === 0)).toBe(true);
+
+      // It is graded by the technique it requires — and lands on the
+      // requested tier (the generator's accept condition).
+      expect(gradeDifficulty(puzzle.layout, puzzle.clues)).toBe(difficulty);
     }, 15000);
   }
+
+  it('produces a valid 8x8 easy puzzle graded easy', () => {
+    const puzzle = generatePuzzle(8, 8, 'easy');
+    expect(solutionIsValid(puzzle.solution, puzzle.layout)).toBe(true);
+    expect(countSolutions(puzzle.layout, puzzle.clues, 2)).toBe(1);
+    expect(gradeDifficulty(puzzle.layout, puzzle.clues)).toBe('easy');
+  }, 30000);
 
   it('keeps every cage within the 2..5 size bounds', () => {
     const puzzle = generatePuzzle(5, 5, 'easy');

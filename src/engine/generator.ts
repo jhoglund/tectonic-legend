@@ -1,6 +1,7 @@
 import type { PuzzleLayout, Puzzle, Group, Position, Difficulty } from './types';
 import { posKey } from './types';
-import { solve, countSolutions } from './solver';
+import { countSolutions } from './solver';
+import { gradeDifficulty } from './hints';
 import { buildNeighborCache, buildCellGroupMap } from './validator';
 
 /**
@@ -335,14 +336,6 @@ function fillGrid(layout: PuzzleLayout): number[][] | null {
   return search() ? grid : null;
 }
 
-/**
- * Minimum abandoned-branch count separating the top tiers. Expert must
- * demand sustained search; Hard must need *some* search but stay below
- * Expert. Per board size — a 5x5 cannot demand as much search as an 8x8.
- */
-const EXPERT_MIN_BACKTRACKS = { small: 8, large: 15 };
-const HARD_MIN_BACKTRACKS = 1;
-
 function carveClues(
   layout: PuzzleLayout,
   solution: number[][],
@@ -360,14 +353,17 @@ function carveClues(
   }
   shuffle(positions);
 
-  // Clue density per difficulty — fewer clues, longer deductions. Bumped
-  // up a notch 2026-05-15 (puzzles were solving too quickly). `expert`
-  // is 0 = carve as far as a unique solution allows; it is already at
-  // the floor, so a harder tier above it needs a new technique gate,
-  // not a lower density (see the backlog's Legend-level note).
+  // Clue density per difficulty — the carve target; the puzzle is then
+  // graded by required technique (gradeDifficulty) and kept only on an
+  // exact tier match. Densities are tuned so a carve usually lands on
+  // the requested tier. `expert` is 0 = carve to the unique-solution
+  // floor. The large-easy density was raised 0.50 → 0.62 on 2026-05-18
+  // when grading became technique-based: an 8×8 needs more clues to
+  // stay solvable by naked singles alone (a harder tier above expert
+  // needs a new gate, not a lower density — see the Legend note).
   const totalCells = rows * cols;
   const targetClues = isLarge
-    ? { easy: Math.ceil(totalCells * 0.50), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.28), expert: 0 }[difficulty]!
+    ? { easy: Math.ceil(totalCells * 0.62), medium: Math.ceil(totalCells * 0.40), hard: Math.ceil(totalCells * 0.28), expert: 0 }[difficulty]!
     : { easy: Math.ceil(totalCells * 0.46), medium: Math.ceil(totalCells * 0.32), hard: Math.ceil(totalCells * 0.18), expert: 0 }[difficulty]!;
 
   let currentClueCount = totalCells;
@@ -387,34 +383,10 @@ function carveClues(
     clues[r][c] = saved;
   }
 
-  const check = solve(layout, clues);
-  if (!check.solved) return null;
-
-  const usesBacktrack = check.techniques.includes('backtrack');
-  const usesHiddenSingle = check.techniques.includes('hidden_single');
-  // Search depth, not just "did it guess once". `usesBacktrack` only
-  // means the solver *entered* the search phase — a puzzle whose first
-  // guess happens to be right has bt 0 and is trivial. Hard and Expert
-  // are graded on how many dead-ends the search must abandon.
-  const bt = check.backtracks;
-  const expertFloor = isLarge
-    ? EXPERT_MIN_BACKTRACKS.large
-    : EXPERT_MIN_BACKTRACKS.small;
-
-  if (difficulty === 'easy') {
-    if (usesBacktrack) return null;
-    if (!isLarge && usesHiddenSingle) return null;
-  } else if (difficulty === 'medium') {
-    if (usesBacktrack) return null;
-    if (!isLarge && !usesHiddenSingle) return null;
-  } else if (difficulty === 'hard') {
-    // Real search — but anything Expert-deep belongs in Expert.
-    if (bt < HARD_MIN_BACKTRACKS) return null;
-    if (bt >= expertFloor) return null;
-  } else if (difficulty === 'expert') {
-    // Must demand sustained contradiction reasoning.
-    if (bt < expertFloor) return null;
-  }
+  // Grade by the hardest technique the puzzle forces — a label means
+  // "needs this technique", not "needs N backtracks" (ADR-0001,
+  // progression.md §2). Accept only an exact tier match.
+  if (gradeDifficulty(layout, clues) !== difficulty) return null;
 
   return { layout, clues, solution };
 }

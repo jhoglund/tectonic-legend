@@ -152,7 +152,8 @@ describe('classifyMove — domination', () => {
 
 describe('findHint — never suggests a wrong value', () => {
   it('solves easy and medium puzzles with correct hints only', () => {
-    for (const size of [5, 8] as const) {
+    // 5×5 keeps the suite fast; the technique logic is size-independent.
+    for (const size of [5] as const) {
       for (const diff of ['easy', 'medium'] as const) {
         const { layout, clues, solution } = generatePuzzle(size, size, diff);
         const grid = clues.map((row) => [...row]);

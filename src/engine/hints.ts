@@ -1,4 +1,4 @@
-import type { PuzzleLayout } from './types';
+import type { PuzzleLayout, Difficulty } from './types';
 import { findErrors } from './validator';
 
 export interface HintChainEntry {
@@ -1008,4 +1008,61 @@ export function findCheckHint(
     return { row: -1, col: -1, value: 0, reason: 'No errors found — looking good!', type: 'check', errorCount: 0 };
   }
   return { row: -1, col: -1, value: 0, reason: `Found ${errorCount} cell${errorCount > 1 ? 's' : ''} with errors.`, type: 'check', errorCount };
+}
+
+/** Hint technique → difficulty tier (1 easiest). The hardest tier a
+ *  puzzle forces is its grade — specs/solving-techniques.md §3. */
+const HINT_TIER: Record<Hint['type'], number> = {
+  naked_single: 1,
+  hidden_single: 2,
+  domination: 3,
+  pair_elimination: 3,
+  contradiction: 4,
+  candidates: 4,
+  reveal: 4,
+  check: 4,
+};
+
+/** Tier (1–4) → difficulty label; index 0 is an unused placeholder. */
+const TIER_DIFFICULTY: Difficulty[] = ['easy', 'easy', 'medium', 'hard', 'expert'];
+
+/**
+ * Grade a puzzle by the hardest technique the hint engine needs to
+ * solve it — progression.md §2, the original intent of that table.
+ * Easy = naked singles only; Medium adds hidden singles; Hard adds
+ * deductive technique (cage domination, subsets, locked candidates);
+ * Expert needs contradiction reasoning. A puzzle the engine cannot
+ * finish deductively is graded Expert — it sits at the ceiling of what
+ * the engine can teach.
+ *
+ * The generator calls this instead of counting backtracks, so a
+ * difficulty label means "needs this technique", not "stumped a weak
+ * solver". Deterministic — `findHint` uses no randomness.
+ */
+export function gradeDifficulty(
+  layout: PuzzleLayout,
+  clues: number[][],
+): Difficulty {
+  const { rows, cols } = layout;
+  const grid = clues.map((row) => [...row]);
+  let remaining = 0;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] === 0) remaining++;
+    }
+  }
+
+  let hardest = 1;
+  while (remaining > 0) {
+    const hint = findHint(grid, layout);
+    if (!hint || hint.value === 0) {
+      hardest = 4; // engine stalled — beyond its deductive + trial tiers
+      break;
+    }
+    hardest = Math.max(hardest, HINT_TIER[hint.type]);
+    if (hardest === 4) break; // Expert confirmed — no need to finish
+    grid[hint.row][hint.col] = hint.value;
+    remaining--;
+  }
+  return TIER_DIFFICULTY[hardest];
 }

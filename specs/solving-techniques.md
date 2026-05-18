@@ -134,7 +134,7 @@ It stays in the engine as the final fallback for puzzles (Expert tier) that genu
 
 Each pass produces the existing `Hint` shape; the `type` union and the `HintChainEntry` roles already in `hints.ts` cover the new explanations (a domination hint is a `target` cell plus `info` entries for the dominating cage).
 
-**Out of scope here:** the puzzle *generator/solver* (`src/engine/solver.ts`) grades difficulty by how much search it needs. Teaching the solver these techniques would re-grade existing puzzles (a "Hard" puzzle solvable by domination becomes easier). That is a deliberate, separate decision — see Open Questions.
+**Difficulty grading (done 2026-05-18).** The generator grades a puzzle by the hardest technique the hint engine needs — `gradeDifficulty` loops `findHint` and maps its `type` to a tier (naked → Easy, hidden → Medium, domination/pair-elimination → Hard, contradiction → Expert). This replaced the old backtrack-count proxy, so a difficulty label means "needs this technique" (progression.md §2). `solver.ts`'s backtracking solver stays — it still powers the unique-solution check (`countSolutions`).
 
 ---
 
@@ -158,6 +158,6 @@ This keeps the profile schema and the five chips stable. `findDeductiveHint` run
 
 ## Open questions
 
-- **Solver parity.** Should `src/engine/solver.ts` also learn these techniques, re-grading difficulty tiers? Doing so makes difficulty labels more honest but shifts every existing puzzle's grade. Decide before the generator is re-run.
+- **Clue-density tuning.** Per-tier carve densities (`generator.ts`) are tuned so a carve usually lands on the requested tier. Large-easy was raised to 0.62 on 2026-05-18; 8×8 medium currently generates in ~6 s — acceptable but worth a density pass if it grows.
 - **Self-credit for `pair-elimination`.** `classifyMove` credits self-applied naked/hidden singles and domination, but not the subset / locked-candidate techniques (attributing a move to them needs the full elimination loop). Until it does, `pair-elimination` can show `usedCount` but never reaches the `mastered` chip state.
 - **Flip-flop hints.** Whether parity chains (§8) are worth the rendering complexity for v1, or deferred.
