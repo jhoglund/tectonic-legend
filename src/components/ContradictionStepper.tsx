@@ -1,5 +1,5 @@
-import type { ReactNode } from 'react';
 import type { HintChainEntry } from '../engine/hints';
+import { HintText } from './HintText';
 
 /** Hint-chain role → its reserved board colour token. */
 const ROLE_COLOR: Record<HintChainEntry['role'], string> = {
@@ -11,29 +11,13 @@ const ROLE_COLOR: Record<HintChainEntry['role'], string> = {
   info: 'var(--cell-conclusion)',
 };
 
-/** Splits a step's text so cell labels — "(C3)" — can be rendered as
- *  monospace tokens in the step's accent colour, matching the colour of
- *  that cell's highlight on the board. */
-const COORD_SPLIT = /(\([A-H][1-9]\))/g;
-const COORD_TEST = /^\([A-H][1-9]\)$/;
-
-function renderStepText(text: string, accent: string): ReactNode {
-  return text.split(COORD_SPLIT).map((part, i) =>
-    COORD_TEST.test(part) ? (
-      <strong key={i} style={{ color: accent, fontFamily: 'var(--font-mono)' }}>
-        {part}
-      </strong>
-    ) : (
-      <span key={i}>{part}</span>
-    ),
-  );
-}
-
 interface ContradictionStepperProps {
   chain: HintChainEntry[];
   stepIndex: number;
   onStep: (delta: number) => void;
   onJump: (index: number) => void;
+  /** Marks the tapped cell reference on the board. */
+  onCellRef: (row: number, col: number) => void;
 }
 
 /**
@@ -47,6 +31,7 @@ export function ContradictionStepper({
   stepIndex,
   onStep,
   onJump,
+  onCellRef,
 }: ContradictionStepperProps) {
   const entry = chain[stepIndex];
   const atStart = stepIndex <= 0;
@@ -108,7 +93,11 @@ export function ContradictionStepper({
         className="text-sm font-medium"
         style={{ color: 'var(--text-secondary)' }}
       >
-        {renderStepText(entry.text, ROLE_COLOR[entry.role])}
+        <HintText
+          text={entry.text}
+          accent={ROLE_COLOR[entry.role]}
+          onCellRef={onCellRef}
+        />
       </p>
 
       <div className="mt-3 flex gap-1.5">

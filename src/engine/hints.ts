@@ -6,11 +6,12 @@ export function columnLetter(col: number): string {
   return String.fromCharCode(65 + col);
 }
 
-/** A cell's player-facing label: column letter + 1-based row, in
- *  parentheses — e.g. row 2, col 2 → "(C3)". Used in every hint so the
- *  text lines up with the board's coordinate gutter. */
+/** A cell's player-facing label: column letter + 1-based row — e.g.
+ *  row 2, col 2 → "C3". Used in every hint so the text lines up with
+ *  the board's coordinate gutter; the hint UI renders these as
+ *  clickable tokens (HintText). */
 function cellLabel(row: number, col: number): string {
-  return `(${columnLetter(col)}${row + 1})`;
+  return `${columnLetter(col)}${row + 1}`;
 }
 
 export interface HintChainEntry {

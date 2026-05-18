@@ -1,4 +1,4 @@
-import { useMemo } from 'react';
+import { useMemo, type CSSProperties } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 import type { Hint } from '../engine/hints';
@@ -131,10 +131,12 @@ export function Board({
 
   if (!showCoordinates) return boardGrid;
 
-  // Coordinate gutter — column letters above, row numbers down the
-  // left, aligned to the cell tracks. Shown only while a hint is open.
-  const GUTTER = '1.4rem';
-  const labelStyle: React.CSSProperties = {
+  // Coordinate gutter — column letters above, row numbers to the left.
+  // Both are absolutely positioned, so the board grid keeps the full
+  // content width and stays aligned with the keypad and hint card
+  // below; only `marginTop` makes vertical room for the letters.
+  const GUTTER = '1.2rem';
+  const labelStyle: CSSProperties = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
@@ -144,18 +146,18 @@ export function Board({
   };
 
   return (
-    <div
-      style={{
-        display: 'grid',
-        width: '100%',
-        gridTemplateColumns: `${GUTTER} 1fr`,
-        gridTemplateRows: `${GUTTER} 1fr`,
-      }}
-    >
-      <div aria-hidden="true" />
+    <div style={{ position: 'relative', width: '100%', marginTop: GUTTER }}>
       <div
         aria-hidden="true"
-        style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+        style={{
+          position: 'absolute',
+          left: 0,
+          right: 0,
+          bottom: '100%',
+          height: GUTTER,
+          display: 'grid',
+          gridTemplateColumns: `repeat(${cols}, 1fr)`,
+        }}
       >
         {Array.from({ length: cols }, (_, c) => (
           <span key={c} style={labelStyle}>
@@ -165,7 +167,15 @@ export function Board({
       </div>
       <div
         aria-hidden="true"
-        style={{ display: 'grid', gridTemplateRows: `repeat(${rows}, 1fr)` }}
+        style={{
+          position: 'absolute',
+          top: 0,
+          bottom: 0,
+          right: '100%',
+          width: GUTTER,
+          display: 'grid',
+          gridTemplateRows: `repeat(${rows}, 1fr)`,
+        }}
       >
         {Array.from({ length: rows }, (_, r) => (
           <span key={r} style={labelStyle}>

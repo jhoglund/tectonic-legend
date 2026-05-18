@@ -3,6 +3,7 @@ import { Board } from '../components/Board';
 import type { CellOverlay } from '../components/Board';
 import { Keypad } from '../components/Keypad';
 import { ContradictionStepper } from '../components/ContradictionStepper';
+import { HintText } from '../components/HintText';
 import { HintMenu } from '../components/HintMenu';
 import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
@@ -395,6 +396,7 @@ export function SolvingScreen({
               stepIndex={chainStepIndex}
               onStep={handleChainStep}
               onJump={jumpToStep}
+              onCellRef={handleCellClick}
             />
           ) : hint ? (
             <div
@@ -418,7 +420,7 @@ export function SolvingScreen({
                 {TECHNIQUE_LABEL[hint.type] ?? 'Hint'}
               </span>
               <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
-                {hint.reason}
+                <HintText text={hint.reason} onCellRef={handleCellClick} />
               </p>
             </div>
           ) : null}
