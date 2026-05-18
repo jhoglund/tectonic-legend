@@ -331,6 +331,7 @@ export function SolvingScreen({
             cellOverlays={cellOverlays}
             onCellClick={handleCellClick}
             showErrors={showErrors}
+            showCoordinates={hint !== null}
           />
 
           {/* number keypad */}

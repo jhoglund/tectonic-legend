@@ -2,6 +2,7 @@ import { useMemo } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 import type { Hint } from '../engine/hints';
+import { columnLetter } from '../engine/hints';
 import { Cell } from './Cell';
 import type { CellHighlight } from './Cell';
 import { computeBorders } from './cellBorders';
@@ -54,6 +55,10 @@ interface BoardProps {
   /** Surface wrong entries in red. Off by default — validation is
    *  explicit (the Validate control), never live. */
   showErrors?: boolean;
+  /** Draw a chess-style coordinate gutter (A–E columns, 1–5 rows)
+   *  around the board — shown while a hint is open so its cell
+   *  references are easy to locate. */
+  showCoordinates?: boolean;
 }
 
 export function Board({
@@ -63,6 +68,7 @@ export function Board({
   cellOverlays,
   onCellClick,
   showErrors = false,
+  showCoordinates = false,
 }: BoardProps) {
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
@@ -70,12 +76,12 @@ export function Board({
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
 
-  return (
-    // The board grows to the full content width (solving-shapes
-    // graduation, variant 11): equal `1fr` tracks, square cells. The
-    // outer frame is drawn by the edge cells themselves (cellBorders),
-    // not as a container border — so a selected edge cell's ring can
-    // replace it cleanly. The radius still clips the corner cells.
+  // The board grows to the full content width (solving-shapes
+  // graduation, variant 11): equal `1fr` tracks, square cells. The
+  // outer frame is drawn by the edge cells themselves (cellBorders),
+  // not as a container border — so a selected edge cell's ring can
+  // replace it cleanly. The radius still clips the corner cells.
+  const boardGrid = (
     <div
       className="grid"
       style={{
@@ -120,6 +126,54 @@ export function Board({
           );
         })
       )}
+    </div>
+  );
+
+  if (!showCoordinates) return boardGrid;
+
+  // Coordinate gutter — column letters above, row numbers down the
+  // left, aligned to the cell tracks. Shown only while a hint is open.
+  const GUTTER = '1.4rem';
+  const labelStyle: React.CSSProperties = {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '0.7rem',
+    fontFamily: 'var(--font-mono)',
+    color: 'var(--text-tertiary)',
+  };
+
+  return (
+    <div
+      style={{
+        display: 'grid',
+        width: '100%',
+        gridTemplateColumns: `${GUTTER} 1fr`,
+        gridTemplateRows: `${GUTTER} 1fr`,
+      }}
+    >
+      <div aria-hidden="true" />
+      <div
+        aria-hidden="true"
+        style={{ display: 'grid', gridTemplateColumns: `repeat(${cols}, 1fr)` }}
+      >
+        {Array.from({ length: cols }, (_, c) => (
+          <span key={c} style={labelStyle}>
+            {columnLetter(c)}
+          </span>
+        ))}
+      </div>
+      <div
+        aria-hidden="true"
+        style={{ display: 'grid', gridTemplateRows: `repeat(${rows}, 1fr)` }}
+      >
+        {Array.from({ length: rows }, (_, r) => (
+          <span key={r} style={labelStyle}>
+            {r + 1}
+          </span>
+        ))}
+      </div>
+      {boardGrid}
     </div>
   );
 }

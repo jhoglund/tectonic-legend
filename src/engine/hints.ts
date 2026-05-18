@@ -1,6 +1,18 @@
 import type { PuzzleLayout, Difficulty } from './types';
 import { findErrors } from './validator';
 
+/** Column letter for a 0-based column — 0 → A, 1 → B … (chess / A1 style). */
+export function columnLetter(col: number): string {
+  return String.fromCharCode(65 + col);
+}
+
+/** A cell's player-facing label: column letter + 1-based row, in
+ *  parentheses — e.g. row 2, col 2 → "(C3)". Used in every hint so the
+ *  text lines up with the board's coordinate gutter. */
+function cellLabel(row: number, col: number): string {
+  return `(${columnLetter(col)}${row + 1})`;
+}
+
 export interface HintChainEntry {
   row: number;
   col: number;
@@ -224,7 +236,7 @@ function combinations<T>(items: T[], k: number): T[][] {
   return out;
 }
 
-const cellName = (r: number, c: number): string => `(${r + 1},${c + 1})`;
+// (cell labels use the shared cellLabel helper defined near the top)
 
 /** Join names as "A and B" / "A, B and C". */
 function nameList(parts: string[]): string {
@@ -260,7 +272,7 @@ function nakedSubsetElimination(
           if (inCombo.has(`${row},${col}`)) continue;
           for (const v of union) {
             if (!cands[row][col].has(v)) continue;
-            const names = combo.map(({ row: r, col: c }) => cellName(r, c));
+            const names = combo.map(({ row: r, col: c }) => cellLabel(r, c));
             const vals = [...union].sort((a, b) => a - b).map(String);
             return {
               row,
@@ -312,7 +324,7 @@ function hiddenSubsetElimination(
             if (comboValues.has(v)) continue;
             const names = [...cellSet].map((kk) => {
               const [rr, cc] = kk.split(',').map(Number);
-              return cellName(rr, cc);
+              return cellLabel(rr, cc);
             });
             const vals = combo.slice().sort((a, b) => a - b).map(String);
             return {
@@ -356,12 +368,12 @@ function lockedCandidateElimination(
           ({ row, col }) => Math.abs(row - nr) <= 1 && Math.abs(col - nc) <= 1,
         );
         if (!seesAll) continue;
-        const names = spots.map(({ row, col }) => cellName(row, col));
+        const names = spots.map(({ row, col }) => cellLabel(row, col));
         return {
           row: nr,
           col: nc,
           value: v,
-          detail: `In one cage, ${v} can only go in ${nameList(names)}, and each of those touches ${cellName(nr, nc)}.`,
+          detail: `In one cage, ${v} can only go in ${nameList(names)}, and each of those touches ${cellLabel(nr, nc)}.`,
         };
       }
     }
@@ -404,7 +416,7 @@ function findDeductiveHint(
         row,
         col,
         value: placed,
-        reason: `${detail} That leaves ${cellName(row, col)} with only ${placed}.`,
+        reason: `${detail} That leaves ${cellLabel(row, col)} with only ${placed}.`,
         type: 'pair_elimination',
       };
     }
@@ -421,7 +433,7 @@ function findDeductiveHint(
           row: homes[0].row,
           col: homes[0].col,
           value,
-          reason: `${detail} That makes ${cellName(homes[0].row, homes[0].col)} the only home for ${value} in its cage.`,
+          reason: `${detail} That makes ${cellLabel(homes[0].row, homes[0].col)} the only home for ${value} in its cage.`,
           type: 'pair_elimination',
         };
       }
@@ -441,6 +453,10 @@ interface TrialResult {
   contradiction: boolean;
   steps: DeductionStep[];
   contradictionReason?: string;
+  /** The empty cell the contradiction strands with no value — so the
+   *  hint can point the board highlight and the text at the same cell.
+   *  Absent when the contradiction is a value with nowhere to go. */
+  conflictCell?: { row: number; col: number };
 }
 
 function simulateTrial(
@@ -457,24 +473,44 @@ function simulateTrial(
     row.map((s) => new Set(s))
   );
   const steps: DeductionStep[] = [];
+  // The empty cell a failed assignment strips of its last candidate —
+  // simAssign records it so the contradiction can name the cell.
+  let conflict: { row: number; col: number } | null = null;
 
   function simAssign(r: number, c: number, val: number): boolean {
     simGrid[r][c] = val;
     simCands[r][c].clear();
     for (const [nr, nc] of neighbors[r][c]) {
       simCands[nr][nc].delete(val);
-      if (simGrid[nr][nc] === 0 && simCands[nr][nc].size === 0) return false;
+      if (simGrid[nr][nc] === 0 && simCands[nr][nc].size === 0) {
+        conflict = { row: nr, col: nc };
+        return false;
+      }
     }
     for (const cell of groups[cellGroup[r][c]].cells) {
       if (cell.row === r && cell.col === c) continue;
       simCands[cell.row][cell.col].delete(val);
-      if (simGrid[cell.row][cell.col] === 0 && simCands[cell.row][cell.col].size === 0) return false;
+      if (simGrid[cell.row][cell.col] === 0 && simCands[cell.row][cell.col].size === 0) {
+        conflict = { row: cell.row, col: cell.col };
+        return false;
+      }
     }
     return true;
   }
 
+  /** Build the contradiction result for the cell stranded in `conflict`. */
+  function cellConflict(): TrialResult {
+    const cc = conflict!;
+    return {
+      contradiction: true,
+      steps,
+      conflictCell: cc,
+      contradictionReason: `${cellLabel(cc.row, cc.col)} has no value left`,
+    };
+  }
+
   if (!simAssign(trialRow, trialCol, trialValue)) {
-    return { contradiction: true, steps, contradictionReason: 'a neighbor loses all candidates' };
+    return cellConflict();
   }
 
   let changed = true;
@@ -485,21 +521,14 @@ function simulateTrial(
       for (let c = 0; c < cols; c++) {
         if (simGrid[r][c] !== 0) continue;
         if (simCands[r][c].size === 0) {
-          return {
-            contradiction: true,
-            steps,
-            contradictionReason: `cell (${r + 1},${c + 1}) has no valid values left`,
-          };
+          conflict = { row: r, col: c };
+          return cellConflict();
         }
         if (simCands[r][c].size === 1) {
           const val = simCands[r][c].values().next().value!;
           steps.push({ row: r, col: c, value: val, technique: 'naked_single' });
           if (!simAssign(r, c, val)) {
-            return {
-              contradiction: true,
-              steps,
-              contradictionReason: `placing ${val} at (${r + 1},${c + 1}) causes a conflict`,
-            };
+            return cellConflict();
           }
           changed = true;
         }
@@ -526,17 +555,13 @@ function simulateTrial(
           return {
             contradiction: true,
             steps,
-            contradictionReason: `${v} has nowhere to go in a ${size}-cell group`,
+            contradictionReason: `${v} has nowhere left to go in its cage`,
           };
         }
         if (count === 1) {
           steps.push({ row: lastR, col: lastC, value: v, technique: 'hidden_single' });
           if (!simAssign(lastR, lastC, v)) {
-            return {
-              contradiction: true,
-              steps,
-              contradictionReason: `placing ${v} at (${lastR + 1},${lastC + 1}) causes a conflict`,
-            };
+            return cellConflict();
           }
           changed = true;
         }
@@ -561,44 +586,47 @@ function formatTrialExplanation(
   const texts: string[] = [];
   const chainEntries: HintChainEntry[] = [];
 
-  texts.push(`Assume (${trialRow + 1},${trialCol + 1}) = ${trialValue}`);
+  texts.push(`Assume ${cellLabel(trialRow, trialCol)} = ${trialValue}`);
   chainEntries.push({
     row: trialRow, col: trialCol, value: trialValue,
     role: 'assumption',
-    text: `Assume this cell is ${trialValue}`,
+    text: `Assume ${cellLabel(trialRow, trialCol)} is ${trialValue}.`,
   });
 
   const stepsToShow = result.steps.slice(0, 4);
   for (const step of stepsToShow) {
-    const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
-    texts.push(`→ (${step.row + 1},${step.col + 1}) is forced to ${step.value} (${reason})`);
+    const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
+    texts.push(`→ ${cellLabel(step.row, step.col)} is forced to ${step.value} (${reason})`);
     chainEntries.push({
       row: step.row, col: step.col, value: step.value,
       role: 'deduction',
-      text: `This cell is forced to ${step.value} (${reason})`,
+      text: `${cellLabel(step.row, step.col)} is then forced to ${step.value} — ${reason}.`,
     });
   }
   if (result.steps.length > 4) {
     const extra = result.steps.slice(4);
     texts.push(`→ ...${extra.length} more forced moves...`);
     for (const step of extra) {
-      const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+      const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
       chainEntries.push({
         row: step.row, col: step.col, value: step.value,
         role: 'deduction',
-        text: `This cell is forced to ${step.value} (${reason})`,
+        text: `${cellLabel(step.row, step.col)} is then forced to ${step.value} — ${reason}.`,
       });
     }
   }
 
-  texts.push(`→ Contradiction: ${result.contradictionReason!}`);
+  texts.push(`→ Contradiction — ${result.contradictionReason!}`);
+  const cc = result.conflictCell;
   chainEntries.push({
-    row: trialRow, col: trialCol, value: trialValue,
+    row: cc ? cc.row : trialRow,
+    col: cc ? cc.col : trialCol,
+    value: 0,
     role: 'contradiction',
-    text: `Contradiction! ${result.contradictionReason!}`,
+    text: `Contradiction — ${result.contradictionReason!}.`,
   });
 
-  texts.push(`So (${trialRow + 1},${trialCol + 1}) cannot be ${trialValue}.`);
+  texts.push(`So ${cellLabel(trialRow, trialCol)} cannot be ${trialValue}.`);
 
   return { texts, chainEntries };
 }
@@ -666,18 +694,18 @@ function tryEliminationsForCell(
 
       if (!propagated) {
         eliminated.push(v);
-        const texts = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+        const texts = [`Assume ${cellLabel(cellR, cellC)} = ${v}`];
         const chainEntries: HintChainEntry[] = [{
           row: cellR, col: cellC, value: v, role: 'assumption',
-          text: `Assume this cell is ${v}`,
+          text: `Assume ${cellLabel(cellR, cellC)} is ${v}.`,
         }];
         if (result.steps.length > 0) {
           texts.push(`→ ...after ${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
           for (const step of result.steps) {
-            const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+            const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
             chainEntries.push({
               row: step.row, col: step.col, value: step.value, role: 'deduction',
-              text: `This cell is forced to ${step.value} (${reason})`,
+              text: `${cellLabel(step.row, step.col)} is then forced to ${step.value} — ${reason}.`,
             });
           }
         } else {
@@ -685,9 +713,9 @@ function tryEliminationsForCell(
         }
         chainEntries.push({
           row: cellR, col: cellC, value: v, role: 'contradiction',
-          text: 'Contradiction! Deeper analysis shows this is impossible',
+          text: `Contradiction — assuming ${cellLabel(cellR, cellC)} = ${v} breaks the board.`,
         });
-        texts.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+        texts.push(`So ${cellLabel(cellR, cellC)} cannot be ${v}.`);
         explanations.set(v, { texts, chainEntries });
         continue;
       }
@@ -713,27 +741,27 @@ function tryEliminationsForCell(
             });
             if (allSubContradict) {
               eliminated.push(v);
-              const texts = [`Assume (${cellR + 1},${cellC + 1}) = ${v}`];
+              const texts = [`Assume ${cellLabel(cellR, cellC)} = ${v}`];
               const chainEntries: HintChainEntry[] = [{
                 row: cellR, col: cellC, value: v, role: 'assumption',
-                text: `Assume this cell is ${v}`,
+                text: `Assume ${cellLabel(cellR, cellC)} is ${v}.`,
               }];
               if (result.steps.length > 0) {
                 texts.push(`→ ...${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''} follow`);
                 for (const step of result.steps) {
-                  const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in group';
+                  const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
                   chainEntries.push({
                     row: step.row, col: step.col, value: step.value, role: 'deduction',
-                    text: `This cell is forced to ${step.value} (${reason})`,
+                    text: `${cellLabel(step.row, step.col)} is then forced to ${step.value} — ${reason}.`,
                   });
                 }
               }
-              texts.push(`→ Then cell (${sr + 1},${sc + 1}) has candidates ${[...simCands[sr][sc]].join(', ')}, but every option leads to a contradiction`);
+              texts.push(`→ Then cell ${cellLabel(sr, sc)} has candidates ${[...simCands[sr][sc]].join(', ')}, but every option leads to a contradiction`);
               chainEntries.push({
                 row: sr, col: sc, value: 0, role: 'contradiction',
-                text: `Every candidate here leads to a contradiction`,
+                text: `Contradiction — every value for ${cellLabel(sr, sc)} fails.`,
               });
-              texts.push(`So (${cellR + 1},${cellC + 1}) cannot be ${v}.`);
+              texts.push(`So ${cellLabel(cellR, cellC)} cannot be ${v}.`);
               explanations.set(v, { texts, chainEntries });
               foundDeep = true;
               break;
@@ -778,10 +806,10 @@ function findContradictionHint(
     const hintSteps: string[] = [];
     const chain: HintChainEntry[] = [];
 
-    hintSteps.push(`Cell (${cellR + 1},${cellC + 1}) could be ${vals.join(', ')}.`);
+    hintSteps.push(`Cell ${cellLabel(cellR, cellC)} could be ${vals.join(', ')}.`);
     chain.push({
       row: cellR, col: cellC, value: 0, role: 'target',
-      text: `This cell could be ${vals.join(', ')}`,
+      text: `${cellLabel(cellR, cellC)} could be ${vals.join(' or ')}.`,
     });
 
     for (const v of eliminated) {
@@ -792,10 +820,10 @@ function findContradictionHint(
 
     if (remaining.length === 1) {
       const answer = remaining[0];
-      hintSteps.push(`Therefore (${cellR + 1},${cellC + 1}) must be ${answer}.`);
+      hintSteps.push(`Therefore ${cellLabel(cellR, cellC)} must be ${answer}.`);
       chain.push({
         row: cellR, col: cellC, value: answer, role: 'conclusion',
-        text: `Therefore this cell must be ${answer}`,
+        text: `Therefore ${cellLabel(cellR, cellC)} must be ${answer}.`,
       });
       return {
         row: cellR, col: cellC, value: answer,
@@ -807,7 +835,7 @@ function findContradictionHint(
     hintSteps.push(`This eliminates ${eliminated.join(', ')}, leaving ${remaining.join(', ')} as possibilities.`);
     chain.push({
       row: cellR, col: cellC, value: 0, role: 'info',
-      text: `Eliminates ${eliminated.join(', ')}, leaving ${remaining.join(', ')}`,
+      text: `${cellLabel(cellR, cellC)} can't be ${eliminated.join(' or ')} — only ${remaining.join(' or ')} remain.`,
     });
     return {
       row: cellR, col: cellC, value: 0,
@@ -903,7 +931,7 @@ function buildHiddenSingleReason(
         ([nr, nc]) => grid[nr][nc] === value
       );
       if (blockingNeighbor) {
-        reasons.push(`(${row + 1},${col + 1}) can't be ${value} — blocked by adjacent ${value}`);
+        reasons.push(`${cellLabel(row, col)} can't be ${value} — blocked by adjacent ${value}`);
       }
     }
   }
