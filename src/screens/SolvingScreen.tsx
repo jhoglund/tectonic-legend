@@ -18,6 +18,7 @@ import type { Difficulty, GridSize } from '../engine/types';
 const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
   hidden_single: 'Hidden single',
+  domination: 'Forced move',
   contradiction: 'Contradiction chain',
   reveal: 'Revealed cell',
   candidates: 'Candidates',

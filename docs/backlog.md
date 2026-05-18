@@ -115,6 +115,7 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
 - **I6. Improve the start screen.** A richer Home — possibly a mini grid and more.
 - **I7. Floating pill nav bar.** Replace the global bottom tab bar with an iOS-native floating button bar — rounded corners (pill).
 - **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
+- **I9. ◑ Deductive hint techniques.** Give the hint engine a deductive middle tier so logic hints explain a deduction instead of narrating a backtracking search. *Spec + cage domination done 2026-05-18* — [`specs/solving-techniques.md`](../specs/solving-techniques.md) catalogues the tiers (last-cell, cage domination, partial domination, naked/hidden subsets, locked candidates, contradiction trial as last resort). `findDominationHint` now runs before the `findContradictionHint` fallback in `src/engine/hints.ts`, emitting the `forced-move` technique — a cell king-adjacent to a whole cage is forced past that cage's values (the L-shape shortcuts). **Next:** the naked/hidden-subset and locked-candidate passes (the `pair-elimination` slot). Open: whether `solver.ts` should also learn these (re-grades difficulty).
 
 ---
 

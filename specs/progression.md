@@ -57,6 +57,8 @@ type TechniqueMastery = {
 };
 ```
 
+The five slots map to hint-engine techniques per [`solving-techniques.md` §11](solving-techniques.md): `naked-single` and `hidden-single` are the basic singles, `forced-move` is **cage domination** (a cell that sees a whole adjacent cage's values), `pair-elimination` will cover the naked/hidden-subset and locked-candidate passes (not emitted yet), and `contradiction-chain` is the trial fallback of last resort.
+
 ### Mastery thresholds
 
 A technique is **mastered** when:

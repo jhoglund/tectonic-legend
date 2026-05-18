@@ -14,7 +14,14 @@ export interface Hint {
   col: number;
   value: number;
   reason: string;
-  type: 'naked_single' | 'hidden_single' | 'contradiction' | 'candidates' | 'reveal' | 'check';
+  type:
+    | 'naked_single'
+    | 'hidden_single'
+    | 'domination'
+    | 'contradiction'
+    | 'candidates'
+    | 'reveal'
+    | 'check';
   candidates?: number[];
   errorCount?: number;
   steps?: string[];
@@ -97,7 +104,84 @@ export function findHint(
     }
   }
 
+  const domination = findDominationHint(grid, layout, candidates);
+  if (domination) return domination;
+
   return findContradictionHint(grid, layout, candidates);
+}
+
+/**
+ * Cage domination — specs/solving-techniques.md §4. When an empty cell
+ * is king-adjacent to *every* cell of some other cage of size N, that
+ * cage is guaranteed to hold the whole set 1..N, so the cell cannot be
+ * any of them. Returns the forced value and the dominating cage's size
+ * when that elimination leaves exactly one candidate; otherwise null.
+ *
+ * This is pure geometry: it needs no filled-in numbers, only the cage
+ * shapes — which is why it is favoured over a backtracking trial.
+ */
+function dominationFor(
+  layout: PuzzleLayout,
+  candidates: Set<number>[][],
+  r: number,
+  c: number,
+): { value: number; cageSize: number } | null {
+  const { cols, groups, cellGroup, neighbors } = layout;
+  const cands = candidates[r][c];
+  if (cands.size < 2) return null;
+
+  const ring = new Set(neighbors[r][c].map(([nr, nc]) => nr * cols + nc));
+  const ownGroup = cellGroup[r][c];
+
+  for (const group of groups) {
+    if (group.id === ownGroup) continue;
+    const n = group.cells.length;
+    if (n > ring.size) continue; // cage too large to fit the cell's ring
+    const dominated = group.cells.every(({ row, col }) =>
+      ring.has(row * cols + col),
+    );
+    if (!dominated) continue;
+
+    // The cage holds 1..n and this cell sees all of them — rule them out.
+    const remaining = [...cands].filter((v) => v > n);
+    if (remaining.length === 1) {
+      return { value: remaining[0], cageSize: n };
+    }
+  }
+  return null;
+}
+
+function buildDominationReason(value: number, cageSize: number): string {
+  const set = Array.from({ length: cageSize }, (_, i) => i + 1).join(', ');
+  return (
+    `This cell touches every cell of a ${cageSize}-cell cage, which must ` +
+    `hold ${set} — so it can't be any of them. It must be ${value}.`
+  );
+}
+
+/** Scan for the first cell a cage domination solves outright. */
+function findDominationHint(
+  grid: number[][],
+  layout: PuzzleLayout,
+  candidates: Set<number>[][],
+): Hint | null {
+  const { rows, cols } = layout;
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] !== 0) continue;
+      const dom = dominationFor(layout, candidates, r, c);
+      if (dom) {
+        return {
+          row: r,
+          col: c,
+          value: dom.value,
+          reason: buildDominationReason(dom.value, dom.cageSize),
+          type: 'domination',
+        };
+      }
+    }
+  }
+  return null;
 }
 
 interface DeductionStep {
@@ -589,10 +673,10 @@ function buildHiddenSingleReason(
  * Classify a just-made move for self-applied mastery tracking
  * (progression.md §3). Given the grid *before* the move, was placing
  * `value` at (row, col) justified by a naked single (the cell's only
- * candidate) or a hidden single (`value` fits only this cell of its
- * group)? Returns null for moves a basic technique does not pin down —
- * guesses, or forced-move / contradiction reasoning — which earn no
- * self-applied credit.
+ * candidate), a hidden single (`value` fits only this cell of its
+ * group), or a cage domination (the cell sees a whole cage's values)?
+ * Returns null for moves no basic technique pins down — guesses, or
+ * contradiction reasoning — which earn no self-applied credit.
  */
 export function classifyMove(
   grid: number[][],
@@ -600,7 +684,7 @@ export function classifyMove(
   row: number,
   col: number,
   value: number,
-): 'naked_single' | 'hidden_single' | null {
+): 'naked_single' | 'hidden_single' | 'domination' | null {
   if (grid[row][col] !== 0) return null;
   const candidates = computeCandidates(grid, layout);
   const cands = candidates[row][col];
@@ -617,7 +701,10 @@ export function classifyMove(
       fits++;
     }
   }
-  return fits === 1 ? 'hidden_single' : null;
+  if (fits === 1) return 'hidden_single';
+
+  const dom = dominationFor(layout, candidates, row, col);
+  return dom && dom.value === value ? 'domination' : null;
 }
 
 export function findCandidatesHint(

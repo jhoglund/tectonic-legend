@@ -11,6 +11,7 @@ import { TECHNIQUE_NAMES, type TechniqueName } from '../lib/progression';
 const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
   hidden_single: 'Hidden single',
+  domination: 'Forced move',
   contradiction: 'Contradiction chain',
   reveal: 'Revealed cell',
 };
@@ -19,6 +20,7 @@ const TECHNIQUE_LABEL: Record<string, string> = {
 const HINT_TO_TECHNIQUE: Record<string, TechniqueName> = {
   naked_single: 'naked-single',
   hidden_single: 'hidden-single',
+  domination: 'forced-move',
   contradiction: 'contradiction-chain',
 };
 

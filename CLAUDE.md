@@ -9,6 +9,7 @@ This project uses a layered spec approach. Before making changes, understand whi
 | **Product spec** | [`PRD.md`](PRD.md) | What players experience — guided difficulty journey, technique mastery, stats, monetization shape |
 | **Architecture spec** | [`ARCHITECTURE.md`](ARCHITECTURE.md) | How it's built — engine, solver, hint chain, persistence, platform layers |
 | **Progression spec** | [`specs/progression.md`](specs/progression.md) | The single source of truth for the difficulty curve, unlocks, technique mastery model, and stats. The differentiator. Read it before any change in that area. |
+| **Solving techniques** | [`specs/solving-techniques.md`](specs/solving-techniques.md) | The catalogue of deductive techniques the hint engine uses, tiered cheap-to-last-resort. Read it before any change to `src/engine/hints.ts`. |
 | **Design tokens** | [`specs/design-tokens.md`](specs/design-tokens.md) | Color, typography, spacing, motion — bound to CSS variables in `src/index.css` |
 | **Design workflow** | [`specs/design-workflow.md`](specs/design-workflow.md) | How UX iteration flows between Claude Code and Open Design (`http://open-design.test`) |
 | **Market & business** | [`docs/market-research.md`](docs/market-research.md) | Competitive landscape, monetization benchmarks, viral mechanics, launch phases. Constraints for product decisions. |
