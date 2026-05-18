@@ -8,6 +8,9 @@ import {
   redeemVoucher,
   isPremium,
   isDeveloper,
+  isDeveloperEmail,
+  withDeveloperRole,
+  DEVELOPER_EMAILS,
   normalizeProfile,
   loadProfile,
   saveProfile,
@@ -257,6 +260,38 @@ describe('role / isDeveloper', () => {
     expect(normalizeProfile({}).role).toBe('player');
     expect(normalizeProfile({ role: 'developer' }).role).toBe('developer');
     expect(normalizeProfile({ role: 'hacker' }).role).toBe('player');
+  });
+});
+
+describe('developer allowlist', () => {
+  const devEmail = DEVELOPER_EMAILS[0];
+
+  it('recognises an allowlisted email, case- and space-insensitively', () => {
+    expect(isDeveloperEmail(devEmail)).toBe(true);
+    expect(isDeveloperEmail(`  ${devEmail.toUpperCase()}  `)).toBe(true);
+    expect(isDeveloperEmail('someone@example.com')).toBe(false);
+    expect(isDeveloperEmail(null)).toBe(false);
+    expect(isDeveloperEmail(undefined)).toBe(false);
+  });
+
+  it('elevates an allowlisted email to the developer role', () => {
+    const before = defaultProfile();
+    const elevated = withDeveloperRole(before, devEmail);
+    expect(elevated.role).toBe('developer');
+    expect(isDeveloper(elevated)).toBe(true);
+    // updatedAt is bumped so the elevation wins last-write-wins sync.
+    expect(elevated.updatedAt).not.toBe(before.updatedAt);
+  });
+
+  it('leaves a non-allowlisted email a player — same object back', () => {
+    const p = defaultProfile();
+    expect(withDeveloperRole(p, 'someone@example.com')).toBe(p);
+    expect(withDeveloperRole(p, null)).toBe(p);
+  });
+
+  it('never downgrades — an existing developer is returned unchanged', () => {
+    const dev: PlayerProfile = { ...defaultProfile(), role: 'developer' };
+    expect(withDeveloperRole(dev, 'someone@example.com')).toBe(dev);
   });
 });
 

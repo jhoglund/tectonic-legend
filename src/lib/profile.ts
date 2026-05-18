@@ -291,6 +291,43 @@ export function isDeveloper(profile: PlayerProfile): boolean {
   return profile.role === 'developer';
 }
 
+/**
+ * Emails granted the developer role automatically on sign-in (ADR-0014).
+ * The in-app 7-tap Version unlock still works for everyone; this is the
+ * account-backed path, so a known developer email is elevated on every
+ * device it signs in on — no per-device tapping. The list ships in the
+ * client bundle, which is acceptable: the allowlist only elevates a
+ * profile *after* Supabase has authenticated the email, so the account
+ * password stays the real gate.
+ */
+export const DEVELOPER_EMAILS: readonly string[] = ['jonas@stixy.com'];
+
+/** Whether an email is on the developer allowlist (case-insensitive). */
+export function isDeveloperEmail(email: string | null | undefined): boolean {
+  if (!email) return false;
+  return DEVELOPER_EMAILS.includes(email.trim().toLowerCase());
+}
+
+/**
+ * Elevate a profile to the developer role when the signed-in email is on
+ * the allowlist. Never downgrades — a developer (allowlisted, or unlocked
+ * by the 7-tap gesture) stays a developer. Returns the profile unchanged
+ * when no elevation applies, so callers can identity-compare the result.
+ */
+export function withDeveloperRole(
+  profile: PlayerProfile,
+  email: string | null | undefined,
+): PlayerProfile {
+  if (profile.role === 'developer' || !isDeveloperEmail(email)) {
+    return profile;
+  }
+  return {
+    ...profile,
+    role: 'developer',
+    updatedAt: new Date().toISOString(),
+  };
+}
+
 /** Outcome of a voucher redemption. */
 export type RedeemResult =
   | { ok: true; profile: PlayerProfile; days: number }

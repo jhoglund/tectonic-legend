@@ -16,6 +16,7 @@ import {
   markStageCelebrated,
   skipTutorials,
   redeemVoucher,
+  withDeveloperRole,
 } from './profile';
 import type { PlayerStage } from './progression';
 import { ProfileContext } from './profileContext';
@@ -112,10 +113,13 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
   const syncedRef = useRef<string | null>(null);
 
   const userId = user?.id ?? null;
+  const userEmail = user?.email ?? null;
 
   // Pull on sign-in: fetch the server profile and reconcile. A user
   // with no server row yet (first sign-in) has their local profile
-  // adopted as the account.
+  // adopted as the account. A developer-allowlisted email (ADR-0014)
+  // is elevated to the developer role here, so the role carries across
+  // every device the account signs in on.
   useEffect(() => {
     if (!userId) return;
     let cancelled = false;
@@ -125,22 +129,21 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         const local = profileRef.current;
         const remote = await fetchRemoteProfile(userId);
         if (cancelled) return;
-        if (remote === null) {
-          // First sign-in — the local profile becomes the account.
-          await pushRemoteProfile(userId, local);
-          if (cancelled) return;
-          syncedRef.current = JSON.stringify(local);
-        } else {
-          const winner = reconcile(local, remote);
-          if (winner === remote) {
-            saveProfile(remote);
-            setProfile(remote);
-          } else {
-            await pushRemoteProfile(userId, winner);
-          }
-          if (cancelled) return;
-          syncedRef.current = JSON.stringify(winner);
+        // Reconcile (local adopted when there is no server row yet),
+        // then apply the developer allowlist on top.
+        const base = remote === null ? local : reconcile(local, remote);
+        const winner = withDeveloperRole(base, userEmail);
+        // Adopt the winner locally when it differs from the local copy.
+        if (winner !== local) {
+          saveProfile(winner);
+          setProfile(winner);
         }
+        // Push when the server copy is missing, stale, or pre-elevation.
+        if (winner !== remote) {
+          await pushRemoteProfile(userId, winner);
+          if (cancelled) return;
+        }
+        syncedRef.current = JSON.stringify(winner);
         setSyncState('synced');
       } catch {
         if (!cancelled) setSyncState('error');
@@ -149,7 +152,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true;
     };
-  }, [userId]);
+  }, [userId, userEmail]);
 
   // Debounced push: once the initial sync has settled, every local
   // change is pushed up after a short idle delay.

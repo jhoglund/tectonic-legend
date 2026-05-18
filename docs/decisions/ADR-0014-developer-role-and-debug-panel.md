@@ -12,8 +12,10 @@ Testing a flow or state — onboarding, the stage-up card, technique-mastery lev
 
 Add a `role: 'player' | 'developer'` field to `PlayerProfile`. The developer role is unlocked by tapping the Settings → Version row seven times — a hidden, deliberate gesture. When `role === 'developer'`, the Settings screen shows a **DEVELOPER** panel (`DevTools`) with tools to set the stage, set every technique's mastery, grant/remove premium, jump to flows (onboarding, stage-up card, paywall, sign-in), and reset. The tools mutate the profile through a `devSetProfile` escape hatch on the profile context. Most "flows" are reached by putting the profile into the state that routes to them (stage 0 → onboarding, a trailing `celebratedStage` → the stage-up card).
 
+A second, account-backed path elevates the role automatically: a small email allowlist (`DEVELOPER_EMAILS` in `src/lib/profile.ts`) is checked on every sign-in by `ProfileProvider`, and a matching account is given the developer role on every device it signs in on — no per-device tapping. The allowlist only elevates a profile *after* Supabase has authenticated the email, so the account password remains the real gate; the list shipping in the client bundle is therefore harmless. Elevation never downgrades — a 7-tap unlock on a non-allowlisted account still stands.
+
 ## Consequences
 
-- **Enables:** any flow or state reachable on any build without code changes or `localStorage` edits — the I5 ask.
+- **Enables:** any flow or state reachable on any build without code changes or `localStorage` edits — the I5 ask. An allowlisted account also gets the developer role on a fresh device the moment it signs in, with no rediscovery of the 7-tap gesture.
 - **Costs:** `role` is part of the synced profile blob, so it follows a signed-in user across devices (fine for the solo dev). The panel can grant premium; the 7-tap unlock is obscure but not a hard gate — **before a wide public launch the unlock should be hardened** (a dev-build gate, or dropping the premium-granting tool from production). Tracked under I5.
 - **Implies:** the `role` concept is a foundation other role-based features can build on — Supabase account roles, a future admin surface.
