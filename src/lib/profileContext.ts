@@ -22,6 +22,9 @@ export interface ProfileContextValue {
   skipTutorials: () => void;
   /** Redeem a voucher code; persists on success. Returns the outcome. */
   redeemVoucher: (code: string) => RedeemResult;
+  /** Replace the profile via a mutator — for the developer debug panel
+   *  only (ADR-0014). Stamps `updatedAt`, persists, and syncs. */
+  devSetProfile: (mutator: (profile: PlayerProfile) => PlayerProfile) => void;
 }
 
 export const ProfileContext = createContext<ProfileContextValue | null>(null);

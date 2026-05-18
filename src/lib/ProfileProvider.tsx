@@ -8,6 +8,7 @@ import {
 import {
   type SolveOutcome,
   type RedeemResult,
+  type PlayerProfile,
   loadProfile,
   saveProfile,
   recordSolve,
@@ -81,6 +82,20 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         setProfile(result.profile);
       }
       return result;
+    },
+    [profile],
+  );
+
+  // Developer debug panel only (ADR-0014). The mutator returns the new
+  // profile; updatedAt is stamped so the change persists and syncs.
+  const handleDevSetProfile = useCallback(
+    (mutator: (p: PlayerProfile) => PlayerProfile) => {
+      const next: PlayerProfile = {
+        ...mutator(profile),
+        updatedAt: new Date().toISOString(),
+      };
+      saveProfile(next);
+      setProfile(next);
     },
     [profile],
   );
@@ -166,6 +181,7 @@ export function ProfileProvider({ children }: { children: ReactNode }) {
         celebrateStage: handleCelebrateStage,
         skipTutorials: handleSkipTutorials,
         redeemVoucher: handleRedeemVoucher,
+        devSetProfile: handleDevSetProfile,
       }}
     >
       {children}

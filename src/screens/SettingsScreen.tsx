@@ -1,10 +1,14 @@
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { ScreenHeader } from '../components/ScreenHeader';
 import { RedeemCodeSheet } from '../components/RedeemCodeSheet';
 import { AuthSheet } from '../components/AuthSheet';
+import { DevTools } from '../components/DevTools';
 import { useProfile } from '../lib/profileContext';
 import { useAuth } from '../lib/authContext';
-import { isPremium } from '../lib/profile';
+import { isPremium, isDeveloper } from '../lib/profile';
+
+/** Taps on the Version row that unlock the developer role (ADR-0014). */
+const DEV_UNLOCK_TAPS = 7;
 
 /** Working version string — bump on each release. */
 const APP_VERSION = '0.1.0';
@@ -49,10 +53,28 @@ function Rule({ heading, body }: { heading: string; body: string }) {
  * land with the StoreKit work.
  */
 export function SettingsScreen() {
-  const { profile, syncState } = useProfile();
+  const { profile, syncState, devSetProfile } = useProfile();
   const { status, user, signOut } = useAuth();
   const [redeemOpen, setRedeemOpen] = useState(false);
   const [authOpen, setAuthOpen] = useState(false);
+  const [devNote, setDevNote] = useState<string | null>(null);
+  // Tap count — a ref, not state: it isn't displayed, and a ref
+  // increments synchronously so rapid taps all land.
+  const versionTaps = useRef(0);
+
+  const developer = isDeveloper(profile);
+
+  // The Version row is the hidden developer-mode unlock — tap it
+  // DEV_UNLOCK_TAPS times (ADR-0014).
+  function tapVersion() {
+    if (developer) return;
+    versionTaps.current += 1;
+    if (versionTaps.current >= DEV_UNLOCK_TAPS) {
+      versionTaps.current = 0;
+      devSetProfile((p) => ({ ...p, role: 'developer' }));
+      setDevNote('Developer mode enabled.');
+    }
+  }
 
   const premium = isPremium(profile);
   const planStatus = !premium
@@ -216,7 +238,11 @@ export function SettingsScreen() {
             ABOUT
           </p>
           <div className="flex flex-col gap-3" style={card}>
-            <div className="flex items-center justify-between">
+            <button
+              type="button"
+              onClick={tapVersion}
+              className="flex w-full items-center justify-between"
+            >
               <span
                 className="text-sm"
                 style={{ color: 'var(--text-secondary)' }}
@@ -232,7 +258,15 @@ export function SettingsScreen() {
               >
                 {APP_VERSION}
               </span>
-            </div>
+            </button>
+            {devNote && (
+              <p
+                className="text-xs font-medium"
+                style={{ color: 'var(--success)' }}
+              >
+                {devNote}
+              </p>
+            )}
             <p
               className="text-sm"
               style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
@@ -245,6 +279,15 @@ export function SettingsScreen() {
             </p>
           </div>
         </div>
+
+        {developer && (
+          <div>
+            <p className="mb-2 px-1 text-xs font-semibold" style={sectionLabel}>
+              DEVELOPER
+            </p>
+            <DevTools onOpenAuth={() => setAuthOpen(true)} />
+          </div>
+        )}
 
         <p
           className="px-1 text-xs"

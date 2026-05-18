@@ -49,6 +49,8 @@ export interface PlayerProfile {
   /** Voucher codes redeemed on this device — blocks per-device reuse. */
   redeemedVouchers: string[];
   settings: { theme: string; sound: boolean; haptics: boolean };
+  /** Access role — `developer` unlocks the in-app debug panel (ADR-0014). */
+  role: 'player' | 'developer';
   /** ISO timestamp of the last meaningful change. Drives last-write-wins
    *  account sync (ADR-0013); a pristine profile carries the epoch. */
   updatedAt: string;
@@ -93,6 +95,7 @@ export function defaultProfile(): PlayerProfile {
     tier: 'free',
     redeemedVouchers: [],
     settings: { theme: 'system', sound: true, haptics: true },
+    role: 'player',
     updatedAt: EPOCH,
     schemaVersion: 1,
   };
@@ -266,6 +269,7 @@ export function normalizeProfile(
       typeof parsed.updatedAt === 'string'
         ? parsed.updatedAt
         : new Date().toISOString(),
+    role: parsed.role === 'developer' ? 'developer' : 'player',
     schemaVersion: 1,
   };
 }
@@ -279,6 +283,12 @@ export function isPremium(profile: PlayerProfile): boolean {
   if (profile.tier !== 'premium') return false;
   if (!profile.premiumExpiresAt) return true; // lifetime grant
   return Date.parse(profile.premiumExpiresAt) > Date.now();
+}
+
+/** Whether the profile holds the developer role — unlocks the in-app
+ *  debug panel (ADR-0014). */
+export function isDeveloper(profile: PlayerProfile): boolean {
+  return profile.role === 'developer';
 }
 
 /** Outcome of a voucher redemption. */

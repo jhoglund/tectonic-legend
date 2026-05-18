@@ -7,6 +7,8 @@ import {
   skipTutorials,
   redeemVoucher,
   isPremium,
+  isDeveloper,
+  normalizeProfile,
   loadProfile,
   saveProfile,
   type PlayerProfile,
@@ -238,6 +240,23 @@ describe('redeemVoucher / isPremium', () => {
     expect(timed.ok).toBe(true);
     if (!timed.ok) return;
     expect(timed.profile.premiumExpiresAt).toBeUndefined();
+  });
+});
+
+describe('role / isDeveloper', () => {
+  it('a fresh profile is a player', () => {
+    expect(defaultProfile().role).toBe('player');
+    expect(isDeveloper(defaultProfile())).toBe(false);
+  });
+
+  it('recognises the developer role', () => {
+    expect(isDeveloper({ ...defaultProfile(), role: 'developer' })).toBe(true);
+  });
+
+  it('normalizeProfile defaults a missing or invalid role to player', () => {
+    expect(normalizeProfile({}).role).toBe('player');
+    expect(normalizeProfile({ role: 'developer' }).role).toBe('developer');
+    expect(normalizeProfile({ role: 'hacker' }).role).toBe('player');
   });
 });
 
