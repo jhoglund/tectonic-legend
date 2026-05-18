@@ -149,3 +149,47 @@ describe('classifyMove — domination', () => {
     expect(classifyMove(empty(3, 3), layout, 1, 1, 4)).toBeNull();
   });
 });
+
+describe('findHint — never suggests a wrong value', () => {
+  it('solves easy and medium puzzles with correct hints only', () => {
+    for (const size of [5, 8] as const) {
+      for (const diff of ['easy', 'medium'] as const) {
+        const { layout, clues, solution } = generatePuzzle(size, size, diff);
+        const grid = clues.map((row) => [...row]);
+        const total = size * size;
+        let placed = grid.flat().filter((v) => v !== 0).length;
+
+        for (let step = 0; placed < total && step < total + 20; step++) {
+          const hint = findHint(grid, layout);
+          expect(hint).not.toBeNull();
+          // Naked/hidden singles always pin a cell on these tiers.
+          expect(hint!.value).toBe(solution[hint!.row][hint!.col]);
+          grid[hint!.row][hint!.col] = hint!.value;
+          placed++;
+        }
+        expect(placed).toBe(total);
+      }
+    }
+  });
+
+  it('only ever pins correct values on hard / expert puzzles', () => {
+    // Exercises the domination, deductive and contradiction tiers —
+    // every placement they surface must match the solution.
+    for (const diff of ['hard', 'expert'] as const) {
+      for (let attempt = 0; attempt < 3; attempt++) {
+        const { layout, clues, solution } = generatePuzzle(5, 5, diff);
+        const grid = clues.map((row) => [...row]);
+        let placed = grid.flat().filter((v) => v !== 0).length;
+
+        for (let step = 0; placed < 25 && step < 45; step++) {
+          const hint = findHint(grid, layout);
+          if (!hint || hint.value === 0) break; // can't auto-place further
+          expect(grid[hint.row][hint.col]).toBe(0);
+          expect(hint.value).toBe(solution[hint.row][hint.col]);
+          grid[hint.row][hint.col] = hint.value;
+          placed++;
+        }
+      }
+    }
+  });
+});

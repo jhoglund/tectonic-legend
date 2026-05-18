@@ -138,26 +138,26 @@ Each pass produces the existing `Hint` shape; the `type` union and the `HintChai
 
 ---
 
-## 11. Technique-slot mapping (proposed)
+## 11. Technique-slot mapping
 
-`progression.md` §3 defines five mastery slots: `naked-single`, `hidden-single`, `forced-move`, `pair-elimination`, `contradiction-chain`. The engine currently emits only the first two and `contradiction-chain`; `forced-move` and `pair-elimination` are unused names.
+`progression.md` §3 defines five mastery slots: `naked-single`, `hidden-single`, `forced-move`, `pair-elimination`, `contradiction-chain`. Before this work the engine emitted only the first two and `contradiction-chain`; `forced-move` and `pair-elimination` were unused names.
 
-Proposed mapping so mastery stats become meaningful:
+Mapping (accepted, as built):
 
-| Slot | Becomes |
-|------|---------|
+| Slot | Engine technique |
+|------|------------------|
 | `naked-single` | unchanged |
 | `hidden-single` | unchanged (also covers last-cell-in-cage) |
-| `forced-move` | **cage domination** + partial domination |
-| `pair-elimination` | **naked/hidden subsets** + locked candidates |
+| `forced-move` | **cage domination** (`findDominationHint`) |
+| `pair-elimination` | **naked/hidden subsets + locked candidates** (`findDeductiveHint`) |
 | `contradiction-chain` | unchanged — the trial fallback |
 
-This keeps the profile schema and the five chips stable. It changes what the player journey *teaches*, so it lands as a `progression.md` edit in the same change as the engine work (per `CLAUDE.md`).
+This keeps the profile schema and the five chips stable. `findDeductiveHint` runs a candidate-elimination loop (§6–§7) and surfaces a hint the instant a strike pins a cell or a value; multi-step deductive chains that never pin anything are still left to the contradiction fallback. `pair-elimination` moves are not yet self-credited by `classifyMove` — a noted follow-up.
 
 ---
 
 ## Open questions
 
 - **Solver parity.** Should `src/engine/solver.ts` also learn these techniques, re-grading difficulty tiers? Doing so makes difficulty labels more honest but shifts every existing puzzle's grade. Decide before the generator is re-run.
-- **Slot mapping.** §11 is a proposal — confirm before the `progression.md` edit.
+- **Self-credit for `pair-elimination`.** `classifyMove` credits self-applied naked/hidden singles and domination, but not the subset / locked-candidate techniques (attributing a move to them needs the full elimination loop). Until it does, `pair-elimination` can show `usedCount` but never reaches the `mastered` chip state.
 - **Flip-flop hints.** Whether parity chains (§8) are worth the rendering complexity for v1, or deferred.

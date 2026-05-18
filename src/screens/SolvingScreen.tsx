@@ -19,6 +19,7 @@ const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
   hidden_single: 'Hidden single',
   domination: 'Forced move',
+  pair_elimination: 'Pair elimination',
   contradiction: 'Contradiction chain',
   reveal: 'Revealed cell',
   candidates: 'Candidates',

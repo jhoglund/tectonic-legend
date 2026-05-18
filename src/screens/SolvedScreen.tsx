@@ -12,6 +12,7 @@ const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
   hidden_single: 'Hidden single',
   domination: 'Forced move',
+  pair_elimination: 'Pair elimination',
   contradiction: 'Contradiction chain',
   reveal: 'Revealed cell',
 };
@@ -21,6 +22,7 @@ const HINT_TO_TECHNIQUE: Record<string, TechniqueName> = {
   naked_single: 'naked-single',
   hidden_single: 'hidden-single',
   domination: 'forced-move',
+  pair_elimination: 'pair-elimination',
   contradiction: 'contradiction-chain',
 };
 

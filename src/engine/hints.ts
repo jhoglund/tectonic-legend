@@ -18,6 +18,7 @@ export interface Hint {
     | 'naked_single'
     | 'hidden_single'
     | 'domination'
+    | 'pair_elimination'
     | 'contradiction'
     | 'candidates'
     | 'reveal'
@@ -107,6 +108,9 @@ export function findHint(
   const domination = findDominationHint(grid, layout, candidates);
   if (domination) return domination;
 
+  const deductive = findDeductiveHint(grid, layout, candidates);
+  if (deductive) return deductive;
+
   return findContradictionHint(grid, layout, candidates);
 }
 
@@ -177,6 +181,248 @@ function findDominationHint(
           value: dom.value,
           reason: buildDominationReason(dom.value, dom.cageSize),
           type: 'domination',
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/* ------------------------------------------------------------------ *
+ * Deductive eliminations — specs/solving-techniques.md §6–§7.
+ *
+ * Naked/hidden subsets and locked candidates ("sibling pairs") don't
+ * place a value on their own; they strike candidates. findDeductiveHint
+ * runs a candidate-elimination loop — it applies one sound strike at a
+ * time and stops the instant a strike leaves a cell with one candidate,
+ * or a value with one home in its cage. That is the placement surfaced.
+ * ------------------------------------------------------------------ */
+
+/** One candidate to strike, with a sentence describing why. */
+interface Elimination {
+  row: number;
+  col: number;
+  value: number;
+  detail: string;
+}
+
+/** All k-sized combinations of `items` (k is small — 2 or 3). */
+function combinations<T>(items: T[], k: number): T[][] {
+  const out: T[][] = [];
+  const pick = (start: number, combo: T[]): void => {
+    if (combo.length === k) {
+      out.push([...combo]);
+      return;
+    }
+    for (let i = start; i < items.length; i++) {
+      combo.push(items[i]);
+      pick(i + 1, combo);
+      combo.pop();
+    }
+  };
+  pick(0, []);
+  return out;
+}
+
+const cellName = (r: number, c: number): string => `(${r + 1},${c + 1})`;
+
+/** Join names as "A and B" / "A, B and C". */
+function nameList(parts: string[]): string {
+  if (parts.length <= 1) return parts.join('');
+  return `${parts.slice(0, -1).join(', ')} and ${parts[parts.length - 1]}`;
+}
+
+/**
+ * First strike justified by a naked subset (§6): k empty cells of a
+ * cage whose candidates together span exactly k values — those values
+ * are used up there, so every other cell of the cage loses them.
+ */
+function nakedSubsetElimination(
+  grid: number[][],
+  layout: PuzzleLayout,
+  cands: Set<number>[][],
+): Elimination | null {
+  for (const group of layout.groups) {
+    const open = group.cells.filter(
+      ({ row, col }) => grid[row][col] === 0 && cands[row][col].size >= 2,
+    );
+    for (const k of [2, 3]) {
+      if (open.length <= k) continue;
+      const sized = open.filter(({ row, col }) => cands[row][col].size <= k);
+      for (const combo of combinations(sized, k)) {
+        const union = new Set<number>();
+        for (const { row, col } of combo) {
+          for (const v of cands[row][col]) union.add(v);
+        }
+        if (union.size !== k) continue;
+        const inCombo = new Set(combo.map(({ row, col }) => `${row},${col}`));
+        for (const { row, col } of open) {
+          if (inCombo.has(`${row},${col}`)) continue;
+          for (const v of union) {
+            if (!cands[row][col].has(v)) continue;
+            const names = combo.map(({ row: r, col: c }) => cellName(r, c));
+            const vals = [...union].sort((a, b) => a - b).map(String);
+            return {
+              row,
+              col,
+              value: v,
+              detail: `Cells ${nameList(names)} can only hold ${nameList(vals)} between them.`,
+            };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * First strike justified by a hidden subset (§6): k values of a cage
+ * that can land only in the same k cells — those cells are pinned to
+ * those values and shed every other candidate.
+ */
+function hiddenSubsetElimination(
+  grid: number[][],
+  layout: PuzzleLayout,
+  cands: Set<number>[][],
+): Elimination | null {
+  for (const group of layout.groups) {
+    const size = group.cells.length;
+    const open = group.cells.filter(({ row, col }) => grid[row][col] === 0);
+    const spotsByValue = new Map<number, string[]>();
+    for (let v = 1; v <= size; v++) {
+      if (group.cells.some(({ row, col }) => grid[row][col] === v)) continue;
+      const spots = open
+        .filter(({ row, col }) => cands[row][col].has(v))
+        .map(({ row, col }) => `${row},${col}`);
+      if (spots.length >= 2) spotsByValue.set(v, spots);
+    }
+    const values = [...spotsByValue.keys()];
+    for (const k of [2, 3]) {
+      for (const combo of combinations(values, k)) {
+        const cellSet = new Set<string>();
+        for (const v of combo) {
+          for (const key of spotsByValue.get(v)!) cellSet.add(key);
+        }
+        if (cellSet.size !== k) continue;
+        const comboValues = new Set(combo);
+        for (const key of cellSet) {
+          const [r, c] = key.split(',').map(Number);
+          for (const v of cands[r][c]) {
+            if (comboValues.has(v)) continue;
+            const names = [...cellSet].map((kk) => {
+              const [rr, cc] = kk.split(',').map(Number);
+              return cellName(rr, cc);
+            });
+            const vals = combo.slice().sort((a, b) => a - b).map(String);
+            return {
+              row: r,
+              col: c,
+              value: v,
+              detail: `In one cage, ${nameList(vals)} can only go in cells ${nameList(names)}.`,
+            };
+          }
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * First strike justified by a locked candidate / sibling pair (§7): a
+ * value confined to a set of cells within a cage, with an outside cell
+ * king-adjacent to all of them — that outside cell cannot hold it.
+ */
+function lockedCandidateElimination(
+  grid: number[][],
+  layout: PuzzleLayout,
+  cands: Set<number>[][],
+): Elimination | null {
+  const { groups, neighbors, cellGroup } = layout;
+  for (const group of groups) {
+    const size = group.cells.length;
+    for (let v = 1; v <= size; v++) {
+      if (group.cells.some(({ row, col }) => grid[row][col] === v)) continue;
+      const spots = group.cells.filter(
+        ({ row, col }) => grid[row][col] === 0 && cands[row][col].has(v),
+      );
+      if (spots.length < 2) continue; // one spot is a hidden single
+      for (const [nr, nc] of neighbors[spots[0].row][spots[0].col]) {
+        if (grid[nr][nc] !== 0) continue;
+        if (cellGroup[nr][nc] === group.id) continue;
+        if (!cands[nr][nc].has(v)) continue;
+        const seesAll = spots.every(
+          ({ row, col }) => Math.abs(row - nr) <= 1 && Math.abs(col - nc) <= 1,
+        );
+        if (!seesAll) continue;
+        const names = spots.map(({ row, col }) => cellName(row, col));
+        return {
+          row: nr,
+          col: nc,
+          value: v,
+          detail: `In one cage, ${v} can only go in ${nameList(names)}, and each of those touches ${cellName(nr, nc)}.`,
+        };
+      }
+    }
+  }
+  return null;
+}
+
+/**
+ * Candidate-elimination loop over the deductive techniques (§6–§7).
+ * Applies one sound strike at a time and returns the moment a strike
+ * leaves a cell with one candidate, or a value with one home in its
+ * cage. Returns null when no technique can strike further — the puzzle
+ * is then left to the contradiction fallback.
+ */
+function findDeductiveHint(
+  grid: number[][],
+  layout: PuzzleLayout,
+  candidates: Set<number>[][],
+): Hint | null {
+  const { groups, cellGroup } = layout;
+  const cands = candidates.map((row) => row.map((s) => new Set(s)));
+
+  // Every pass strikes one candidate, so this bounds the loop well
+  // above any real board's total candidate count.
+  for (let guard = 0; guard < 4000; guard++) {
+    const strike =
+      nakedSubsetElimination(grid, layout, cands) ??
+      hiddenSubsetElimination(grid, layout, cands) ??
+      lockedCandidateElimination(grid, layout, cands);
+    if (!strike) return null;
+
+    const { row, col, value, detail } = strike;
+    cands[row][col].delete(value);
+    if (cands[row][col].size === 0) return null; // board already inconsistent
+
+    // The struck cell may now be a naked single.
+    if (cands[row][col].size === 1) {
+      const placed = [...cands[row][col]][0];
+      return {
+        row,
+        col,
+        value: placed,
+        reason: `${detail} That leaves ${cellName(row, col)} with only ${placed}.`,
+        type: 'pair_elimination',
+      };
+    }
+
+    // Or the struck value may now have a single home in its cage.
+    const group = groups[cellGroup[row][col]];
+    if (!group.cells.some(({ row: r, col: c }) => grid[r][c] === value)) {
+      const homes = group.cells.filter(
+        ({ row: r, col: c }) => grid[r][c] === 0 && cands[r][c].has(value),
+      );
+      if (homes.length === 0) return null; // inconsistent — leave it be
+      if (homes.length === 1) {
+        return {
+          row: homes[0].row,
+          col: homes[0].col,
+          value,
+          reason: `${detail} That makes ${cellName(homes[0].row, homes[0].col)} the only home for ${value} in its cage.`,
+          type: 'pair_elimination',
         };
       }
     }
@@ -675,8 +921,9 @@ function buildHiddenSingleReason(
  * `value` at (row, col) justified by a naked single (the cell's only
  * candidate), a hidden single (`value` fits only this cell of its
  * group), or a cage domination (the cell sees a whole cage's values)?
- * Returns null for moves no basic technique pins down — guesses, or
- * contradiction reasoning — which earn no self-applied credit.
+ * Returns null for moves no basic technique pins down — guesses,
+ * contradiction reasoning, or the subset / locked-candidate techniques
+ * (which are emitted as hints but not yet self-credited).
  */
 export function classifyMove(
   grid: number[][],
