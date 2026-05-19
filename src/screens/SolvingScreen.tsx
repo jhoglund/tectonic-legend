@@ -3,6 +3,7 @@ import { Board } from '../components/Board';
 import type { CellOverlay } from '../components/Board';
 import { Keypad } from '../components/Keypad';
 import { ContradictionStepper } from '../components/ContradictionStepper';
+import { NotesStepper } from '../components/NotesStepper';
 import { HintText } from '../components/HintText';
 import { HintMenu } from '../components/HintMenu';
 import { PauseSheet } from '../components/PauseSheet';
@@ -15,6 +16,7 @@ import { usePaywall } from '../lib/paywallContext';
 import { isPremium, isDeveloper } from '../lib/profile';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
+import type { HintNotes } from '../engine/hints';
 
 const TECHNIQUE_LABEL: Record<string, string> = {
   naked_single: 'Naked single',
@@ -98,6 +100,10 @@ export function SolvingScreen({
   const [linkCopied, setLinkCopied] = useState(false);
   const chain = hint?.chain ?? null;
   const chainLength = chain?.length ?? 0;
+  // A pair-elimination hint walks through candidate-note steps
+  // (ADR-0015); one step index drives it and the contradiction chain.
+  const noteSteps = hint?.notes?.kind === 'steps' ? hint.notes : null;
+  const stepCount = chainLength || noteSteps?.steps.length || 0;
 
   // Reset the stepper when a new hint arrives (adjust-during-render).
   const [hintForStepper, setHintForStepper] = useState(hint);
@@ -107,8 +113,8 @@ export function SolvingScreen({
   }
 
   const clampStep = useCallback(
-    (i: number) => Math.max(0, Math.min(i, chainLength - 1)),
-    [chainLength],
+    (i: number) => Math.max(0, Math.min(i, stepCount - 1)),
+    [stepCount],
   );
   const handleChainStep = useCallback(
     (delta: number) => setChainStepIndex((p) => clampStep(p + delta)),
@@ -144,6 +150,25 @@ export function SolvingScreen({
     }
     return overlays;
   }, [chain, chainStepIndex, chainLength]);
+
+  // The candidate-note frame for the hint's target cell (ADR-0015).
+  // A stepped pair-elimination hint accumulates crossings up to the
+  // current step; the answer turns green on the last step.
+  const hintNotes = useMemo((): HintNotes | null => {
+    const n = hint?.notes;
+    if (!n) return null;
+    if (n.kind !== 'steps') return n;
+    const crossed: number[] = [];
+    for (let i = 0; i <= chainStepIndex && i < n.steps.length; i++) {
+      crossed.push(...n.steps[i].crossed);
+    }
+    return {
+      kind: 'grid',
+      cageSize: n.cageSize,
+      crossed,
+      survivor: chainStepIndex >= n.steps.length - 1 ? n.survivor : undefined,
+    };
+  }, [hint, chainStepIndex]);
 
   const maxNumber = gameState
     ? Math.max(...gameState.puzzle.layout.groups.map((g) => g.cells.length))
@@ -369,6 +394,7 @@ export function SolvingScreen({
             onCellClick={handleCellClick}
             showErrors={showErrors}
             showCoordinates={hint !== null}
+            hintNotes={hintNotes}
           />
 
           {/* number keypad */}
@@ -429,6 +455,14 @@ export function SolvingScreen({
           {hint && chain && chainLength > 0 ? (
             <ContradictionStepper
               chain={chain}
+              stepIndex={chainStepIndex}
+              onStep={handleChainStep}
+              onJump={jumpToStep}
+              onCellRef={handleCellClick}
+            />
+          ) : hint && noteSteps ? (
+            <NotesStepper
+              steps={noteSteps.steps}
               stepIndex={chainStepIndex}
               onStep={handleChainStep}
               onJump={jumpToStep}

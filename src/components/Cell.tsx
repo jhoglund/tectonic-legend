@@ -48,6 +48,9 @@ function HintNotesView({ notes }: { notes: HintNotes }) {
       </span>
     );
   }
+  // A `steps` script is unrolled to a `grid` frame per step by the
+  // caller (SolvingScreen) — the cell only ever draws a `grid`.
+  if (notes.kind === 'steps') return null;
   const present = notes.present ? new Set(notes.present) : null;
   const crossed = new Set(notes.crossed ?? []);
   return (

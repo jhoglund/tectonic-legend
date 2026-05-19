@@ -1,7 +1,7 @@
 import { useMemo, type CSSProperties } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
-import type { Hint } from '../engine/hints';
+import type { Hint, HintNotes } from '../engine/hints';
 import { columnLetter } from '../engine/hints';
 import { Cell } from './Cell';
 import type { CellHighlight } from './Cell';
@@ -59,6 +59,10 @@ interface BoardProps {
    *  around the board — shown while a hint is open so its cell
    *  references are easy to locate. */
   showCoordinates?: boolean;
+  /** Candidate-note reasoning to draw in the hint's target cell
+   *  (ADR-0015). For a stepped pair-elimination hint, the caller passes
+   *  the frame for the current step. */
+  hintNotes?: HintNotes | null;
 }
 
 export function Board({
@@ -69,6 +73,7 @@ export function Board({
   onCellClick,
   showErrors = false,
   showCoordinates = false,
+  hintNotes = null,
 }: BoardProps) {
   const { puzzle, grid, isClue, notes, errors } = gameState;
   const { layout } = puzzle;
@@ -104,8 +109,8 @@ export function Board({
             hint !== null && hint.row === r && hint.col === c;
           // A notes hint (ADR-0015) draws its reasoning in the cell; it
           // rings the cell itself, so it suppresses the amber fill.
-          const hintNotes =
-            !cellOverlays && isHintCell ? (hint!.notes ?? null) : null;
+          const cellHintNotes =
+            !cellOverlays && isHintCell ? hintNotes : null;
           const key = posKey(r, c);
           const overlay = cellOverlays?.get(key) ?? null;
           const isDimmed = cellOverlays !== null && !cellOverlays.has(key);
@@ -117,12 +122,12 @@ export function Board({
               isClue={isClue[r][c]}
               isSelected={isSelected}
               isError={showErrors && errors[r][c]}
-              isHinted={!cellOverlays && isHintCell && !hintNotes}
+              isHinted={!cellOverlays && isHintCell && !cellHintNotes}
               isDimmed={isDimmed}
               cellHighlight={overlay?.highlight ?? null}
               ghostValue={overlay?.ghostValue ?? 0}
               notes={notes[r][c]}
-              hintNotes={hintNotes}
+              hintNotes={cellHintNotes}
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}

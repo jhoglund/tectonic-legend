@@ -189,6 +189,13 @@ describe('findHint — never suggests a wrong value', () => {
           if (!hint || hint.value === 0) break; // can't auto-place further
           expect(grid[hint.row][hint.col]).toBe(0);
           expect(hint.value).toBe(solution[hint.row][hint.col]);
+          // ADR-0015 notes script: a pair-elimination hint carries a
+          // stepped walkthrough; the single-cell deductions a grid.
+          if (hint.type === 'pair_elimination') {
+            expect(hint.notes?.kind).toMatch(/steps|answer/);
+          } else if (hint.type === 'naked_single' || hint.type === 'domination') {
+            expect(hint.notes?.kind).toBe('grid');
+          }
           grid[hint.row][hint.col] = hint.value;
           placed++;
         }

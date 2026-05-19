@@ -38,7 +38,16 @@ export type HintNotes =
       crossed?: number[];
       survivor?: number;
     }
-  | { kind: 'answer'; value: number };
+  | { kind: 'answer'; value: number }
+  | {
+      /** A pair-elimination walkthrough — each step strikes candidates
+       *  off the cell with a reason; the board crosses them off
+       *  cumulatively as the player steps. */
+      kind: 'steps';
+      cageSize: number;
+      steps: { crossed: number[]; reason: string }[];
+      survivor: number;
+    };
 
 export interface Hint {
   row: number;
@@ -424,6 +433,53 @@ function lockedCandidateElimination(
 }
 
 /**
+ * A `steps` notes script for a pair-elimination placement — replays the
+ * eliminations that landed on cell (tr,tc), one step at a time, ending
+ * on `placed` (specs/solving-techniques.md §7, ADR-0015).
+ */
+function elimSteps(
+  layout: PuzzleLayout,
+  candidates: Set<number>[][],
+  log: Elimination[],
+  tr: number,
+  tc: number,
+  placed: number,
+): HintNotes {
+  const cageSize = layout.groups[layout.cellGroup[tr][tc]].cells.length;
+  const steps: { crossed: number[]; reason: string }[] = [];
+
+  // Values already ruled out by filled cells before any deduction.
+  const initial: number[] = [];
+  for (let v = 1; v <= cageSize; v++) {
+    if (!candidates[tr][tc].has(v)) initial.push(v);
+  }
+  if (initial.length > 0) {
+    const verb = initial.length > 1 ? 'are' : 'is';
+    steps.push({
+      crossed: initial,
+      reason:
+        `${cellLabel(tr, tc)} starts open to 1–${cageSize}. ` +
+        `${nameList(initial.map(String))} ${verb} already taken by a filled ` +
+        `cell in the cage or next to it.`,
+    });
+  }
+
+  // One step per strike that landed on the target cell, in order.
+  const hits = log.filter((s) => s.row === tr && s.col === tc);
+  hits.forEach((s, i) => {
+    const last = i === hits.length - 1;
+    steps.push({
+      crossed: [s.value],
+      reason: last
+        ? `${s.detail} That leaves ${cellLabel(tr, tc)} with only ${placed}.`
+        : s.detail,
+    });
+  });
+
+  return { kind: 'steps', cageSize, steps, survivor: placed };
+}
+
+/**
  * Candidate-elimination loop over the deductive techniques (§6–§7).
  * Applies one sound strike at a time and returns the moment a strike
  * leaves a cell with one candidate, or a value with one home in its
@@ -437,6 +493,9 @@ function findDeductiveHint(
 ): Hint | null {
   const { groups, cellGroup } = layout;
   const cands = candidates.map((row) => row.map((s) => new Set(s)));
+  // Every strike is recorded so the placement can replay, step by
+  // step, the eliminations that landed on the cell it solves (§7).
+  const log: Elimination[] = [];
 
   // Every pass strikes one candidate, so this bounds the loop well
   // above any real board's total candidate count.
@@ -448,6 +507,7 @@ function findDeductiveHint(
     if (!strike) return null;
 
     const { row, col, value, detail } = strike;
+    log.push(strike);
     cands[row][col].delete(value);
     if (cands[row][col].size === 0) return null; // board already inconsistent
 
@@ -460,7 +520,7 @@ function findDeductiveHint(
         value: placed,
         reason: `${detail} That leaves ${cellLabel(row, col)} with only ${placed}.`,
         type: 'pair_elimination',
-        notes: answerGrid(layout, row, col, placed),
+        notes: elimSteps(layout, candidates, log, row, col, placed),
       };
     }
 
@@ -934,7 +994,7 @@ function buildNakedSingleReason(
       ({ row, col }) => grid[row][col] === v
     );
     if (inGroup) {
-      eliminatedBy.push(`${v} is already in this group`);
+      eliminatedBy.push(`${v} is already in this cage`);
       continue;
     }
 
@@ -950,7 +1010,7 @@ function buildNakedSingleReason(
   if (eliminatedBy.length <= 3) {
     return `This cell must be ${value} — ${eliminatedBy.join(', ')}.`;
   }
-  return `This cell must be ${value} — all other values are eliminated by neighbors or group members.`;
+  return `This cell must be ${value} — all other values are eliminated by neighbours or cage-mates.`;
 }
 
 function buildHiddenSingleReason(
@@ -982,9 +1042,9 @@ function buildHiddenSingleReason(
 
   const groupCellCount = group.cells.length;
   if (reasons.length <= 2) {
-    return `${value} must go here — it's the only cell in this ${groupCellCount}-cell group where ${value} can fit. ${reasons.join('. ')}.`;
+    return `${value} must go here — it's the only cell in this ${groupCellCount}-cell cage where ${value} can fit. ${reasons.join('. ')}.`;
   }
-  return `${value} must go here — every other cell in this ${groupCellCount}-cell group is blocked from being ${value} by adjacent cells.`;
+  return `${value} must go here — every other cell in this ${groupCellCount}-cell cage is blocked from being ${value} by adjacent cells.`;
 }
 
 /**
