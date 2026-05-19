@@ -103,6 +103,8 @@ describe('findHint — cage domination', () => {
       col: 1,
       value: 5,
       type: 'domination',
+      // ADR-0015: the hint carries its candidate-note reasoning.
+      notes: { kind: 'grid', survivor: 5, crossed: [1, 2, 3, 4] },
     });
   });
 

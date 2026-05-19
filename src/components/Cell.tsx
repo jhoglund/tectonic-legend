@@ -1,4 +1,5 @@
 import type { CellBorders } from './cellBorders';
+import type { HintNotes } from '../engine/hints';
 
 export type CellHighlight = 'assumption' | 'deduction' | 'contradiction' | 'conclusion' | null;
 
@@ -12,6 +13,9 @@ interface CellProps {
   cellHighlight: CellHighlight;
   ghostValue: number;
   notes: Set<number>;
+  /** A deductive hint's candidate-note reasoning, drawn in this cell
+   *  (ADR-0015). Takes precedence over the value / player notes. */
+  hintNotes: HintNotes | null;
   groupSize: number;
   colorIndex: number;
   borders: CellBorders;
@@ -26,6 +30,48 @@ const HIGHLIGHT_COLOR: Record<string, string> = {
   contradiction: 'var(--cell-contradiction)',
   conclusion: 'var(--cell-conclusion)',
 };
+
+/**
+ * A deductive hint's reasoning drawn inside its target cell (ADR-0015):
+ * `grid` paints the cell's candidate notes — struck-through where ruled
+ * out, the answer in the conclusion colour; `answer` simply states the
+ * value, for a hidden single.
+ */
+function HintNotesView({ notes }: { notes: HintNotes }) {
+  if (notes.kind === 'answer') {
+    return (
+      <span
+        className="font-bold"
+        style={{ fontSize: '42cqw', lineHeight: 1, color: 'var(--cell-conclusion)' }}
+      >
+        {notes.value}
+      </span>
+    );
+  }
+  const present = notes.present ? new Set(notes.present) : null;
+  const crossed = new Set(notes.crossed ?? []);
+  return (
+    <div className="grid h-full w-full grid-cols-3 gap-0 p-0.5">
+      {Array.from({ length: notes.cageSize }, (_, i) => i + 1).map((n) => {
+        const isSurvivor = notes.survivor === n;
+        return (
+          <span
+            key={n}
+            className="flex items-center justify-center font-semibold leading-none"
+            style={{
+              fontSize: '20cqw',
+              color: isSurvivor ? 'var(--cell-conclusion)' : 'var(--cell-note)',
+              textDecoration: crossed.has(n) ? 'line-through' : undefined,
+              textDecorationThickness: '2px',
+            }}
+          >
+            {!present || present.has(n) ? n : ''}
+          </span>
+        );
+      })}
+    </div>
+  );
+}
 
 /**
  * One board cell. The cell is square (`aspect-ratio: 1`) and sizes
@@ -59,6 +105,7 @@ export function Cell({
   cellHighlight,
   ghostValue,
   notes,
+  hintNotes,
   groupSize,
   colorIndex,
   borders,
@@ -92,6 +139,15 @@ export function Cell({
   const shadows: string[] = [];
   if (cellHighlight) {
     shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
+  }
+  // A notes hint rings its target cell — the conclusion colour when the
+  // answer is settled (naked single, forced move, …), the assumption
+  // colour for a bare candidate list.
+  if (hintNotes) {
+    const settled = hintNotes.kind === 'answer' || hintNotes.survivor !== undefined;
+    shadows.push(
+      `inset 0 0 0 3px ${settled ? HIGHLIGHT_COLOR.conclusion : HIGHLIGHT_COLOR.assumption}`,
+    );
   }
   const cage: string[] = [];
   const inner: string[] = [];
@@ -189,7 +245,9 @@ export function Cell({
           }}
         />
       )}
-      {ghostValue !== 0 && value === 0 ? (
+      {hintNotes ? (
+        <HintNotesView notes={hintNotes} />
+      ) : ghostValue !== 0 && value === 0 ? (
         <span
           className="font-semibold text-amber-500 opacity-70"
           style={{ fontSize: '42cqw', lineHeight: 1 }}

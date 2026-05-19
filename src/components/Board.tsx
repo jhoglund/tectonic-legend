@@ -100,8 +100,12 @@ export function Board({
             selectedCell !== null &&
             selectedCell[0] === r &&
             selectedCell[1] === c;
-          const isHinted =
+          const isHintCell =
             hint !== null && hint.row === r && hint.col === c;
+          // A notes hint (ADR-0015) draws its reasoning in the cell; it
+          // rings the cell itself, so it suppresses the amber fill.
+          const hintNotes =
+            !cellOverlays && isHintCell ? (hint!.notes ?? null) : null;
           const key = posKey(r, c);
           const overlay = cellOverlays?.get(key) ?? null;
           const isDimmed = cellOverlays !== null && !cellOverlays.has(key);
@@ -113,11 +117,12 @@ export function Board({
               isClue={isClue[r][c]}
               isSelected={isSelected}
               isError={showErrors && errors[r][c]}
-              isHinted={!cellOverlays && isHinted}
+              isHinted={!cellOverlays && isHintCell && !hintNotes}
               isDimmed={isDimmed}
               cellHighlight={overlay?.highlight ?? null}
               ghostValue={overlay?.ghostValue ?? 0}
               notes={notes[r][c]}
+              hintNotes={hintNotes}
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}

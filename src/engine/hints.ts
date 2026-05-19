@@ -22,6 +22,24 @@ export interface HintChainEntry {
   text: string;
 }
 
+/**
+ * The on-board reasoning a deductive hint draws in its target cell
+ * (ADR-0015). `grid` paints the cell's candidate notes — `crossed`
+ * values struck through, `survivor` in the answer colour, anything not
+ * in `present` left blank. `answer` just states the value, for a
+ * hidden single (where the deduction is "this is its only home", not a
+ * per-cell elimination).
+ */
+export type HintNotes =
+  | {
+      kind: 'grid';
+      cageSize: number;
+      present?: number[];
+      crossed?: number[];
+      survivor?: number;
+    }
+  | { kind: 'answer'; value: number };
+
 export interface Hint {
   row: number;
   col: number;
@@ -40,6 +58,22 @@ export interface Hint {
   errorCount?: number;
   steps?: string[];
   chain?: HintChainEntry[];
+  /** Candidate-note reasoning drawn in the target cell (ADR-0015). */
+  notes?: HintNotes;
+}
+
+/** A `grid` notes script: the cell's cage values, all but `survivor`
+ *  struck through. Used by naked single, forced move, pair elimination. */
+function answerGrid(
+  layout: PuzzleLayout,
+  row: number,
+  col: number,
+  survivor: number,
+): HintNotes {
+  const cageSize = layout.groups[layout.cellGroup[row][col]].cells.length;
+  const crossed: number[] = [];
+  for (let v = 1; v <= cageSize; v++) if (v !== survivor) crossed.push(v);
+  return { kind: 'grid', cageSize, crossed, survivor };
 }
 
 function computeCandidates(
@@ -93,7 +127,10 @@ export function findHint(
       if (candidates[r][c].size === 1) {
         const value = candidates[r][c].values().next().value!;
         const reason = buildNakedSingleReason(r, c, value, grid, layout);
-        return { row: r, col: c, value, reason, type: 'naked_single' };
+        return {
+          row: r, col: c, value, reason, type: 'naked_single',
+          notes: answerGrid(layout, r, c, value),
+        };
       }
     }
   }
@@ -113,7 +150,10 @@ export function findHint(
       if (possibleCells.length === 1) {
         const { row, col } = possibleCells[0];
         const reason = buildHiddenSingleReason(row, col, v, group, grid, layout, candidates);
-        return { row, col, value: v, reason, type: 'hidden_single' };
+        return {
+          row, col, value: v, reason, type: 'hidden_single',
+          notes: { kind: 'answer', value: v },
+        };
       }
     }
   }
@@ -194,6 +234,7 @@ function findDominationHint(
           value: dom.value,
           reason: buildDominationReason(dom.value, dom.cageSize),
           type: 'domination',
+          notes: answerGrid(layout, r, c, dom.value),
         };
       }
     }
@@ -419,6 +460,7 @@ function findDeductiveHint(
         value: placed,
         reason: `${detail} That leaves ${cellLabel(row, col)} with only ${placed}.`,
         type: 'pair_elimination',
+        notes: answerGrid(layout, row, col, placed),
       };
     }
 
@@ -436,6 +478,7 @@ function findDeductiveHint(
           value,
           reason: `${detail} That makes ${cellLabel(homes[0].row, homes[0].col)} the only home for ${value} in its cage.`,
           type: 'pair_elimination',
+          notes: { kind: 'answer', value },
         };
       }
     }
@@ -1004,6 +1047,11 @@ export function findCandidatesHint(
     reason: `Possible values: ${vals.join(', ')}`,
     type: 'candidates',
     candidates: vals,
+    notes: {
+      kind: 'grid',
+      cageSize: layout.groups[layout.cellGroup[row][col]].cells.length,
+      present: vals,
+    },
   };
 }
 
