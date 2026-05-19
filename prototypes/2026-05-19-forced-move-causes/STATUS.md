@@ -1,6 +1,6 @@
 # Status — 2026-05-19-forced-move-causes
 
-**State:** **Awaiting review.** Built 2026-05-19.
+**State:** **Graduated** (2026-05-19) — the value-set chip shipped in `src/`.
 
 ## What it is
 
@@ -20,8 +20,11 @@ deliberately unlike the 3-column pencil-mark note grid.
 
 Served locally (launch.json config `forced-move-causes`, port 7585).
 
-## Next
+## Graduation
 
-Jonas reviews and picks a treatment; the refinement pass folds it into
-`Cell.tsx` / `Board.tsx` and the `domination` / pair-elimination paths of
-`src/engine/hints.ts`.
+The value-set chip shipped for the Forced move (`domination`) hint —
+commit `c6235b4`, [ADR-0016](../../docs/decisions/ADR-0016-value-set-chip-for-constrained-regions.md).
+Of the four treatments here, the implementation took the size-based
+default the `2026-05-19-hint-language` study settled on: the chip in
+every cell of a one/two-cell region, once (on the cell nearest the
+target) for a larger one. Tap-to-reveal was not graduated.

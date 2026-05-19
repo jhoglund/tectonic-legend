@@ -1,6 +1,7 @@
 # Status — 2026-05-19-hint-language
 
-**State:** **Awaiting review.** Built 2026-05-19.
+**State:** **Graduated** (2026-05-19) — confirmed the shared language; the
+value-set chip shipped in `src/`.
 
 ## What it is
 
@@ -21,7 +22,13 @@ Served locally (launch.json config `hint-language`, port 7586).
 Follows the `2026-05-19-forced-move-causes` value-set chip study — Jonas asked
 to align the same language across every hint type.
 
-## Next
+## Graduation
 
-Jonas reviews; the refinement pass folds the agreed language into
-`src/engine/hints.ts`, `Cell.tsx`, `Board.tsx` and the stepper components.
+This study confirmed that all eight hint types already share one visual
+language — the candidate-note grid (ADR-0015), role-coloured rings and
+steppers were shipped; only the **value-set chip** was new. The chip
+shipped for the Forced move (`domination`) hint — commit `c6235b4`,
+[ADR-0016](../../docs/decisions/ADR-0016-value-set-chip-for-constrained-regions.md).
+The size-based chip-placement rule (every cell ≤2, once otherwise) was
+taken from here. Extending the chip to the pair-elimination cause
+region is a noted follow-up, not part of this graduation.
