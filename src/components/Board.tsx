@@ -81,6 +81,32 @@ export function Board({
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
 
+  // A region hint (ADR-0016) — the Forced move's dominating cage —
+  // rings its empty cells blue and draws the value-set chip on one of
+  // them: every cell for a tiny region, the cell nearest the hint's
+  // target for a larger one. Suppressed while a contradiction-chain
+  // overlay owns the board.
+  const regionCells = useMemo(() => {
+    if (cellOverlays || !hint?.regions) return null;
+    const ring = new Set<string>();
+    const chip = new Map<string, number[]>();
+    for (const region of hint.regions) {
+      for (const { row, col } of region.cells) ring.add(posKey(row, col));
+      const empty = region.cells.filter(({ row, col }) => grid[row][col] === 0);
+      if (empty.length === 0) continue;
+      const dist = (c: { row: number; col: number }) =>
+        Math.hypot(c.row - hint.row, c.col - hint.col);
+      const carriers =
+        empty.length <= 2
+          ? empty
+          : [empty.reduce((best, c) => (dist(c) < dist(best) ? c : best))];
+      for (const { row, col } of carriers) {
+        chip.set(posKey(row, col), region.set);
+      }
+    }
+    return { ring, chip };
+  }, [hint, cellOverlays, grid]);
+
   // The board grows to the full content width (solving-shapes
   // graduation, variant 11): equal `1fr` tracks, square cells. The
   // outer frame is drawn by the edge cells themselves (cellBorders),
@@ -128,6 +154,8 @@ export function Board({
               ghostValue={overlay?.ghostValue ?? 0}
               notes={notes[r][c]}
               hintNotes={cellHintNotes}
+              isRegionCell={regionCells?.ring.has(key) ?? false}
+              regionSet={regionCells?.chip.get(key) ?? null}
               groupSize={groupSize}
               colorIndex={groupColors[groupId]}
               borders={borders}

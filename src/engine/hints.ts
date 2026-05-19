@@ -69,6 +69,17 @@ export interface Hint {
   chain?: HintChainEntry[];
   /** Candidate-note reasoning drawn in the target cell (ADR-0015). */
   notes?: HintNotes;
+  /** Constrained regions of empty cells the hint leans on — each a set
+   *  of cells that collectively hold a known value-set. Drawn on the
+   *  board as a blue value-set chip, distinct from the candidate-note
+   *  grid (ADR-0016). The Forced move emits its dominating cage here. */
+  regions?: HintRegion[];
+}
+
+/** A region of empty cells constrained to a known value-set. */
+export interface HintRegion {
+  cells: { row: number; col: number }[];
+  set: number[];
 }
 
 /** A `grid` notes script: the cell's cage values, all but `survivor`
@@ -191,7 +202,7 @@ function dominationFor(
   candidates: Set<number>[][],
   r: number,
   c: number,
-): { value: number; cageSize: number } | null {
+): { value: number; cageSize: number; cage: { row: number; col: number }[] } | null {
   const { cols, groups, cellGroup, neighbors } = layout;
   const cands = candidates[r][c];
   if (cands.size < 2) return null;
@@ -211,7 +222,11 @@ function dominationFor(
     // The cage holds 1..n and this cell sees all of them — rule them out.
     const remaining = [...cands].filter((v) => v > n);
     if (remaining.length === 1) {
-      return { value: remaining[0], cageSize: n };
+      return {
+        value: remaining[0],
+        cageSize: n,
+        cage: group.cells.map(({ row, col }) => ({ row, col })),
+      };
     }
   }
   return null;
@@ -244,6 +259,11 @@ function findDominationHint(
           reason: buildDominationReason(dom.value, dom.cageSize),
           type: 'domination',
           notes: answerGrid(layout, r, c, dom.value),
+          // The dominating cage, drawn as a value-set chip (ADR-0016).
+          regions: [{
+            cells: dom.cage,
+            set: Array.from({ length: dom.cageSize }, (_, i) => i + 1),
+          }],
         };
       }
     }

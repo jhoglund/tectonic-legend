@@ -133,6 +133,29 @@ describe('findHint — cage domination', () => {
     // A purely geometric deduction — never a contradiction-type hint.
     expect(findHint(empty(3, 3), layout)!.type).toBe('domination');
   });
+
+  it('carries the dominating cage as a value-set region (ADR-0016)', () => {
+    // g0 is the 4-cell L; the cell at (1,1) sees all of it, so g0 is
+    // the dominating cage — emitted as the hint's region, set 1–4.
+    const layout = makeLayout([
+      [0, 1, 1],
+      [0, 1, 1],
+      [0, 0, 1],
+    ]);
+    const hint = findHint(empty(3, 3), layout)!;
+    expect(hint.type).toBe('domination');
+    expect(hint.regions).toHaveLength(1);
+    expect(hint.regions![0].set).toEqual([1, 2, 3, 4]);
+    expect(hint.regions![0].cells).toHaveLength(4);
+    expect(hint.regions![0].cells).toEqual(
+      expect.arrayContaining([
+        { row: 0, col: 0 },
+        { row: 1, col: 0 },
+        { row: 2, col: 0 },
+        { row: 2, col: 1 },
+      ]),
+    );
+  });
 });
 
 describe('classifyMove — domination', () => {

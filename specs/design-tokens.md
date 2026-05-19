@@ -115,6 +115,15 @@ Used by `Cell.tsx` overlay rings. Semantic; do not substitute.
 
 Dark mode lightens each by ~15% to maintain contrast on a dark board.
 
+### Value-set chip — a hint's constrained region (ADR-0016)
+
+| Token | Light | Dark | Used for |
+|-------|-------|------|----------|
+| `hint-region-fill` | `#eef4fe` | `#1e2a44` | Background of the value-set chip — a faint tint of the deduction blue |
+| `hint-region-line` | `#c2d8f7` | `#38507e` | Border of the value-set chip |
+
+A Forced move's dominating cage is drawn as a **value-set chip** — a single horizontal row of digits on the `hint-region` pill, digits inked in `cell-deduction`. Deliberately unlike the 3-column candidate-note grid (§2), so "this empty region holds these values" never reads as a player's pencil marks. The region's cells are ringed in `cell-deduction`.
+
 ## 5. Color — status
 
 | Token | Light | Dark | Usage |

@@ -16,6 +16,12 @@ interface CellProps {
   /** A deductive hint's candidate-note reasoning, drawn in this cell
    *  (ADR-0015). Takes precedence over the value / player notes. */
   hintNotes: HintNotes | null;
+  /** This cell belongs to a hint's constrained region (ADR-0016) — the
+   *  Forced move's dominating cage. Drawn with a blue evidence ring. */
+  isRegionCell: boolean;
+  /** The region's value-set, drawn in this cell as a blue chip. Set on
+   *  one cell of the region; null on the others. */
+  regionSet: number[] | null;
   groupSize: number;
   colorIndex: number;
   borders: CellBorders;
@@ -77,6 +83,45 @@ function HintNotesView({ notes }: { notes: HintNotes }) {
 }
 
 /**
+ * A hint's constrained-region value-set, drawn in one cell of the
+ * region (ADR-0016). A single horizontal row of digits on a tinted
+ * blue pill — deliberately unlike the 3-column candidate-note grid, so
+ * "this region holds these values" never reads as a player's pencil
+ * marks. Sized down for longer sets so the chip stays inside the cell.
+ */
+function RegionChip({ set }: { set: number[] }) {
+  const fontSize =
+    set.length <= 4 ? '20cqw' : set.length <= 6 ? '15cqw' : '11cqw';
+  return (
+    <div
+      className="flex items-center justify-center"
+      style={{
+        gap: '5cqw',
+        padding: '5cqw 7cqw',
+        borderRadius: '14cqw',
+        background: 'var(--hint-region-fill)',
+        border: '1px solid var(--hint-region-line)',
+      }}
+    >
+      {set.map((v) => (
+        <span
+          key={v}
+          className="font-bold"
+          style={{
+            fontSize,
+            lineHeight: 1,
+            fontFamily: 'var(--font-mono)',
+            color: 'var(--cell-deduction)',
+          }}
+        >
+          {v}
+        </span>
+      ))}
+    </div>
+  );
+}
+
+/**
  * One board cell. The cell is square (`aspect-ratio: 1`) and sizes
  * itself from the board's responsive grid track — the board grew to the
  * screen width in the 2026-05-17 solving-shapes graduation (variant
@@ -109,6 +154,8 @@ export function Cell({
   ghostValue,
   notes,
   hintNotes,
+  isRegionCell,
+  regionSet,
   groupSize,
   colorIndex,
   borders,
@@ -199,6 +246,17 @@ export function Cell({
     borders.bottom === 'cage' ? `inset 0 -3px 0 0 ${hrc}` : `0 3px 0 0 ${hrc}`,
   ].join(', ');
 
+  // A constrained region's evidence ring (ADR-0016) — the Forced move's
+  // dominating cage. Blue (`--cell-deduction`), same per-edge geometry
+  // as the hint ring so it lands cleanly on the grid line.
+  const drc = 'var(--cell-deduction)';
+  const regionRingShadow = [
+    `inset 0 3px 0 0 ${drc}`,
+    `inset 3px 0 0 0 ${drc}`,
+    borders.right === 'cage' ? `inset -3px 0 0 0 ${drc}` : `3px 0 0 0 ${drc}`,
+    borders.bottom === 'cage' ? `inset 0 -3px 0 0 ${drc}` : `0 3px 0 0 ${drc}`,
+  ].join(', ');
+
   // A board-corner cell rounds that corner, so its frame box-shadow
   // (and the selection ring) follow the board's radius.
   const cornerRadius =
@@ -224,15 +282,15 @@ export function Cell({
         ...cornerRadius,
         ...(background ? { background } : {}),
         ...(shadows.length ? { boxShadow: shadows.join(', ') } : {}),
-        // Raise a selected or hinted cell so its ring child's outset
-        // segments sit above the neighbouring cells' grid lines.
-        ...(isSelected || hintNotes ? { zIndex: 5 } : {}),
+        // Raise a selected, hinted or region cell so its ring child's
+        // outset segments sit above the neighbouring cells' grid lines.
+        ...(isSelected || hintNotes || isRegionCell ? { zIndex: 5 } : {}),
       }}
       onClick={onClick}
     >
       {/* Cage-corner patch — closes a cage L whose corner falls in this
           cell but is reached by neither of its own edges. */}
-      {!isSelected && !hintNotes && borders.cornerTL && (
+      {!isSelected && !hintNotes && !isRegionCell && borders.cornerTL && (
         <span
           aria-hidden="true"
           style={{
@@ -247,8 +305,9 @@ export function Cell({
       )}
       {/* Selection ring — a child layer so it fades in cleanly
           (cell-ring-in). See `ringShadow` for the per-edge geometry. A
-          notes hint owns the cell, so its ring stands in for this one. */}
-      {isSelected && !hintNotes && (
+          notes hint or a region ring owns the cell, so its ring stands
+          in for this one. */}
+      {isSelected && !hintNotes && !isRegionCell && (
         <span
           aria-hidden="true"
           style={{
@@ -278,8 +337,25 @@ export function Cell({
           }}
         />
       )}
+      {/* Region ring — the same per-edge child layer in the deduction
+          blue, marking a cell of a hint's constrained region (ADR-0016). */}
+      {isRegionCell && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            ...cornerRadius,
+            boxShadow: regionRingShadow,
+            animation: 'cell-ring-in var(--motion-fast)',
+          }}
+        />
+      )}
       {hintNotes ? (
         <HintNotesView notes={hintNotes} />
+      ) : regionSet ? (
+        <RegionChip set={regionSet} />
       ) : ghostValue !== 0 && value === 0 ? (
         <span
           className="font-semibold text-amber-500 opacity-70"

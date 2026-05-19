@@ -45,6 +45,12 @@
   --cell-contradiction: #dc2626; /* proves the assumption wrong */
   --cell-conclusion: #10b981;    /* the proven move */
 
+  /* Value-set chip — a hint's constrained region of empty cells
+     (ADR-0016). A faint tint of the deduction blue; the digit ink is
+     --cell-deduction itself. */
+  --hint-region-fill: #eef4fe;
+  --hint-region-line: #c2d8f7;
+
   /* --- Status ------------------------------------------------- */
   --success: #10b981;
   --warning: #f59e0b;
@@ -172,6 +178,10 @@
     --cell-deduction: #60a5fa;
     --cell-contradiction: #f87171;
     --cell-conclusion: #34d399;
+
+    /* Value-set chip — a dark-blue tint behind the deduction ink */
+    --hint-region-fill: #1e2a44;
+    --hint-region-line: #38507e;
 
     /* Status */
     --success: #34d399;
