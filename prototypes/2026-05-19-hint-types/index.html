@@ -81,6 +81,16 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 .v-player{color:var(--cell-player);font-weight:600;}
 .v-ghost{color:var(--text-ghost-value);font-weight:600;opacity:0.85;}
 
+/* candidate notes in the target cell (pair-elimination walkthrough) */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);width:100%;height:100%;
+  padding:9%;}
+.note{display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:15px;font-weight:600;
+  color:var(--text-secondary);transition:all 160ms ease-out;}
+.note.crossed{color:var(--text-tertiary);opacity:0.5;
+  text-decoration:line-through;text-decoration-thickness:2px;}
+.note.survivor{color:var(--cell-conclusion);font-weight:800;transform:scale(1.3);}
+
 /* cell states */
 .cell.hl-hint{background:#fcd34d;}
 .cell.hl-error{background:#fecaca;}
@@ -99,7 +109,7 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
   border-radius:var(--radius-chip);padding:3px 10px;}
 .reason{margin-top:9px;font-size:14px;line-height:1.6;color:var(--text-secondary);}
 
-/* contradiction stepper */
+/* stepper */
 .step-head{display:flex;align-items:center;justify-content:space-between;
   margin-bottom:8px;}
 .step-count{font-size:11px;font-weight:600;letter-spacing:0.04em;
@@ -130,9 +140,9 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
   <h1>Hint types — copy &amp; design review</h1>
   <p>Every hint the engine can surface, on one interactive screen. Tap a tab to
   switch type. Cell references like <strong>C3</strong> are tappable — tap one
-  to mark that cell on the board. Step the contradiction chain with the
-  ‹&nbsp;› controls. The board is one fixed example; the copy mirrors what the
-  engine produces today, ready to be rewritten. Session: 2026-05-19.</p>
+  to mark that cell. Step the Contradiction and Pair-elimination walkthroughs
+  with the ‹&nbsp;› controls. Boards are illustrative; the copy mirrors what
+  the engine produces, ready to be rewritten. Session: 2026-05-19.</p>
 </header>
 
 <div class="phone">
@@ -149,19 +159,44 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 </div>
 
 <script>
-/* ---- board model ------------------------------------------------- */
-const CAGES = ['PPQQQ', 'PPQQR', 'PSSRR', 'TSSSR', 'TTTTR'].map((s) => s.split(''));
-const CAGE_COLOR = { P: 1, Q: 2, R: 3, S: 4, T: 5 };
-const VALUES = [
-  [3, 5, 1, 0, 4],
-  [0, 4, 0, 2, 0],
-  [0, 0, 0, 3, 0],
-  [2, 0, 0, 0, 5],
-  [0, 0, 0, 4, 0],
-];
-const CLUE = new Set(['0,0', '0,2', '0,4', '1,3', '2,3', '3,4']);
+/* ---- boards ------------------------------------------------------ */
+// Default illustrative board, shared by the simple-card tabs.
+const DEFAULT_BOARD = {
+  cages: ['PPQQQ', 'PPQQR', 'PSSRR', 'TSSSR', 'TTTTR'].map((s) => s.split('')),
+  tint: { P: 1, Q: 2, R: 3, S: 4, T: 5 },
+  values: [
+    [3, 5, 1, 0, 4],
+    [0, 4, 0, 2, 0],
+    [0, 0, 0, 3, 0],
+    [2, 0, 0, 0, 5],
+    [0, 0, 0, 4, 0],
+  ],
+  clue: new Set(['0,0', '0,2', '0,4', '1,3', '2,3', '3,4']),
+};
+// The real Expert puzzle Jonas hit (decoded from the share link) — used
+// by the Pair-elimination walkthrough so the example is genuine.
+const REAL_BOARD = {
+  cages: [
+    [4, 4, 4, 4, 0],
+    [1, 3, 0, 0, 0],
+    [1, 3, 3, 2, 0],
+    [1, 3, 2, 2, 5],
+    [1, 3, 2, 2, 5],
+  ],
+  tint: { 0: 2, 1: 2, 2: 1, 3: 3, 4: 1, 5: 4 },
+  values: [
+    [2, 0, 3, 0, 0],
+    [0, 0, 0, 0, 0],
+    [1, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+    [0, 0, 0, 0, 0],
+  ],
+  clue: new Set(['0,0', '0,2', '2,0']),
+};
+
 const COL = ['A', 'B', 'C', 'D', 'E'];
 const refToRC = (s) => ({ row: Number(s[1]) - 1, col: s.charCodeAt(0) - 65 });
+const refKey = (ref) => { const p = refToRC(ref); return p.row + ',' + p.col; };
 
 /* ---- the eight tip types ----------------------------------------- */
 const TIPS = [
@@ -184,10 +219,30 @@ const TIPS = [
       + '1, 2, 3 and 4 — so it can’t be any of them. It must be 5.',
   },
   {
-    id: 'pair', label: 'Pair elimination', badge: 'Pair elimination', kind: 'card',
-    cell: [1, 2],
-    reason: 'Cells A2 and A3 can only hold 1 and 2 between them. That leaves '
-      + 'C2 with only 3.',
+    id: 'pair', label: 'Pair elimination', badge: 'Pair elimination',
+    kind: 'elim', board: REAL_BOARD, target: [1, 2], cageSize: 5,
+    steps: [
+      {
+        crossed: [3], survivor: null, hl: [['C1', 'deduction']],
+        text: 'C2 starts open to 1–5. The 3 in C1, directly above, rules 3 out.',
+      },
+      {
+        crossed: [3, 2], survivor: null,
+        hl: [['B3', 'deduction'], ['C3', 'deduction']],
+        text: 'In the column-A cage, 2 is pinned to A4 or A5 — which squeezes '
+          + '2 into B3 or C3. Both touch C2, so 2 is out.',
+      },
+      {
+        crossed: [3, 2, 1, 4], survivor: null,
+        hl: [['B1', 'deduction'], ['D1', 'deduction']],
+        text: 'The top cage locks 1 and 4 into B1 and D1. Both touch C2 — so '
+          + '1 and 4 are out.',
+      },
+      {
+        crossed: [3, 2, 1, 4], survivor: 5, hl: [],
+        text: 'Only 5 remains — C2 must be 5.',
+      },
+    ],
   },
   {
     id: 'contradiction', label: 'Contradiction', badge: 'Contradiction chain',
@@ -223,8 +278,8 @@ const ROLE_COLOR = {
   assumption: 'var(--cell-assumption)', deduction: 'var(--cell-deduction)',
   contradiction: 'var(--cell-contradiction)', conclusion: 'var(--cell-conclusion)',
 };
-/* The phase each step belongs to — named next to the step counter so
-   the coloured dot track decodes itself. */
+/* The phase each contradiction step belongs to — named next to the
+   counter so the coloured dot track decodes itself. */
 const PHASE = {
   assumption: 'SETUP', deduction: 'DEDUCTION',
   contradiction: 'CONTRADICTION', conclusion: 'CONCLUSION',
@@ -269,45 +324,55 @@ function renderTabs() {
 /** What the board should show for the current tip + step. */
 function boardState() {
   const tip = TIPS[tipIndex];
+  const board = tip.board || DEFAULT_BOARD;
   const highlight = {};   // 'r,c' -> hl class
   const ghost = {};       // 'r,c' -> value
+  let notes = null;       // candidate notes in a target cell
+
   if (tip.kind === 'card') {
     if (tip.cell) highlight[tip.cell.join(',')] = 'hl-hint';
     for (const [r, c] of tip.errorCells || []) highlight[r + ',' + c] = 'hl-error';
-  } else {
-    // contradiction — accumulate ghosts up to the current step
+  } else if (tip.kind === 'stepper') {
     for (let j = 1; j <= step; j++) {
       const e = tip.chain[j];
       if (e.value > 0) ghost[refKey(e.ref)] = e.value;
     }
     const cur = tip.chain[step];
     highlight[refKey(cur.ref)] = 'hl-' + cur.role;
+  } else if (tip.kind === 'elim') {
+    const s = tip.steps[step];
+    highlight[tip.target.join(',')] = s.survivor ? 'hl-conclusion' : 'hl-assumption';
+    for (const [ref, role] of s.hl) highlight[refKey(ref)] = 'hl-' + role;
+    notes = {
+      cell: tip.target, cageSize: tip.cageSize,
+      crossed: new Set(s.crossed), survivor: s.survivor,
+    };
   }
-  return { highlight, ghost };
+  return { board, highlight, ghost, notes };
 }
-const refKey = (ref) => { const p = refToRC(ref); return p.row + ',' + p.col; };
 
 function renderBoard() {
-  const board = document.getElementById('board');
-  board.innerHTML = '';
-  const { highlight, ghost } = boardState();
+  const root = document.getElementById('board');
+  root.innerHTML = '';
+  const { board, highlight, ghost, notes } = boardState();
   for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
     const key = r + ',' + c;
-    const id = CAGES[r][c];
+    const id = board.cages[r][c];
     const cell = document.createElement('div');
-    cell.className = 'cell cage-' + CAGE_COLOR[id];
-    if (r > 0) cell.style.borderTop = edge(CAGES[r - 1][c] !== id);
-    if (c > 0) cell.style.borderLeft = edge(CAGES[r][c - 1] !== id);
+    cell.className = 'cell cage-' + board.tint[id];
+    if (r > 0) cell.style.borderTop = edge(board.cages[r - 1][c] !== id);
+    if (c > 0) cell.style.borderLeft = edge(board.cages[r][c - 1] !== id);
     if (highlight[key]) cell.classList.add(highlight[key]);
     if (marked === key) cell.classList.add('marked');
 
-    const val = VALUES[r][c];
-    if (val > 0) {
-      cell.appendChild(digit(val, CLUE.has(key) ? 'v-clue' : 'v-player'));
-    } else if (ghost[key]) {
-      cell.appendChild(digit(ghost[key], 'v-ghost'));
+    if (notes && notes.cell[0] === r && notes.cell[1] === c) {
+      cell.appendChild(noteGrid(notes));
+    } else {
+      const val = board.values[r][c];
+      if (val > 0) cell.appendChild(digit(val, board.clue.has(key) ? 'v-clue' : 'v-player'));
+      else if (ghost[key]) cell.appendChild(digit(ghost[key], 'v-ghost'));
     }
-    board.appendChild(cell);
+    root.appendChild(cell);
   }
 }
 function edge(isCage) {
@@ -321,12 +386,27 @@ function digit(v, cls) {
   d.textContent = v;
   return d;
 }
+function noteGrid(notes) {
+  const g = document.createElement('div');
+  g.className = 'notes';
+  for (let v = 1; v <= notes.cageSize; v++) {
+    const n = document.createElement('span');
+    n.className = 'note';
+    if (notes.survivor === v) n.classList.add('survivor');
+    else if (notes.crossed.has(v)) n.classList.add('crossed');
+    n.textContent = v;
+    g.appendChild(n);
+  }
+  return g;
+}
 
 function renderHint() {
   const tip = TIPS[tipIndex];
   const area = document.getElementById('hintArea');
   area.innerHTML = '';
-  area.appendChild(tip.kind === 'stepper' ? stepperCard(tip) : simpleCard(tip));
+  if (tip.kind === 'stepper') area.appendChild(stepperCard(tip));
+  else if (tip.kind === 'elim') area.appendChild(elimCard(tip));
+  else area.appendChild(simpleCard(tip));
 }
 
 function simpleCard(tip) {
@@ -342,50 +422,86 @@ function simpleCard(tip) {
   return card;
 }
 
+/** A reusable step-head: "STEP n OF m" + ‹ › nav. */
+function stepHead(count, total, label) {
+  const head = document.createElement('div');
+  head.className = 'step-head';
+  const cnt = document.createElement('span');
+  cnt.className = 'step-count';
+  cnt.append(document.createTextNode('STEP ' + (count + 1) + ' OF ' + total));
+  if (label) {
+    cnt.append(document.createTextNode(' · '));
+    cnt.appendChild(label);
+  }
+  const nav = document.createElement('div');
+  nav.className = 'step-nav';
+  const prev = document.createElement('button');
+  prev.className = 'step-btn'; prev.textContent = '‹'; prev.disabled = count === 0;
+  prev.onclick = () => { if (step > 0) { step--; render(); } };
+  const next = document.createElement('button');
+  next.className = 'step-btn primary'; next.textContent = '›';
+  next.disabled = count === total - 1;
+  next.onclick = () => { if (step < total - 1) { step++; render(); } };
+  nav.append(prev, next);
+  head.append(cnt, nav);
+  return head;
+}
+
+function dotTrack(total, colourFor) {
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (i <= step) dot.style.background = colourFor(i);
+    dot.onclick = () => { step = i; render(); };
+    dots.appendChild(dot);
+  }
+  return dots;
+}
+
 function stepperCard(tip) {
   const chain = tip.chain;
   const entry = chain[step];
   const card = document.createElement('div');
   card.className = 'card';
 
-  const head = document.createElement('div');
-  head.className = 'step-head';
-  const count = document.createElement('span');
-  count.className = 'step-count';
-  count.append(
-    document.createTextNode('STEP ' + (step + 1) + ' OF ' + chain.length + ' · '),
-  );
   const phase = document.createElement('span');
   phase.textContent = PHASE[entry.role];
   phase.style.color = ROLE_COLOR[entry.role];
-  count.appendChild(phase);
-  const nav = document.createElement('div');
-  nav.className = 'step-nav';
-  const prev = document.createElement('button');
-  prev.className = 'step-btn'; prev.textContent = '‹'; prev.disabled = step === 0;
-  prev.onclick = () => { if (step > 0) { step--; render(); } };
-  const next = document.createElement('button');
-  next.className = 'step-btn primary'; next.textContent = '›';
-  next.disabled = step === chain.length - 1;
-  next.onclick = () => { if (step < chain.length - 1) { step++; render(); } };
-  nav.append(prev, next);
-  head.append(count, nav);
 
   const p = document.createElement('p');
   p.className = 'step-text';
   appendHintText(p, entry.text, ROLE_COLOR[entry.role]);
 
-  const dots = document.createElement('div');
-  dots.className = 'dots';
-  chain.forEach((s, i) => {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    if (i <= step) dot.style.background = ROLE_COLOR[s.role];
-    dot.onclick = () => { step = i; render(); };
-    dots.appendChild(dot);
-  });
+  card.append(
+    stepHead(step, chain.length, phase),
+    p,
+    dotTrack(chain.length, (i) => ROLE_COLOR[chain[i].role]),
+  );
+  return card;
+}
 
-  card.append(head, p, dots);
+function elimCard(tip) {
+  const steps = tip.steps;
+  const card = document.createElement('div');
+  card.className = 'card';
+
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.style.marginBottom = '10px';
+  badge.textContent = tip.badge;
+
+  const p = document.createElement('p');
+  p.className = 'step-text';
+  appendHintText(p, steps[step].text, 'var(--brand-700)');
+
+  card.append(
+    badge,
+    stepHead(step, steps.length, null),
+    p,
+    dotTrack(steps.length, () => 'var(--brand-600)'),
+  );
   return card;
 }
 
