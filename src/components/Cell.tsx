@@ -220,8 +220,8 @@ export function Cell({
           {Array.from({ length: groupSize }, (_, i) => i + 1).map((n) => (
             <span
               key={n}
-              className="flex items-center justify-center leading-none text-slate-400"
-              style={{ fontSize: '16cqw' }}
+              className="flex items-center justify-center leading-none font-medium"
+              style={{ fontSize: '16cqw', color: 'var(--cell-note)' }}
             >
               {notes.has(n) ? n : ''}
             </span>

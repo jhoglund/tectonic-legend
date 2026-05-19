@@ -70,6 +70,7 @@ A cell's cage fill supersedes `surface-cell` on the board. `surface-cell` remain
 | `border-inner-blend` | `0.40` | How far to pull (0 = invisible, 1 = full shift) |
 | `cage-N-inner` | derived | `cage-N` with lightness blended toward `border-inner-target-l` by `border-inner-blend`; hue + chroma preserved. Computed in CSS via relative color syntax, so it re-resolves per light/dark. |
 | `cage-N-player` | derived | `cage-N` taken to a fixed contrasting lightness (`0.42` light / `0.85` dark) with chroma doubled, hue preserved — the ink for player-entered values. Exposed per cell as `--cell-player` by the `.cage-N` class. |
+| `cage-N-note` | derived | `cage-N` taken to a soft tint (`0.66` light / `0.70` dark) with chroma ×1.5, hue preserved — the ink for candidate notes (pencil marks). Lighter than `cage-N-player`, so a note reads as tentative against a placed value. Exposed per cell as `--cell-note` by the `.cage-N` class. (Prototype `2026-05-19-note-tint`, "tint · light".) |
 
 The board container paints the outer frame; each cell paints only its top + left edge, so every internal line is drawn exactly once at the intended width.
 
@@ -79,7 +80,7 @@ The board container paints the outer frame; each cell paints only its top + left
 |-------|-------|------|
 | `cell-text` | `oklch(4% 0 0)` | `oklch(96% 0 0)` |
 
-Clue values use `cell-text` (bold). Player-entered values use `cell-player` — a darker, more saturated shade of that cell's own cage fill (`cage-N-player`, §2) — at medium weight, so given numbers and the player's own entries read clearly apart on any cage colour. Error values override to the danger colour.
+Clue values use `cell-text` (bold). Player-entered values use `cell-player` — a darker, more saturated shade of that cell's own cage fill (`cage-N-player`, §2) — at medium weight, so given numbers and the player's own entries read clearly apart on any cage colour. Error values override to the danger colour. Candidate notes (pencil marks) use `cell-note` — a soft, lighter tint of the same cage fill (`cage-N-note`, §2) — so a note belongs to its cell yet stays quieter than a placed value.
 
 ### Selected cell
 

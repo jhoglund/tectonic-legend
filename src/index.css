@@ -87,6 +87,16 @@
   --cage-4-player: oklch(from var(--cage-4) 0.42 calc(c * 2) h);
   --cage-5-player: oklch(from var(--cage-5) 0.42 calc(c * 2) h);
 
+  /* Candidate-note ink — a soft, lighter tint of each cage fill, so a
+     pencil mark belongs to its cell and reads as tentative against the
+     placed-value ink (prototype 2026-05-19-note-tint, "tint · light").
+     Lighter than --cage-N-player; the lightness literal differs per mode. */
+  --cage-1-note: oklch(from var(--cage-1) 0.66 calc(c * 1.5) h);
+  --cage-2-note: oklch(from var(--cage-2) 0.66 calc(c * 1.5) h);
+  --cage-3-note: oklch(from var(--cage-3) 0.66 calc(c * 1.5) h);
+  --cage-4-note: oklch(from var(--cage-4) 0.66 calc(c * 1.5) h);
+  --cage-5-note: oklch(from var(--cage-5) 0.66 calc(c * 1.5) h);
+
   /* --- Board: cell value text --------------------------------- */
   --cell-text: oklch(4% 0 0);
 
@@ -183,17 +193,24 @@
     --cage-3-player: oklch(from var(--cage-3) 0.85 calc(c * 2) h);
     --cage-4-player: oklch(from var(--cage-4) 0.85 calc(c * 2) h);
     --cage-5-player: oklch(from var(--cage-5) 0.85 calc(c * 2) h);
+
+    /* Candidate-note ink — dimmer than the player ink on dark cages. */
+    --cage-1-note: oklch(from var(--cage-1) 0.70 calc(c * 1.5) h);
+    --cage-2-note: oklch(from var(--cage-2) 0.70 calc(c * 1.5) h);
+    --cage-3-note: oklch(from var(--cage-3) 0.70 calc(c * 1.5) h);
+    --cage-4-note: oklch(from var(--cage-4) 0.70 calc(c * 1.5) h);
+    --cage-5-note: oklch(from var(--cage-5) 0.70 calc(c * 1.5) h);
   }
 }
 
 /* Cage fill classes — applied per board cell by colour index.
    Each sets the per-cell fill + inner-border custom properties
    the Cell component reads. */
-.cage-1 { --cell-fill: var(--cage-1); --cell-inner: var(--cage-1-inner); --cell-player: var(--cage-1-player); }
-.cage-2 { --cell-fill: var(--cage-2); --cell-inner: var(--cage-2-inner); --cell-player: var(--cage-2-player); }
-.cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); --cell-player: var(--cage-3-player); }
-.cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); --cell-player: var(--cage-4-player); }
-.cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); --cell-player: var(--cage-5-player); }
+.cage-1 { --cell-fill: var(--cage-1); --cell-inner: var(--cage-1-inner); --cell-player: var(--cage-1-player); --cell-note: var(--cage-1-note); }
+.cage-2 { --cell-fill: var(--cage-2); --cell-inner: var(--cage-2-inner); --cell-player: var(--cage-2-player); --cell-note: var(--cage-2-note); }
+.cage-3 { --cell-fill: var(--cage-3); --cell-inner: var(--cage-3-inner); --cell-player: var(--cage-3-player); --cell-note: var(--cage-3-note); }
+.cage-4 { --cell-fill: var(--cage-4); --cell-inner: var(--cage-4-inner); --cell-player: var(--cage-4-player); --cell-note: var(--cage-4-note); }
+.cage-5 { --cell-fill: var(--cage-5); --cell-inner: var(--cage-5-inner); --cell-player: var(--cage-5-player); --cell-note: var(--cage-5-note); }
 
 /* Selected cell — a darker tint of its own cage colour (the "Soft tint",
    graduated from prototypes/2026-05-17-selected-cell-tint). The cell
