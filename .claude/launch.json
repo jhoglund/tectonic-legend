@@ -42,6 +42,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "7585", "--directory", "prototypes/2026-05-19-forced-move-causes"],
       "port": 7585
+    },
+    {
+      "name": "hint-language",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7586", "--directory", "prototypes/2026-05-19-hint-language"],
+      "port": 7586
     }
   ]
 }

@@ -1,0 +1,604 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Hint visual language — all types aligned</title>
+<style>
+/* Light-mode study. Tokens mirrored from src/index.css. */
+:root{
+  --brand-600:#0891b2; --brand-700:#0e7490;
+  --surface:#fafafa; --surface-elevated:#ffffff; --surface-board:#ffffff;
+  --border:#e5e5e5;
+  --text-primary:#0a0a0a; --text-secondary:#525252; --text-tertiary:#a3a3a3;
+  --text-on-brand:#ffffff;
+  --cell-assumption:#f59e0b; --cell-deduction:#3b82f6;
+  --cell-contradiction:#dc2626; --cell-conclusion:#10b981;
+  --cell-text:oklch(4% 0 0);
+  --cage-1:oklch(96.5% 0.074 88); --cage-2:oklch(92% 0.036 0);
+  --cage-3:oklch(88% 0.038 256); --cage-4:oklch(88.5% 0.048 180);
+  --cage-5:oklch(96.5% 0.006 83);
+  --border-cage:oklch(54% 0 0); --border-cage-width:2px; --border-inner-width:1px;
+  --cage-1-inner:oklch(from var(--cage-1) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-2-inner:oklch(from var(--cage-2) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-3-inner:oklch(from var(--cage-3) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-4-inner:oklch(from var(--cage-4) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-5-inner:oklch(from var(--cage-5) calc(l + (0.66 - l) * 0.4) c h);
+  --cage-1-player:oklch(from var(--cage-1) 0.42 calc(c * 2) h);
+  --cage-2-player:oklch(from var(--cage-2) 0.42 calc(c * 2) h);
+  --cage-3-player:oklch(from var(--cage-3) 0.42 calc(c * 2) h);
+  --cage-4-player:oklch(from var(--cage-4) 0.42 calc(c * 2) h);
+  --cage-5-player:oklch(from var(--cage-5) 0.42 calc(c * 2) h);
+  --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
+  --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
+  --radius-card:12px; --radius-button:8px; --radius-chip:999px;
+  /* the constrained-region preview — a faint blue, distinct from notes */
+  --set-ink:#2563eb; --set-fill:#eef4fe; --set-line:#bcd3f7;
+}
+.cage-1{--cell-fill:var(--cage-1);--cell-inner:var(--cage-1-inner);--cell-player:var(--cage-1-player);}
+.cage-2{--cell-fill:var(--cage-2);--cell-inner:var(--cage-2-inner);--cell-player:var(--cage-2-player);}
+.cage-3{--cell-fill:var(--cage-3);--cell-inner:var(--cage-3-inner);--cell-player:var(--cage-3-player);}
+.cage-4{--cell-fill:var(--cage-4);--cell-inner:var(--cage-4-inner);--cell-player:var(--cage-4-player);}
+.cage-5{--cell-fill:var(--cage-5);--cell-inner:var(--cage-5-inner);--cell-player:var(--cage-5-player);}
+
+*{box-sizing:border-box;margin:0;padding:0;}
+body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
+  padding:36px 16px 80px;-webkit-font-smoothing:antialiased;}
+.page-head{max-width:470px;margin:0 auto 22px;}
+.page-head h1{font-size:23px;font-weight:700;letter-spacing:-0.01em;}
+.page-head p{color:var(--text-secondary);font-size:13.5px;margin-top:9px;line-height:1.6;}
+
+/* phone frame */
+.phone{width:430px;max-width:100%;margin:0 auto;background:var(--surface);
+  border-radius:26px;padding:18px 16px 24px;box-shadow:0 10px 40px rgba(0,0,0,0.12);}
+.screen-title{text-align:center;font-size:16px;font-weight:600;
+  color:var(--text-primary);margin-bottom:14px;}
+
+/* hint-type tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px;}
+.tab{font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;
+  padding:6px 11px;border-radius:var(--radius-chip);border:1px solid var(--border);
+  background:var(--surface-elevated);color:var(--text-secondary);
+  -webkit-tap-highlight-color:transparent;transition:all 120ms ease-out;}
+.tab.active{background:var(--brand-600);border-color:var(--brand-600);
+  color:var(--text-on-brand);}
+
+/* board + coordinate gutter */
+.boardwrap{display:grid;grid-template-columns:20px 1fr;grid-template-rows:20px 1fr;
+  width:100%;}
+.coord{display:flex;align-items:center;justify-content:center;font-size:11px;
+  font-family:var(--font-mono);color:var(--text-tertiary);}
+.collabels{display:grid;grid-template-columns:repeat(5,1fr);}
+.rowlabels{display:grid;grid-template-rows:repeat(5,1fr);}
+.board{position:relative;display:grid;grid-template-columns:repeat(5,1fr);
+  grid-template-rows:repeat(5,1fr);aspect-ratio:1;
+  border:var(--border-cage-width) solid var(--border-cage);border-radius:10px;
+  overflow:hidden;background:var(--surface-board);}
+.cell{position:relative;display:grid;place-items:center;background:var(--cell-fill);
+  -webkit-tap-highlight-color:transparent;
+  transition:background-color 140ms ease-out,box-shadow 140ms ease-out;}
+.digit{font-family:var(--font-mono);font-size:23px;font-weight:500;
+  font-variant-numeric:tabular-nums;}
+.v-clue{color:var(--cell-text);font-weight:700;}
+.v-player{color:var(--cell-player);font-weight:600;}
+.v-green{color:var(--cell-conclusion);font-weight:800;}
+.v-error{color:var(--cell-contradiction);font-weight:700;}
+.v-ghost{color:var(--text-tertiary);font-weight:600;}
+
+/* candidate notes — the ADR-0015 grid look (one cell's candidates) */
+.notes{display:grid;grid-template-columns:repeat(3,1fr);align-content:center;
+  width:100%;height:100%;padding:8%;row-gap:3%;}
+.note{display:flex;align-items:center;justify-content:center;
+  font-family:var(--font-mono);font-size:18px;font-weight:600;
+  color:oklch(from var(--cell-fill) 0.66 calc(c * 1.5) h);}
+.note.crossed{text-decoration:line-through;text-decoration-thickness:2px;}
+.note.survivor{color:var(--cell-conclusion);font-weight:800;}
+
+/* constrained-region preview — a value-set chip. Deliberately NOT the
+   note grid: a single horizontal row on a tinted pill, blue ink. */
+.setchip{display:flex;align-items:center;justify-content:center;gap:3px;
+  background:var(--set-fill);border:1px solid var(--set-line);
+  border-radius:6px;padding:3px 5px;}
+.setchip .sv{font-family:var(--font-mono);font-weight:700;color:var(--set-ink);
+  line-height:1;}
+.setchip.wide{gap:2px;padding:3px 4px;}
+
+/* cell rings + states */
+.cell.err-bg{background:#fdecec;}
+.ring-green{box-shadow:inset 0 0 0 3px var(--cell-conclusion);z-index:3;}
+.ring-blue{box-shadow:inset 0 0 0 3px var(--cell-deduction);z-index:2;}
+.ring-amber{box-shadow:inset 0 0 0 3px var(--cell-assumption);z-index:3;}
+.ring-red{box-shadow:inset 0 0 0 3px var(--cell-contradiction);z-index:3;}
+.ring-brand{box-shadow:inset 0 0 0 3px var(--brand-700);z-index:3;}
+.cell.lit{background-color:rgba(37,99,235,0.07);}
+
+/* hint card */
+.hint-area{margin-top:18px;}
+.variant-note{font-size:12px;line-height:1.6;color:var(--text-tertiary);
+  margin-bottom:10px;padding:0 2px;}
+.card{background:var(--surface-elevated);border:1px solid var(--border);
+  border-radius:var(--radius-card);padding:12px;}
+.badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:0.01em;
+  color:var(--text-on-brand);background:var(--brand-600);
+  border-radius:var(--radius-chip);padding:3px 10px;}
+.reason{margin-top:9px;font-size:14px;line-height:1.65;color:var(--text-secondary);}
+
+/* stepper */
+.step-head{display:flex;align-items:center;justify-content:space-between;
+  margin:10px 0 8px;}
+.step-count{font-size:11px;font-weight:600;letter-spacing:0.04em;
+  color:var(--text-tertiary);}
+.step-nav{display:flex;gap:4px;}
+.step-btn{cursor:pointer;font-size:14px;font-weight:600;padding:2px 9px;
+  border-radius:var(--radius-button);border:1px solid var(--border);
+  background:var(--surface-elevated);color:var(--text-secondary);
+  -webkit-tap-highlight-color:transparent;}
+.step-btn.primary{background:var(--brand-600);border-color:var(--brand-600);
+  color:var(--text-on-brand);}
+.step-btn:disabled{opacity:0.3;cursor:default;}
+.step-text{font-size:14px;font-weight:500;line-height:1.65;color:var(--text-secondary);}
+.dots{display:flex;gap:6px;margin-top:12px;}
+.dot{flex:1;height:4px;border-radius:999px;background:var(--border);cursor:pointer;}
+
+/* cell-reference token */
+.cellref{font-family:var(--font-mono);font-weight:700;text-decoration:underline;
+  cursor:pointer;background:none;border:none;padding:0;font-size:inherit;
+  color:var(--brand-700);-webkit-tap-highlight-color:transparent;}
+
+.hint-foot{margin-top:14px;text-align:center;font-size:11.5px;
+  color:var(--text-tertiary);line-height:1.5;}
+</style>
+</head>
+<body>
+<header class="page-head">
+  <h1>Hint visual language — all types aligned</h1>
+  <p>Every hint type on one shared visual language: the target's reasoning as
+  a <strong>candidate-note grid</strong> (ADR-0015), a constrained region of
+  empty cells as a blue <strong>value-set chip</strong>, evidence cells ringed
+  blue, the conclusion ringed green. Tap a tab to switch type; step the Pair
+  elimination and Contradiction walkthroughs. Boards are illustrative.
+  Session: 2026-05-19.</p>
+</header>
+
+<div class="phone">
+  <div class="screen-title">Expert · 5×5</div>
+  <div class="tabs" id="tabs"></div>
+  <div class="boardwrap">
+    <div class="coord"></div>
+    <div class="collabels" id="collabels"></div>
+    <div class="rowlabels" id="rowlabels"></div>
+    <div class="board" id="board"></div>
+  </div>
+  <div class="hint-area" id="hintArea"></div>
+  <div class="hint-foot">Tap a tab · tap any A3-style reference to mark its cell</div>
+</div>
+
+<script>
+const COL = ['A', 'B', 'C', 'D', 'E'];
+const refToRC = (s) => ({ row: Number(s[1]) - 1, col: s.charCodeAt(0) - 65 });
+const refKey = (ref) => { const p = refToRC(ref); return p.row + ',' + p.col; };
+const rcRef = (r, c) => COL[c] + (r + 1);
+
+/* ---- the shared board -------------------------------------------- */
+// One cage layout for every tab — only the contents change, so the
+// board reads as the same puzzle throughout. Cage P is a 4-cell L;
+// cage Q is a 2-cell pair.
+const CAGES = [
+  ['R', 'P', 'S', 'S', 'S'],
+  ['R', 'P', 'S', 'S', 'T'],
+  ['R', 'P', 'P', 'T', 'T'],
+  ['R', 'Q', 'Q', 'T', 'T'],
+  ['R', 'U', 'U', 'U', 'U'],
+];
+const TINT = { P: 1, Q: 3, R: 2, S: 2, T: 4, U: 5 };
+
+/* ---- the hint types ---------------------------------------------- */
+const HINTS = [
+  {
+    id: 'naked', label: 'Naked single', badge: 'Naked single', kind: 'static',
+    note: 'Target as a note grid — every value struck but one. Placed causes '
+      + '(D3, E4) are ringed blue; an empty cause region (C5+D5) shows its '
+      + 'value-set chip.',
+    fills: { D3: 1, E4: 5, A1: 4, E1: 2, A5: 3 },
+    causeCells: ['D3', 'E4'],
+    target: 'D4', targetNotes: { crossed: [1, 2, 4, 5], survivor: 3 },
+    regions: [{ cells: ['C5', 'D5'], set: [2, 4] }],
+    reason: 'Every value but 3 is blocked for D4 — 1 sits in D3 and 5 in E4, '
+      + 'both cage-mates, and 2 and 4 are locked into C5 and D5. So D4 is 3.',
+  },
+  {
+    id: 'hidden', label: 'Hidden single', badge: 'Hidden single', kind: 'static',
+    note: 'A single value with only one home left. The conclusion cell is '
+      + 'ringed green and carries the value — no note grid needed.',
+    fills: { A1: 2, E1: 3, A4: 1, E2: 4, A3: 5 },
+    answer: { ref: 'B5', value: 4 },
+    reason: '4 can go in only one empty cell of this cage — every other cell '
+      + 'is blocked. So 4 goes in B5.',
+  },
+  {
+    id: 'forced', label: 'Forced move', badge: 'Forced move', kind: 'static',
+    note: 'The cause is a region of empty cells — the L-cage — ringed blue '
+      + 'with its value-set chip. The target note grid struck down to 5.',
+    fills: { A1: 3, A5: 1, E1: 4, E5: 2 },
+    target: 'C2', targetNotes: { crossed: [1, 2, 3, 4], survivor: 5 },
+    regions: [{ cells: ['B1', 'B2', 'B3', 'C3'], set: [1, 2, 3, 4] }],
+    reason: 'C2 touches all four cells of the L-cage beside it — B1, B2, B3 '
+      + 'and C3 — which hold 1, 2, 3 and 4 between them. So C2 must be 5.',
+  },
+  {
+    id: 'pair', label: 'Pair elimination', badge: 'Pair elimination',
+    kind: 'stepper',
+    note: 'A stepper. The locked pair is a 2-cell value-set chip; the affected '
+      + 'cell loses those values from its note grid.',
+    fills: { A1: 3, E1: 4, A5: 1, E5: 2 },
+    steps: [
+      {
+        text: 'B4 and C4 are a 2-cell cage — between them they must hold 1 '
+          + 'and 2.',
+        chip: { cells: ['B4', 'C4'], set: [1, 2] },
+        rings: { B4: 'blue', C4: 'blue' },
+      },
+      {
+        text: 'C3 touches both B4 and C4 — so 1 and 2 are struck off C3.',
+        chip: { cells: ['B4', 'C4'], set: [1, 2] },
+        rings: { B4: 'blue', C4: 'blue', C3: 'amber' },
+        notes: { C3: { crossed: [1, 2] } },
+      },
+    ],
+  },
+  {
+    id: 'contradiction', label: 'Contradiction', badge: 'Contradiction chain',
+    kind: 'stepper',
+    note: 'A stepper. Each step is ringed by its role — assumption amber, '
+      + 'deductions blue, the clash red, the conclusion green.',
+    fills: { A1: 2, E1: 5, A5: 3, E5: 1 },
+    steps: [
+      { role: 'assumption', text: 'C3 is open to just 3 or 5.',
+        rings: { C3: 'amber' } },
+      { role: 'assumption', text: 'Assume C3 is 3.',
+        rings: { C3: 'amber' }, ghost: { C3: 3 } },
+      { role: 'deduction', text: 'D3 is then forced to 5 — its only candidate.',
+        rings: { D3: 'blue' }, ghost: { C3: 3, D3: 5 } },
+      { role: 'deduction', text: 'D4 is then forced to 1.',
+        rings: { D4: 'blue' }, ghost: { C3: 3, D3: 5, D4: 1 } },
+      { role: 'contradiction',
+        text: 'E4 now has no value left — a contradiction.',
+        rings: { E4: 'red' }, ghost: { C3: 3, D3: 5, D4: 1 } },
+      { role: 'conclusion', text: 'So the assumption fails — C3 must be 5.',
+        rings: { C3: 'green' }, value: { C3: 5 } },
+    ],
+  },
+  {
+    id: 'candidates', label: 'Candidates', badge: 'Candidates', kind: 'static',
+    note: 'A plain note grid — the values still open for the cell, none '
+      + 'struck. The focused cell is ringed in the brand colour.',
+    fills: { A1: 2, E1: 3, A5: 4, E5: 1 },
+    target: 'D4', targetNotes: { present: [2, 3, 5] },
+    reason: 'The values still open for D4 — 2, 3 and 5.',
+  },
+  {
+    id: 'reveal', label: 'Reveal', badge: 'Revealed cell', kind: 'static',
+    note: 'A given answer — same green ring and green value as a concluded '
+      + 'cell, so a reveal reads like any solved cell.',
+    fills: { A1: 3, E1: 2, A5: 4, E5: 1 },
+    answer: { ref: 'C3', value: 1 },
+    reason: 'The answer for C3 is 1.',
+  },
+  {
+    id: 'check', label: 'Check', badge: 'Error check', kind: 'static',
+    note: 'Wrong entries on a red wash with a red ring — the contradiction '
+      + 'colour, reused so an error always reads red.',
+    fills: { B2: 4, D5: 3, A1: 2, E1: 5 },
+    errorCells: ['B2', 'D5'],
+    reason: 'Found 2 cells with errors — B2 and D5.',
+  },
+];
+
+const ROLE_COLOR = {
+  assumption: 'var(--cell-assumption)', deduction: 'var(--cell-deduction)',
+  contradiction: 'var(--cell-contradiction)', conclusion: 'var(--cell-conclusion)',
+};
+const ROLE_RING = {
+  assumption: 'amber', deduction: 'blue',
+  contradiction: 'red', conclusion: 'green',
+};
+const PHASE = {
+  assumption: 'SETUP', deduction: 'DEDUCTION',
+  contradiction: 'CONTRADICTION', conclusion: 'CONCLUSION',
+};
+
+/* ---- state ------------------------------------------------------- */
+let hintIndex = 0;
+let step = 0;
+let marked = null; // 'row,col'
+
+/* ---- coordinate gutter ------------------------------------------- */
+const collabels = document.getElementById('collabels');
+const rowlabels = document.getElementById('rowlabels');
+COL.forEach((l) => {
+  const d = document.createElement('div'); d.className = 'coord'; d.textContent = l;
+  collabels.appendChild(d);
+});
+for (let r = 1; r <= 5; r++) {
+  const d = document.createElement('div'); d.className = 'coord'; d.textContent = r;
+  rowlabels.appendChild(d);
+}
+
+/* ---- render ------------------------------------------------------ */
+function render() {
+  renderTabs();
+  renderBoard();
+  renderHint();
+}
+
+function renderTabs() {
+  const root = document.getElementById('tabs');
+  root.innerHTML = '';
+  HINTS.forEach((h, i) => {
+    const b = document.createElement('button');
+    b.className = 'tab' + (i === hintIndex ? ' active' : '');
+    b.textContent = h.label;
+    b.onclick = () => { hintIndex = i; step = 0; marked = null; render(); };
+    root.appendChild(b);
+  });
+}
+
+/** Region cells that carry the value-set chip: small regions show it in
+ *  every cell; larger ones show it once, on the cell nearest the target. */
+function chipCells(cells, target) {
+  if (cells.length <= 2) return cells.slice();
+  if (!target) return [cells[0]];
+  const t = refToRC(target);
+  let best = cells[0], bd = Infinity;
+  for (const ref of cells) {
+    const p = refToRC(ref);
+    const d = Math.hypot(p.row - t.row, p.col - t.col);
+    if (d < bd) { bd = d; best = ref; }
+  }
+  return [best];
+}
+
+function normNotes(n) {
+  return {
+    crossed: new Set(n.crossed || []),
+    present: n.present ? new Set(n.present) : null,
+    survivor: n.survivor != null ? n.survivor : null,
+  };
+}
+
+/** Build the per-cell scene — what each cell draws — for the active hint. */
+function scene() {
+  const h = HINTS[hintIndex];
+  const sc = { notes: {}, chips: {}, values: {}, rings: {}, lit: new Set() };
+
+  // Placed digits, shared by every step of a hint.
+  for (const [ref, v] of Object.entries(h.fills || {})) {
+    const isErr = (h.errorCells || []).includes(ref);
+    sc.values[refKey(ref)] = { v, kind: isErr ? 'error' : 'clue' };
+  }
+
+  if (h.kind === 'static') {
+    if (h.target) {
+      sc.notes[refKey(h.target)] = normNotes(h.targetNotes);
+      sc.rings[refKey(h.target)] =
+        h.targetNotes.survivor != null ? 'green'
+          : h.targetNotes.present ? 'brand' : 'green';
+    }
+    if (h.answer) {
+      sc.values[refKey(h.answer.ref)] = { v: h.answer.value, kind: 'green' };
+      sc.rings[refKey(h.answer.ref)] = 'green';
+    }
+    for (const ref of h.causeCells || []) sc.rings[refKey(ref)] = 'blue';
+    for (const reg of h.regions || []) {
+      for (const ref of reg.cells) sc.rings[refKey(ref)] = 'blue';
+      for (const ref of chipCells(reg.cells, h.target)) {
+        sc.chips[refKey(ref)] = reg.set;
+        sc.lit.add(refKey(ref));
+      }
+    }
+    for (const ref of h.errorCells || []) sc.rings[refKey(ref)] = 'red';
+  } else {
+    const s = h.steps[step];
+    if (s.chip) {
+      for (const ref of s.chip.cells) sc.rings[refKey(ref)] = 'blue';
+      for (const ref of chipCells(s.chip.cells, null)) {
+        sc.chips[refKey(ref)] = s.chip.set;
+        sc.lit.add(refKey(ref));
+      }
+    }
+    for (const [ref, n] of Object.entries(s.notes || {})) {
+      sc.notes[refKey(ref)] = normNotes(n);
+    }
+    for (const [ref, v] of Object.entries(s.ghost || {})) {
+      sc.values[refKey(ref)] = { v, kind: 'ghost' };
+    }
+    for (const [ref, v] of Object.entries(s.value || {})) {
+      sc.values[refKey(ref)] = { v, kind: 'green' };
+    }
+    for (const [ref, role] of Object.entries(s.rings || {})) {
+      sc.rings[refKey(ref)] = role;
+    }
+  }
+  return sc;
+}
+
+function renderBoard() {
+  const root = document.getElementById('board');
+  root.innerHTML = '';
+  const sc = scene();
+  const h = HINTS[hintIndex];
+  const errKeys = new Set((h.errorCells || []).map(refKey));
+
+  for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
+    const key = r + ',' + c;
+    const id = CAGES[r][c];
+    const cell = document.createElement('div');
+    cell.className = 'cell cage-' + TINT[id];
+    if (r > 0) cell.style.borderTop = edge(CAGES[r - 1][c] !== id);
+    if (c > 0) cell.style.borderLeft = edge(CAGES[r][c - 1] !== id);
+    if (errKeys.has(key)) cell.classList.add('err-bg');
+    if (sc.lit.has(key)) cell.classList.add('lit');
+
+    const ring = marked === key ? 'brand' : sc.rings[key];
+    if (ring) cell.classList.add('ring-' + ring);
+
+    if (sc.notes[key]) {
+      cell.appendChild(noteGrid(sc.notes[key]));
+    } else if (sc.chips[key]) {
+      cell.appendChild(setChip(sc.chips[key]));
+    } else if (sc.values[key]) {
+      cell.appendChild(digit(sc.values[key]));
+    }
+    cell.onclick = () => {
+      marked = marked === key ? null : key;
+      render();
+    };
+    root.appendChild(cell);
+  }
+}
+
+function edge(isCage) {
+  return isCage
+    ? 'var(--border-cage-width) solid var(--border-cage)'
+    : 'var(--border-inner-width) solid var(--cell-inner)';
+}
+function digit(val) {
+  const cls = { clue: 'v-clue', player: 'v-player', green: 'v-green',
+    error: 'v-error', ghost: 'v-ghost' }[val.kind] || 'v-clue';
+  const d = document.createElement('span');
+  d.className = 'digit ' + cls;
+  d.textContent = val.v;
+  return d;
+}
+function noteGrid(n) {
+  const g = document.createElement('div');
+  g.className = 'notes';
+  for (let v = 1; v <= 5; v++) {
+    const span = document.createElement('span');
+    span.className = 'note';
+    if (n.present && !n.present.has(v)) { g.appendChild(span); continue; }
+    if (n.survivor === v) span.classList.add('survivor');
+    else if (n.crossed.has(v)) span.classList.add('crossed');
+    span.textContent = v;
+    g.appendChild(span);
+  }
+  return g;
+}
+function setChip(set) {
+  const chip = document.createElement('div');
+  chip.className = 'setchip' + (set.length > 2 ? ' wide' : '');
+  for (const v of set) {
+    const s = document.createElement('span');
+    s.className = 'sv';
+    s.style.fontSize = set.length > 2 ? '12px' : '15px';
+    s.textContent = v;
+    chip.appendChild(s);
+  }
+  return chip;
+}
+
+function renderHint() {
+  const area = document.getElementById('hintArea');
+  area.innerHTML = '';
+  const h = HINTS[hintIndex];
+
+  const note = document.createElement('p');
+  note.className = 'variant-note';
+  note.textContent = h.note;
+  area.appendChild(note);
+
+  area.appendChild(h.kind === 'stepper' ? stepperCard(h) : staticCard(h));
+}
+
+function staticCard(h) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.textContent = h.badge;
+  const p = document.createElement('p');
+  p.className = 'reason';
+  appendHintText(p, h.reason);
+  card.append(badge, p);
+  return card;
+}
+
+function stepperCard(h) {
+  const card = document.createElement('div');
+  card.className = 'card';
+  const total = h.steps.length;
+  const s = h.steps[step];
+
+  const badge = document.createElement('span');
+  badge.className = 'badge';
+  badge.textContent = h.badge;
+
+  const head = document.createElement('div');
+  head.className = 'step-head';
+  const cnt = document.createElement('span');
+  cnt.className = 'step-count';
+  cnt.textContent = 'STEP ' + (step + 1) + ' OF ' + total;
+  if (s.role) {
+    cnt.append(' · ');
+    const ph = document.createElement('span');
+    ph.textContent = PHASE[s.role];
+    ph.style.color = ROLE_COLOR[s.role];
+    cnt.appendChild(ph);
+  }
+  const nav = document.createElement('div');
+  nav.className = 'step-nav';
+  const prev = document.createElement('button');
+  prev.className = 'step-btn'; prev.textContent = '‹'; prev.disabled = step === 0;
+  prev.onclick = () => { if (step > 0) { step--; render(); } };
+  const next = document.createElement('button');
+  next.className = 'step-btn primary'; next.textContent = '›';
+  next.disabled = step === total - 1;
+  next.onclick = () => { if (step < total - 1) { step++; render(); } };
+  nav.append(prev, next);
+  head.append(cnt, nav);
+
+  const p = document.createElement('p');
+  p.className = 'step-text';
+  appendHintText(p, s.text);
+
+  const dots = document.createElement('div');
+  dots.className = 'dots';
+  for (let i = 0; i < total; i++) {
+    const dot = document.createElement('div');
+    dot.className = 'dot';
+    if (i <= step) {
+      const role = h.steps[i].role;
+      dot.style.background = role ? ROLE_COLOR[role] : 'var(--brand-600)';
+    }
+    dot.onclick = () => { step = i; render(); };
+    dots.appendChild(dot);
+  }
+
+  card.append(badge, head, p, dots);
+  return card;
+}
+
+/** Render text, turning A3-style references into tappable tokens. */
+function appendHintText(el, text) {
+  const parts = text.split(/\b([A-H][1-5])\b/g);
+  parts.forEach((part) => {
+    if (!/^[A-H][1-5]$/.test(part)) {
+      el.appendChild(document.createTextNode(part));
+      return;
+    }
+    const btn = document.createElement('button');
+    btn.className = 'cellref';
+    btn.textContent = part;
+    btn.onclick = () => {
+      const key = refKey(part);
+      marked = marked === key ? null : key;
+      render();
+    };
+    el.appendChild(btn);
+  });
+}
+
+render();
+</script>
+</body>
+</html>
