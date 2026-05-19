@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Forced move — showing the cause cells</title>
+<title>Forced move — previewing a constrained region</title>
 <style>
 /* Light-mode study. Tokens mirrored from src/index.css. */
 :root{
@@ -32,6 +32,8 @@
   --font-ui:'Inter',system-ui,-apple-system,'Segoe UI',sans-serif;
   --font-mono:'JetBrains Mono',ui-monospace,'SF Mono',monospace;
   --radius-card:12px; --radius-button:8px; --radius-chip:999px;
+  /* the constrained-region preview — a faint blue, distinct from notes */
+  --set-ink:#2563eb; --set-fill:#eef4fe; --set-line:#bcd3f7;
 }
 .cage-1{--cell-fill:var(--cage-1);--cell-inner:var(--cage-1-inner);--cell-player:var(--cage-1-player);}
 .cage-2{--cell-fill:var(--cage-2);--cell-inner:var(--cage-2-inner);--cell-player:var(--cage-2-player);}
@@ -42,7 +44,7 @@
 *{box-sizing:border-box;margin:0;padding:0;}
 body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
   padding:36px 16px 80px;-webkit-font-smoothing:antialiased;}
-.page-head{max-width:460px;margin:0 auto 22px;}
+.page-head{max-width:470px;margin:0 auto 22px;}
 .page-head h1{font-size:23px;font-weight:700;letter-spacing:-0.01em;}
 .page-head p{color:var(--text-secondary);font-size:13.5px;margin-top:9px;line-height:1.6;}
 
@@ -52,14 +54,23 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 .screen-title{text-align:center;font-size:16px;font-weight:600;
   color:var(--text-primary);margin-bottom:14px;}
 
-/* variant tabs */
-.tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:18px;}
+/* treatment tabs */
+.tabs{display:flex;flex-wrap:wrap;gap:6px;justify-content:center;margin-bottom:12px;}
 .tab{font-family:var(--font-ui);font-size:12px;font-weight:600;cursor:pointer;
   padding:6px 12px;border-radius:var(--radius-chip);border:1px solid var(--border);
   background:var(--surface-elevated);color:var(--text-secondary);
   -webkit-tap-highlight-color:transparent;transition:all 120ms ease-out;}
 .tab.active{background:var(--brand-600);border-color:var(--brand-600);
   color:var(--text-on-brand);}
+
+/* scenario segmented control */
+.seg{display:flex;gap:2px;justify-content:center;margin:0 auto 16px;
+  background:var(--surface-elevated);border:1px solid var(--border);
+  border-radius:var(--radius-button);padding:2px;width:fit-content;}
+.seg button{font-family:var(--font-ui);font-size:12px;font-weight:600;
+  cursor:pointer;border:none;background:none;color:var(--text-secondary);
+  padding:5px 13px;border-radius:6px;-webkit-tap-highlight-color:transparent;}
+.seg button.on{background:var(--brand-600);color:var(--text-on-brand);}
 
 /* board + coordinate gutter */
 .boardwrap{display:grid;grid-template-columns:20px 1fr;grid-template-rows:20px 1fr;
@@ -80,30 +91,31 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 .v-clue{color:var(--cell-text);font-weight:700;}
 .v-player{color:var(--cell-player);font-weight:600;}
 
-/* candidate notes in the target cell */
+/* candidate notes in the target cell — the ADR-0015 grid look */
 .notes{display:grid;grid-template-columns:repeat(3,1fr);align-content:center;
   width:100%;height:100%;padding:8%;row-gap:3%;}
 .note{display:flex;align-items:center;justify-content:center;
   font-family:var(--font-mono);font-size:18px;font-weight:600;
-  color:oklch(from var(--cell-fill) 0.66 calc(c * 1.5) h);
-  transition:color 160ms ease-out;}
+  color:oklch(from var(--cell-fill) 0.66 calc(c * 1.5) h);}
 .note.crossed{text-decoration:line-through;text-decoration-thickness:2px;}
-/* a value struck *this step* (or by a ringed cause) — drawn in the cause
-   blue, so the eye pairs the struck digit with the cell that blocked it */
-.note.accent{color:var(--cell-deduction);}
 .note.survivor{color:var(--cell-conclusion);font-weight:800;}
 
-/* cell states */
-.cell.ring-target-open{box-shadow:inset 0 0 0 3px var(--cell-assumption);z-index:3;}
-.cell.ring-target-done{box-shadow:inset 0 0 0 3px var(--cell-conclusion);z-index:3;}
-.cell.ring-cause{box-shadow:inset 0 0 0 3px var(--cell-deduction);z-index:2;}
-.cell.marked{box-shadow:inset 0 0 0 3px var(--brand-700);z-index:4;}
+/* constrained-region preview — a value-set chip. Deliberately NOT the
+   note grid: a single horizontal row on a tinted pill, blue ink. */
+.setchip{display:flex;align-items:center;justify-content:center;gap:3px;
+  background:var(--set-fill);border:1px solid var(--set-line);
+  border-radius:6px;padding:3px 5px;}
+.setchip .sv{font-family:var(--font-mono);font-weight:700;color:var(--set-ink);
+  line-height:1;}
+.setchip.wide{gap:2px;padding:3px 4px;}
 
-/* the cause badge sits in the corner of a ringed cause cell */
-.cause-tag{position:absolute;top:2px;left:3px;font-family:var(--font-mono);
-  font-size:9px;font-weight:700;color:var(--cell-deduction);
-  background:var(--surface-elevated);border-radius:3px;padding:0 3px;
-  line-height:1.5;}
+/* cell rings */
+.cell.ring-target{box-shadow:inset 0 0 0 3px var(--cell-conclusion);z-index:3;}
+.cell.ring-region{box-shadow:inset 0 0 0 3px var(--cell-deduction);z-index:2;}
+.cell.lit{z-index:4;}
+.cell.lit.ring-region{box-shadow:inset 0 0 0 3px var(--cell-deduction),
+  inset 0 0 0 100px rgba(37,99,235,0.10);}
+.cell.marked{box-shadow:inset 0 0 0 3px var(--brand-700);z-index:5;}
 
 /* hint card */
 .hint-area{margin-top:18px;}
@@ -114,29 +126,14 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 .badge{display:inline-block;font-size:11px;font-weight:600;letter-spacing:0.01em;
   color:var(--text-on-brand);background:var(--brand-600);
   border-radius:var(--radius-chip);padding:3px 10px;}
-.reason{margin-top:9px;font-size:14px;line-height:1.6;color:var(--text-secondary);}
-
-/* stepper */
-.step-head{display:flex;align-items:center;justify-content:space-between;
-  margin-bottom:8px;}
-.step-count{font-size:11px;font-weight:600;letter-spacing:0.04em;
-  color:var(--text-tertiary);}
-.step-nav{display:flex;gap:4px;}
-.step-btn{cursor:pointer;font-size:14px;font-weight:600;padding:2px 9px;
-  border-radius:var(--radius-button);border:1px solid var(--border);
-  background:var(--surface-elevated);color:var(--text-secondary);
-  -webkit-tap-highlight-color:transparent;}
-.step-btn.primary{background:var(--brand-600);border-color:var(--brand-600);
-  color:var(--text-on-brand);}
-.step-btn:disabled{opacity:0.3;cursor:default;}
-.step-text{font-size:14px;font-weight:500;line-height:1.6;color:var(--text-secondary);}
-.dots{display:flex;gap:6px;margin-top:12px;}
-.dot{flex:1;height:4px;border-radius:999px;background:var(--border);cursor:pointer;}
+.reason{margin-top:9px;font-size:14px;line-height:1.65;color:var(--text-secondary);}
 
 /* cell-reference token */
 .cellref{font-family:var(--font-mono);font-weight:700;text-decoration:underline;
   cursor:pointer;background:none;border:none;padding:0;font-size:inherit;
   color:var(--brand-700);-webkit-tap-highlight-color:transparent;}
+/* a reference that reveals its cell when tapped (Tap-to-reveal tab) */
+.cellref.revealable{color:var(--set-ink);text-decoration-style:dashed;}
 
 .hint-foot{margin-top:14px;text-align:center;font-size:11.5px;
   color:var(--text-tertiary);line-height:1.5;}
@@ -144,18 +141,18 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 </head>
 <body>
 <header class="page-head">
-  <h1>Forced move — showing the cause cells</h1>
-  <p>A Forced move strikes 1–4 off the target and leaves 5. Today the target
-  shows the crossed-out notes, but nothing on the board says <em>where</em>
-  those values already live. Each tab is a way to surface the cause cells —
-  the cells that block each value. <strong>B4</strong> is the target;
-  <strong>B3</strong>, <strong>C3</strong>, <strong>A4</strong> and
-  <strong>A5</strong> are the causes. Session: 2026-05-19.</p>
+  <h1>Forced move — previewing a constrained region</h1>
+  <p>A Forced move often leans on cells that are still <em>empty</em>. We can't
+  show a value there — but we often know the <strong>set</strong> a region of
+  empty cells must hold between them. This explores how to preview that set so
+  it doesn't read as the player's pencil-mark notes. Use the toggle to compare
+  a 2-cell pair against a crowded 4-cell L cage. Session: 2026-05-19.</p>
 </header>
 
 <div class="phone">
   <div class="screen-title">Expert · 5×5</div>
   <div class="tabs" id="tabs"></div>
+  <div class="seg" id="seg"></div>
   <div class="boardwrap">
     <div class="coord"></div>
     <div class="collabels" id="collabels"></div>
@@ -163,94 +160,106 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
     <div class="board" id="board"></div>
   </div>
   <div class="hint-area" id="hintArea"></div>
-  <div class="hint-foot">Tap a tab · tap any A3-style reference to mark its cell</div>
+  <div class="hint-foot">Tap a tab · switch scenario with the toggle · tap an
+  A3-style reference in the hint text</div>
 </div>
 
 <script>
-/* ---- the board --------------------------------------------------- */
-// Illustrative 5×5. Target B4 is hemmed in: its neighbours B3 / C3 hold
-// 1 / 2, and its cage-mates A4 / A5 hold 3 / 4 — so B4 must be 5.
-const BOARD = {
-  cages: [
-    ['A', 'A', 'B', 'B', 'B'],
-    ['A', 'A', 'C', 'B', 'B'],
-    ['A', 'C', 'C', 'C', 'C'],
-    ['X', 'X', 'D', 'D', 'D'],
-    ['X', 'X', 'X', 'D', 'D'],
-  ],
-  tint: { X: 1, A: 2, B: 3, C: 4, D: 5 },
-  values: [
-    [0, 0, 0, 4, 0],
-    [0, 0, 0, 0, 2],
-    [0, 1, 2, 0, 5],
-    [3, 0, 0, 0, 1],
-    [4, 0, 0, 0, 0],
-  ],
-  // The four cause cells are clues (given); the rest are player entries.
-  clue: new Set(['2,1', '2,2', '3,0', '4,0']),
-};
-const TARGET = [3, 1]; // B4
 const COL = ['A', 'B', 'C', 'D', 'E'];
 const refToRC = (s) => ({ row: Number(s[1]) - 1, col: s.charCodeAt(0) - 65 });
 const refKey = (ref) => { const p = refToRC(ref); return p.row + ',' + p.col; };
 
-// Each cell that blocks a value, the value it blocks, and how it touches B4.
-const CAUSES = [
-  { ref: 'B3', value: 1, how: 'neighbour' },
-  { ref: 'C3', value: 2, how: 'neighbour' },
-  { ref: 'A4', value: 3, how: 'cage-mate' },
-  { ref: 'A5', value: 4, how: 'cage-mate' },
-];
+/* ---- scenarios --------------------------------------------------- */
+// Each scenario is a Forced move whose cause is a region of EMPTY cells
+// constrained to a known value-set. `region.cells` are blank; together
+// they must hold `region.set`.
+const SCENARIOS = {
+  pair: {
+    label: '2-cell pair',
+    cages: [
+      ['A', 'A', 'B', 'B', 'B'],
+      ['A', 'A', 'C', 'B', 'B'],
+      ['A', 'C', 'C', 'C', 'C'],
+      ['X', 'X', 'D', 'D', 'D'],
+      ['X', 'X', 'X', 'D', 'D'],
+    ],
+    tint: { X: 1, A: 2, B: 3, C: 4, D: 5 },
+    values: [
+      [0, 0, 0, 4, 0],
+      [0, 0, 0, 0, 2],
+      [0, 0, 0, 0, 5],
+      [3, 0, 0, 0, 1],
+      [4, 0, 0, 0, 0],
+    ],
+    clue: new Set(['3,0', '4,0']), // A4 = 3, A5 = 4 — placed causes
+    target: 'B4',
+    region: { cells: ['B3', 'C3'], set: [1, 2] },
+    reason: 'B3 and C3 are empty — but together they must hold 1 and 2, '
+      + 'and both touch B4. With 3 in A4 and 4 in A5, only 5 is left for B4.',
+    tapReason: 'B3 and C3 are empty, but as a pair they must hold 1 and 2 — '
+      + 'tap either to see. With 3 in A4 and 4 in A5, B4 must be 5.',
+  },
+  L: {
+    label: '4-cell L cage',
+    cages: [
+      ['A', 'A', 'B', 'B', 'B'],
+      ['A', 'A', 'L', 'B', 'B'],
+      ['X', 'X', 'L', 'C', 'C'],
+      ['X', 'L', 'L', 'C', 'C'],
+      ['X', 'X', 'D', 'D', 'C'],
+    ],
+    tint: { A: 1, B: 2, C: 1, D: 4, L: 3, X: 2 },
+    values: [
+      [0, 0, 0, 2, 0],
+      [0, 0, 0, 0, 4],
+      [1, 0, 0, 0, 0],
+      [0, 0, 0, 0, 0],
+      [0, 0, 0, 0, 3],
+    ],
+    clue: new Set(['0,3', '1,4', '2,0', '4,4']),
+    target: 'B3',
+    region: { cells: ['C2', 'C3', 'C4', 'B4'], set: [1, 2, 3, 4] },
+    reason: 'B3 touches all four cells of the L-cage beside it — C2, C3, C4 '
+      + 'and B4 — and those four hold 1, 2, 3 and 4 between them. B3 can be '
+      + 'none of them, so it must be 5.',
+    tapReason: 'The L-cage beside B3 — C2, C3, C4 and B4 — holds 1, 2, 3 and '
+      + '4 between its four empty cells; tap any to see. B3 touches them all, '
+      + 'so B3 must be 5.',
+  },
+};
 
-/* ---- variants ---------------------------------------------------- */
-const VARIANTS = [
+/* ---- treatments -------------------------------------------------- */
+const TREATMENTS = [
   {
-    id: 'plain', label: 'Plain (today)',
-    note: 'How it looks now — B4 shows 1–4 struck and 5 in green, but the '
-      + 'board gives no clue where 1–4 already sit.',
-    reason: 'Every value but 5 is blocked for B4 — so it must be 5.',
-    rings: false, accent: false, tags: false,
+    id: 'plain', label: 'Plain (today)', show: 'none',
+    note: 'Today the cause region is just empty cells. The hint card says '
+      + 'values are blocked, but the board never shows what the region holds.',
   },
   {
-    id: 'rings', label: 'Cause rings',
-    note: 'Every cell that blocks a value is ringed in blue. The matching '
-      + 'struck digit in B4 turns blue too, so the eye pairs them up.',
-    reason: 'B4 is boxed in — B3 holds a 1 and C3 a 2 right beside it, and '
-      + 'cage-mates A4 and A5 take 3 and 4. Only 5 is left.',
-    rings: true, accent: true, tags: false,
+    id: 'each', label: 'Set in every cell', show: 'each',
+    note: 'Every cell of the region carries the value-set on a blue chip — a '
+      + 'single row, not a 3×3 grid, so it never reads as pencil notes. '
+      + 'Roomy for a pair; tight and repetitive for the L cage.',
   },
   {
-    id: 'tags', label: 'Cause tags',
-    note: 'Same rings, plus a small tag in each cause cell naming the value '
-      + 'it knocks out of B4 — the link spelled out, no colour-matching needed.',
-    reason: 'B4 is boxed in — B3 holds a 1 and C3 a 2 right beside it, and '
-      + 'cage-mates A4 and A5 take 3 and 4. Only 5 is left.',
-    rings: true, accent: true, tags: true,
+    id: 'once', label: 'Set shown once', show: 'once',
+    note: 'The set is drawn once, on the region cell nearest the target; the '
+      + 'rest of the region is just ringed. No crowding — the L cage stays '
+      + 'as calm as the pair.',
   },
   {
-    id: 'stepped', label: 'Stepped', kind: 'stepper',
-    note: 'Walk the deduction one cause at a time — each step rings a cell '
-      + 'and strikes the value it rules out of B4.',
+    id: 'tap', label: 'Tap to reveal', show: 'tap',
+    note: 'The region is ringed but blank. The dashed references in the hint '
+      + 'text are tappable — tap one and that cell lights up with its '
+      + 'value-set. Nothing on the board until the player asks.',
   },
-];
-const STEPS = [
-  { causes: 0, text: 'B4 starts open to every value, 1 through 5.' },
-  { causes: 1, cross: 1,
-    text: 'B3 sits right beside B4 and already holds a 1 — so 1 is out.' },
-  { causes: 2, cross: 2,
-    text: 'C3 also touches B4 and holds a 2 — 2 is out.' },
-  { causes: 3, cross: 3,
-    text: 'A4 shares B4’s cage and holds a 3 — 3 is out.' },
-  { causes: 4, cross: 4,
-    text: 'A5, the other cage-mate, holds a 4 — 4 is out.' },
-  { causes: 4, done: true,
-    text: 'Every value but 5 is gone — B4 must be 5.' },
 ];
 
 /* ---- state ------------------------------------------------------- */
-let variant = 0;
-let step = 0;
-let marked = null; // 'row,col'
+let treatment = 0;
+let scenario = 'pair';
+let revealed = new Set(); // region cells revealed via Tap-to-reveal
+let marked = null;        // 'row,col' — a plainly-marked reference
 
 /* ---- coordinate gutter ------------------------------------------- */
 const collabels = document.getElementById('collabels');
@@ -267,6 +276,7 @@ for (let r = 1; r <= 5; r++) {
 /* ---- render ------------------------------------------------------ */
 function render() {
   renderTabs();
+  renderSeg();
   renderBoard();
   renderHint();
 }
@@ -274,71 +284,80 @@ function render() {
 function renderTabs() {
   const root = document.getElementById('tabs');
   root.innerHTML = '';
-  VARIANTS.forEach((v, i) => {
+  TREATMENTS.forEach((t, i) => {
     const b = document.createElement('button');
-    b.className = 'tab' + (i === variant ? ' active' : '');
-    b.textContent = v.label;
-    b.onclick = () => { variant = i; step = 0; marked = null; render(); };
+    b.className = 'tab' + (i === treatment ? ' active' : '');
+    b.textContent = t.label;
+    b.onclick = () => { treatment = i; revealed = new Set(); marked = null; render(); };
     root.appendChild(b);
   });
 }
 
-/** What the board shows for the current variant + step. */
-function boardState() {
-  const v = VARIANTS[variant];
-  let crossed = [], accent = [], survivor = null, causes = [], settled = false;
-
-  if (v.kind === 'stepper') {
-    const s = STEPS[step];
-    causes = CAUSES.slice(0, s.causes);
-    crossed = causes.map((c) => c.value);
-    if (s.cross) accent = [s.cross];
-    settled = !!s.done;
-    survivor = settled ? 5 : null;
-  } else {
-    crossed = [1, 2, 3, 4];
-    survivor = 5;
-    settled = true;
-    if (v.rings) causes = CAUSES.slice();
-    if (v.accent) accent = [1, 2, 3, 4];
+function renderSeg() {
+  const root = document.getElementById('seg');
+  root.innerHTML = '';
+  for (const key of Object.keys(SCENARIOS)) {
+    const b = document.createElement('button');
+    b.className = key === scenario ? 'on' : '';
+    b.textContent = SCENARIOS[key].label;
+    b.onclick = () => { scenario = key; revealed = new Set(); marked = null; render(); };
+    root.appendChild(b);
   }
-  return { v, crossed, accent, survivor, settled, causes };
+}
+
+/** Region cells that should carry the value-set chip right now. */
+function chipKeys() {
+  const t = TREATMENTS[treatment];
+  const scn = SCENARIOS[scenario];
+  const cells = scn.region.cells;
+  if (t.show === 'each') return new Set(cells.map(refKey));
+  if (t.show === 'once') return new Set([refKey(nearestToTarget(cells, scn.target))]);
+  if (t.show === 'tap') return new Set(revealed);
+  return new Set();
+}
+function nearestToTarget(cells, target) {
+  const t = refToRC(target);
+  let best = cells[0], bd = Infinity;
+  for (const ref of cells) {
+    const p = refToRC(ref);
+    const d = Math.hypot(p.row - t.row, p.col - t.col);
+    if (d < bd) { bd = d; best = ref; }
+  }
+  return best;
 }
 
 function renderBoard() {
   const root = document.getElementById('board');
   root.innerHTML = '';
-  const st = boardState();
-  const causeKeys = new Map(st.causes.map((c) => [refKey(c.ref), c]));
-  const notes = {
-    crossed: new Set(st.crossed),
-    accent: new Set(st.accent),
-    survivor: st.survivor,
-  };
+  const scn = SCENARIOS[scenario];
+  const targetKey = refKey(scn.target);
+  const regionKeys = new Set(scn.region.cells.map(refKey));
+  const chips = chipKeys();
 
   for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
     const key = r + ',' + c;
-    const id = BOARD.cages[r][c];
+    const id = scn.cages[r][c];
     const cell = document.createElement('div');
-    cell.className = 'cell cage-' + BOARD.tint[id];
-    if (r > 0) cell.style.borderTop = edge(BOARD.cages[r - 1][c] !== id);
-    if (c > 0) cell.style.borderLeft = edge(BOARD.cages[r][c - 1] !== id);
+    cell.className = 'cell cage-' + scn.tint[id];
+    if (r > 0) cell.style.borderTop = edge(scn.cages[r - 1][c] !== id);
+    if (c > 0) cell.style.borderLeft = edge(scn.cages[r][c - 1] !== id);
 
-    const isTarget = TARGET[0] === r && TARGET[1] === c;
-    const cause = causeKeys.get(key);
+    const isTarget = key === targetKey;
+    const isRegion = regionKeys.has(key);
     if (isTarget) {
-      cell.classList.add(st.settled ? 'ring-target-done' : 'ring-target-open');
-      cell.appendChild(noteGrid(notes));
-    } else if (cause) {
-      cell.classList.add('ring-cause');
+      cell.classList.add('ring-target');
+      cell.appendChild(noteGrid());
+    } else if (isRegion) {
+      cell.classList.add('ring-region');
+      if (chips.has(key)) {
+        cell.classList.add('lit');
+        cell.appendChild(setChip(scn.region.set));
+      }
+    } else {
+      const val = scn.values[r][c];
+      if (val > 0) cell.appendChild(digit(val, scn.clue.has(key) ? 'v-clue' : 'v-player'));
     }
     if (marked === key) cell.classList.add('marked');
-
-    if (!isTarget) {
-      const val = BOARD.values[r][c];
-      if (val > 0) cell.appendChild(digit(val, BOARD.clue.has(key) ? 'v-clue' : 'v-player'));
-      if (cause && st.v.tags) cell.appendChild(causeTag(cause.value));
-    }
     root.appendChild(cell);
   }
 }
@@ -354,43 +373,45 @@ function digit(v, cls) {
   d.textContent = v;
   return d;
 }
-function causeTag(value) {
-  const t = document.createElement('span');
-  t.className = 'cause-tag';
-  t.textContent = '−' + value; // minus sign + value
-  return t;
-}
-function noteGrid(notes) {
+
+/** The target's candidate notes — 1–4 struck, 5 the survivor (ADR-0015). */
+function noteGrid() {
   const g = document.createElement('div');
   g.className = 'notes';
   for (let v = 1; v <= 5; v++) {
     const n = document.createElement('span');
-    n.className = 'note';
-    if (notes.survivor === v) n.classList.add('survivor');
-    else if (notes.crossed.has(v)) {
-      n.classList.add('crossed');
-      if (notes.accent.has(v)) n.classList.add('accent');
-    }
+    n.className = 'note' + (v === 5 ? ' survivor' : ' crossed');
     n.textContent = v;
     g.appendChild(n);
   }
   return g;
 }
 
+/** The value-set preview chip — a horizontal blue pill of digits. */
+function setChip(set) {
+  const chip = document.createElement('div');
+  chip.className = 'setchip' + (set.length > 2 ? ' wide' : '');
+  for (const v of set) {
+    const s = document.createElement('span');
+    s.className = 'sv';
+    s.style.fontSize = set.length > 2 ? '12px' : '15px';
+    s.textContent = v;
+    chip.appendChild(s);
+  }
+  return chip;
+}
+
 function renderHint() {
   const area = document.getElementById('hintArea');
   area.innerHTML = '';
-  const v = VARIANTS[variant];
+  const t = TREATMENTS[treatment];
+  const scn = SCENARIOS[scenario];
 
   const note = document.createElement('p');
   note.className = 'variant-note';
-  note.textContent = v.note;
+  note.textContent = t.note;
   area.appendChild(note);
 
-  area.appendChild(v.kind === 'stepper' ? stepperCard() : simpleCard(v));
-}
-
-function simpleCard(v) {
   const card = document.createElement('div');
   card.className = 'card';
   const badge = document.createElement('span');
@@ -398,73 +419,41 @@ function simpleCard(v) {
   badge.textContent = 'Forced move';
   const p = document.createElement('p');
   p.className = 'reason';
-  appendHintText(p, v.reason);
+  appendHintText(p, t.show === 'tap' ? scn.tapReason : scn.reason);
   card.append(badge, p);
-  return card;
+  area.appendChild(card);
 }
 
-function stepperCard() {
-  const card = document.createElement('div');
-  card.className = 'card';
-  const total = STEPS.length;
-
-  const badge = document.createElement('span');
-  badge.className = 'badge';
-  badge.style.marginBottom = '10px';
-  badge.textContent = 'Forced move';
-
-  const head = document.createElement('div');
-  head.className = 'step-head';
-  const cnt = document.createElement('span');
-  cnt.className = 'step-count';
-  cnt.textContent = 'STEP ' + (step + 1) + ' OF ' + total;
-  const nav = document.createElement('div');
-  nav.className = 'step-nav';
-  const prev = document.createElement('button');
-  prev.className = 'step-btn'; prev.textContent = '‹'; prev.disabled = step === 0;
-  prev.onclick = () => { if (step > 0) { step--; render(); } };
-  const next = document.createElement('button');
-  next.className = 'step-btn primary'; next.textContent = '›';
-  next.disabled = step === total - 1;
-  next.onclick = () => { if (step < total - 1) { step++; render(); } };
-  nav.append(prev, next);
-  head.append(cnt, nav);
-
-  const p = document.createElement('p');
-  p.className = 'step-text';
-  appendHintText(p, STEPS[step].text);
-
-  const dots = document.createElement('div');
-  dots.className = 'dots';
-  for (let i = 0; i < total; i++) {
-    const dot = document.createElement('div');
-    dot.className = 'dot';
-    if (i <= step) dot.style.background = 'var(--brand-600)';
-    dot.onclick = () => { step = i; render(); };
-    dots.appendChild(dot);
-  }
-
-  card.append(badge, head, p, dots);
-  return card;
-}
-
-/** Render text, turning A3-style references into tappable tokens. */
+/** Render text, turning A3-style references into tappable tokens. In the
+ *  Tap-to-reveal tab, references that name a region cell get a dashed
+ *  style and toggle that cell's value-set chip; everything else just
+ *  marks the cell. */
 function appendHintText(el, text) {
+  const t = TREATMENTS[treatment];
+  const scn = SCENARIOS[scenario];
+  const regionRefs = new Set(scn.region.cells);
   const parts = text.split(/\b([A-H][1-5])\b/g);
   parts.forEach((part) => {
-    if (/^[A-H][1-5]$/.test(part)) {
-      const btn = document.createElement('button');
-      btn.className = 'cellref';
-      btn.textContent = part;
-      btn.onclick = () => {
-        const key = refKey(part);
-        marked = marked === key ? null : key;
-        render();
-      };
-      el.appendChild(btn);
-    } else {
+    if (!/^[A-H][1-5]$/.test(part)) {
       el.appendChild(document.createTextNode(part));
+      return;
     }
+    const btn = document.createElement('button');
+    btn.className = 'cellref';
+    btn.textContent = part;
+    const isRevealable = t.show === 'tap' && regionRefs.has(part);
+    if (isRevealable) btn.classList.add('revealable');
+    btn.onclick = () => {
+      const key = refKey(part);
+      if (isRevealable) {
+        if (revealed.has(key)) revealed.delete(key);
+        else revealed.add(key);
+      } else {
+        marked = marked === key ? null : key;
+      }
+      render();
+    };
+    el.appendChild(btn);
   });
 }
 

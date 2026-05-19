@@ -4,20 +4,24 @@
 
 ## What it is
 
-One interactive page — [`index.html`](index.html) — exploring how to show the
-**cause cells** of a Forced move hint: the cells that already hold the values
-struck off the target.
+One interactive page — [`index.html`](index.html) — exploring how to preview
+the **value-set of a constrained empty region** in a Forced move hint.
 
-Four tabs on a fixed 5×5 board (target B4, causes B3 / C3 / A4 / A5):
+A scenario toggle compares a **2-cell pair** (`{1,2}`) against a crowded
+**4-cell L cage** (`{1,2,3,4}`). Four treatment tabs:
 
-- **Plain (today)** — baseline, target notes only.
-- **Cause rings** — cause cells ringed blue, matching struck digit turns blue.
-- **Cause tags** — rings plus a `−N` tag naming the value each cause knocks out.
-- **Stepped** — walk the deduction one cause at a time.
+- **Plain (today)** — region ringed but blank.
+- **Set in every cell** — value-set chip in every region cell.
+- **Set shown once** — chip on one region cell only; the rest ringed.
+- **Tap to reveal** — dashed cell-refs in the hint text reveal each cell's chip.
+
+The preview is a blue value-set chip — a horizontal digit row on a pill,
+deliberately unlike the 3-column pencil-mark note grid.
 
 Served locally (launch.json config `forced-move-causes`, port 7585).
 
 ## Next
 
 Jonas reviews and picks a treatment; the refinement pass folds it into
-`Cell.tsx` / `Board.tsx` and the `domination` path of `src/engine/hints.ts`.
+`Cell.tsx` / `Board.tsx` and the `domination` / pair-elimination paths of
+`src/engine/hints.ts`.

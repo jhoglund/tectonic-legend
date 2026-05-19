@@ -1,4 +1,4 @@
-# Brief — Forced move, showing the cause cells
+# Brief — Forced move, previewing a constrained region
 
 **Session:** 2026-05-19-forced-move-causes
 **Surface:** the Solve screen — the Forced move hint and its board
@@ -6,60 +6,73 @@
 
 ## The problem
 
-A Forced move hint draws candidate notes in the target cell: 1–4 struck,
-5 left in green (ADR-0015). It reads as "1, 2, 3 and 4 are blocked" — but
-the board never says **where** those values already sit. The player can see
-*that* a value is ruled out, not *why*.
+A Forced move draws candidate notes in the target cell: 1–4 struck, 5 left
+in green (ADR-0015). But the deduction usually leans on cells that are still
+**empty**. We can't show a value there — yet we often know the **value-set**
+a region of empty cells must hold between them:
 
-Jonas's note: for the Forced move on B4, it would help to show the 1 and 2
-in B3 and C3 (and the rest) so it's clear those cells are the cause of 1 and
-2 being struck for B4.
+- A **2-cell pair** (e.g. B3 + C3) constrained to `{1, 2}`.
+- A **4-cell L-shaped cage** constrained to `{1, 2, 3, 4}`.
+
+The board never previews that set today, so the player sees *that* a value is
+blocked, not *why*. The 2-cell case is easy — only two numbers. The 4-cell L
+risks being crowded, and whatever we draw must **not** read as the player's
+own pencil-mark notes.
 
 ## What this round explores
 
-Ways to surface the **cause cells** — the cells that block each value — next
-to the target. One interactive page (`index.html`): a fixed 5×5 board with a
-coordinate gutter, the Forced move hint card, and a tab per design option.
+Ways to preview a constrained empty region's value-set. One interactive page
+(`index.html`): a 5×5 board, a tab per treatment, and a scenario toggle so
+each treatment can be judged on **both** region sizes.
 
-The example: **B4** is the target. Its neighbours **B3 / C3** hold 1 / 2;
-its cage-mates **A4 / A5** hold 3 / 4 — so B4 is forced to 5.
+The preview is a **value-set chip** — a single horizontal row of digits on a
+faint blue pill, deliberately unlike the 3-column note grid.
 
-## The tabs
+## Scenarios (toggle)
+
+| Scenario | Region | Set |
+|----------|--------|-----|
+| 2-cell pair | B3 + C3 (empty) | `{1, 2}` |
+| 4-cell L cage | C2 + C3 + C4 + B4 (empty) | `{1, 2, 3, 4}` |
+
+## Treatments (tabs)
 
 | Tab | Treatment |
 |-----|-----------|
-| Plain (today) | Baseline — target notes only, no cause cells marked |
-| Cause rings | Each cause cell ringed blue; the matching struck digit in B4 turns blue |
-| Cause tags | Same rings, plus a `−N` tag in each cause naming the value it knocks out |
-| Stepped | Walk the deduction one cause at a time, striking values in sync |
+| Plain (today) | Region ringed but blank — the gap as it stands |
+| Set in every cell | The chip in every region cell — roomy for a pair, crowded for the L |
+| Set shown once | The chip on one region cell (nearest the target); the rest just ringed |
+| Tap to reveal | Region ringed and blank; dashed cell-refs in the hint text reveal each cell's chip on tap |
 
 ## Interactive
 
-- Tabs switch the treatment — board and hint card update together.
-- The Stepped tab steps with ‹ › or the dot track.
-- Cell references in the copy ("B3", "C3", …) are tappable monospace tokens;
-  tapping marks that cell.
+- Tabs switch the treatment; the toggle switches scenario.
+- Cell references in the hint copy are tappable. In **Tap to reveal**, refs
+  that name a region cell are dashed — tapping one lights that cell and shows
+  its value-set chip.
 
 ## What to give feedback on
 
-- **Which treatment** reads clearest without crowding the board.
-- Whether the blue colour-link (struck digit ↔ ringed cell) lands, or whether
-  the `−N` tag / the thread is needed to make the link explicit.
-- Copy of the hint card and the stepped walkthrough.
+- **Which treatment** previews the set clearly without crowding — especially
+  for the 4-cell L.
+- Whether the chip reads as distinct from pencil-mark notes.
+- Copy of the hint card.
 
 ## Constraints honoured
 
 - **Token-faithful** — surfaces, cage fills, hint-chain role colours, radii
-  and fonts mirrored from `src/index.css`. Cause cells use the deduction blue.
+  and fonts mirrored from `src/index.css`. The set chip uses a blue clearly
+  apart from the cage-tinted note ink.
 
 ## Not in scope / caveats
 
 - **Light-mode only.**
-- Illustrative board — one fixed example, not a solvable puzzle.
+- Illustrative boards — fixed examples, not solvable puzzles.
 - The keypad and toolbar are omitted — this round is only board + hint area.
 
 ## Next
 
 Jonas picks a treatment; a refinement pass folds it into `Cell.tsx` /
-`Board.tsx` and the Forced move (`domination`) path of `src/engine/hints.ts`,
-so the hint carries its cause cells alongside the candidate notes.
+`Board.tsx` and the `domination` / pair-elimination paths of
+`src/engine/hints.ts`, so a Forced move hint can carry the constrained
+value-set of its cause region.
