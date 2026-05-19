@@ -12,7 +12,7 @@ import { useGame } from '../hooks/useGame';
 import { analytics } from '../lib/analytics';
 import { useProfile } from '../lib/profileContext';
 import { usePaywall } from '../lib/paywallContext';
-import { isPremium } from '../lib/profile';
+import { isPremium, isDeveloper } from '../lib/profile';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
 
@@ -59,6 +59,7 @@ export function SolvingScreen({
   onExit,
 }: SolvingScreenProps) {
   const { profile } = useProfile();
+  const developer = isDeveloper(profile);
   const { openPaywall } = usePaywall();
   // Contradiction-chain hints are premium — gate them at the hint engine.
   const hintGate = useMemo(
@@ -94,6 +95,7 @@ export function SolvingScreen({
   );
 
   const [chainStepIndex, setChainStepIndex] = useState(0);
+  const [linkCopied, setLinkCopied] = useState(false);
   const chain = hint?.chain ?? null;
   const chainLength = chain?.length ?? 0;
 
@@ -324,6 +326,40 @@ export function SolvingScreen({
           >
             {timeStr} · {cellsLeft} left
           </div>
+
+          {/* Developer tool — copy a shareable link to this exact puzzle
+              state, so a questionable hint can be reproduced (ADR-0014). */}
+          {developer && (
+            <button
+              type="button"
+              onClick={async () => {
+                const url = getShareUrl();
+                if (!url) return;
+                try {
+                  await navigator.clipboard.writeText(url);
+                  setLinkCopied(true);
+                  setTimeout(() => setLinkCopied(false), 1600);
+                } catch {
+                  // clipboard blocked — nothing actionable here
+                }
+              }}
+              className="cursor-pointer"
+              style={{
+                marginTop: 'calc(-1 * var(--space-2))',
+                fontFamily: 'var(--font-mono)',
+                fontSize: '11px',
+                padding: '3px 10px',
+                borderRadius: 'var(--radius-chip)',
+                border: '1px solid var(--border)',
+                background: 'var(--surface-elevated)',
+                color: linkCopied
+                  ? 'var(--cell-conclusion)'
+                  : 'var(--text-tertiary)',
+              }}
+            >
+              {linkCopied ? 'puzzle link copied ✓' : 'DEV · copy puzzle link'}
+            </button>
+          )}
 
           <Board
             gameState={gameState}
