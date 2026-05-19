@@ -91,6 +91,9 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
   transition:color 160ms ease-out;}
 .note.crossed{text-decoration:line-through;text-decoration-thickness:2px;}
 .note.survivor{color:var(--cell-conclusion);font-weight:800;}
+/* a single value note — hidden single tracks one value across cells */
+.solonote{display:grid;place-items:center;width:100%;height:100%;}
+.solonote .note{font-size:27px;}
 
 /* cell states */
 .cell.hl-hint{background:#fcd34d;}
@@ -140,10 +143,11 @@ body{font-family:var(--font-ui);background:#eef0f2;color:var(--text-primary);
 <header class="page-head">
   <h1>Hint types — copy &amp; design review</h1>
   <p>Every hint the engine can surface, on one interactive screen. Tap a tab to
-  switch type. Cell references like <strong>C3</strong> are tappable — tap one
-  to mark that cell. Step the Contradiction and Pair-elimination walkthroughs
-  with the ‹&nbsp;› controls. Boards are illustrative; the copy mirrors what
-  the engine produces, ready to be rewritten. Session: 2026-05-19.</p>
+  switch type. Deductive hints show their reasoning as candidate notes on the
+  board (ADR-0015) — values crossed off until the answer remains. Cell
+  references like <strong>C3</strong> are tappable; step the Contradiction and
+  Pair-elimination walkthroughs with the ‹&nbsp;› controls. Boards are
+  illustrative. Session: 2026-05-19.</p>
 </header>
 
 <div class="phone">
@@ -202,22 +206,29 @@ const refKey = (ref) => { const p = refToRC(ref); return p.row + ',' + p.col; };
 /* ---- the eight tip types ----------------------------------------- */
 const TIPS = [
   {
-    id: 'naked', label: 'Naked single', badge: 'Naked single', kind: 'card',
-    cell: [1, 4],
-    reason: 'This cell must be 3 — 5 is already in its cage, 1 is in an '
-      + 'adjacent cell, and 2 is in an adjacent cell.',
+    id: 'naked', label: 'Naked single', badge: 'Naked single', kind: 'notes',
+    target: [1, 4], cageSize: 5, crossed: [1, 2, 4, 5], survivor: 3,
+    reason: 'Every value but 3 is blocked for this cell — 1 and 5 are already '
+      + 'in its cage, 2 and 4 sit in adjacent cells. So it must be 3.',
   },
   {
-    id: 'hidden', label: 'Hidden single', badge: 'Hidden single', kind: 'card',
-    cell: [2, 1],
-    reason: '4 must go here — it is the only cell in this 5-cell cage where 4 '
-      + 'can fit. C3 can’t be 4 — blocked by an adjacent 4.',
+    id: 'hidden', label: 'Hidden single', badge: 'Hidden single', kind: 'hidden',
+    value: 4,
+    cells: [
+      { ref: 'B3', struck: false },
+      { ref: 'C3', struck: true },
+      { ref: 'B4', struck: true },
+      { ref: 'C4', struck: true },
+      { ref: 'D4', struck: true },
+    ],
+    reason: '4 can land in only one cell of this cage — every other cell '
+      + 'already has a 4 beside it. So 4 goes in B3.',
   },
   {
-    id: 'forced', label: 'Forced move', badge: 'Forced move', kind: 'card',
-    cell: [3, 2],
-    reason: 'This cell touches every cell of a 4-cell cage, which must hold '
-      + '1, 2, 3 and 4 — so it can’t be any of them. It must be 5.',
+    id: 'forced', label: 'Forced move', badge: 'Forced move', kind: 'notes',
+    target: [3, 2], cageSize: 5, crossed: [1, 2, 3, 4], survivor: 5,
+    reason: 'This cell touches every cell of a 4-cell cage, which holds '
+      + '1, 2, 3 and 4 — so it can be none of them. It must be 5.',
   },
   {
     id: 'pair', label: 'Pair elimination', badge: 'Pair elimination',
@@ -260,9 +271,9 @@ const TIPS = [
     ],
   },
   {
-    id: 'candidates', label: 'Candidates', badge: 'Candidates', kind: 'card',
-    cell: [3, 3],
-    reason: 'Possible values: 2, 3 and 5.',
+    id: 'candidates', label: 'Candidates', badge: 'Candidates', kind: 'notes',
+    target: [3, 3], cageSize: 5, present: [2, 3, 5], crossed: [], survivor: null,
+    reason: 'The values still open for this cell — 2, 3 and 5.',
   },
   {
     id: 'reveal', label: 'Reveal', badge: 'Revealed cell', kind: 'card',
@@ -329,10 +340,25 @@ function boardState() {
   const highlight = {};   // 'r,c' -> hl class
   const ghost = {};       // 'r,c' -> value
   let notes = null;       // candidate notes in a target cell
+  let solo = null;        // one value tracked across cells (hidden single)
 
   if (tip.kind === 'card') {
     if (tip.cell) highlight[tip.cell.join(',')] = 'hl-hint';
     for (const [r, c] of tip.errorCells || []) highlight[r + ',' + c] = 'hl-error';
+  } else if (tip.kind === 'notes') {
+    highlight[tip.target.join(',')] = tip.survivor ? 'hl-conclusion' : 'hl-hint';
+    notes = {
+      cell: tip.target, cageSize: tip.cageSize,
+      present: tip.present ? new Set(tip.present) : null,
+      crossed: new Set(tip.crossed), survivor: tip.survivor,
+    };
+  } else if (tip.kind === 'hidden') {
+    solo = { value: tip.value, cells: [] };
+    for (const { ref, struck } of tip.cells) {
+      const p = refToRC(ref);
+      solo.cells.push({ row: p.row, col: p.col, struck });
+      if (!struck) highlight[p.row + ',' + p.col] = 'hl-conclusion';
+    }
   } else if (tip.kind === 'stepper') {
     for (let j = 1; j <= step; j++) {
       const e = tip.chain[j];
@@ -349,13 +375,13 @@ function boardState() {
       crossed: new Set(s.crossed), survivor: s.survivor,
     };
   }
-  return { board, highlight, ghost, notes };
+  return { board, highlight, ghost, notes, solo };
 }
 
 function renderBoard() {
   const root = document.getElementById('board');
   root.innerHTML = '';
-  const { board, highlight, ghost, notes } = boardState();
+  const { board, highlight, ghost, notes, solo } = boardState();
   for (let r = 0; r < 5; r++) for (let c = 0; c < 5; c++) {
     const key = r + ',' + c;
     const id = board.cages[r][c];
@@ -366,8 +392,11 @@ function renderBoard() {
     if (highlight[key]) cell.classList.add(highlight[key]);
     if (marked === key) cell.classList.add('marked');
 
+    const soloCell = solo && solo.cells.find((x) => x.row === r && x.col === c);
     if (notes && notes.cell[0] === r && notes.cell[1] === c) {
       cell.appendChild(noteGrid(notes));
+    } else if (soloCell) {
+      cell.appendChild(soloNote(solo.value, soloCell.struck));
     } else {
       const val = board.values[r][c];
       if (val > 0) cell.appendChild(digit(val, board.clue.has(key) ? 'v-clue' : 'v-player'));
@@ -393,12 +422,26 @@ function noteGrid(notes) {
   for (let v = 1; v <= notes.cageSize; v++) {
     const n = document.createElement('span');
     n.className = 'note';
+    // `present` (when set) limits which candidates carry a digit at all —
+    // the rest are blank slots, as a player's own pencil marks would be.
+    if (notes.present && !notes.present.has(v)) { g.appendChild(n); continue; }
     if (notes.survivor === v) n.classList.add('survivor');
     else if (notes.crossed.has(v)) n.classList.add('crossed');
     n.textContent = v;
     g.appendChild(n);
   }
   return g;
+}
+
+/** One value drawn as a note — hidden single tracks a value across cells. */
+function soloNote(value, struck) {
+  const wrap = document.createElement('div');
+  wrap.className = 'solonote';
+  const n = document.createElement('span');
+  n.className = 'note ' + (struck ? 'crossed' : 'survivor');
+  n.textContent = value;
+  wrap.appendChild(n);
+  return wrap;
 }
 
 function renderHint() {
