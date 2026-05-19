@@ -50,3 +50,4 @@ The decision itself. 1–3 sentences.
 | [0012](ADR-0012-difficulty-is-player-choice.md) | Difficulty is player-choice — stage gating disabled | Accepted |
 | [0013](ADR-0013-supabase-as-the-backend.md) | Supabase as the backend platform | Accepted |
 | [0014](ADR-0014-developer-role-and-debug-panel.md) | Developer role and in-app debug panel | Accepted |
+| [0015](ADR-0015-notes-as-hint-visual-language.md) | Candidate notes as the hint visual language | Accepted |
