@@ -121,8 +121,10 @@ export function Cell({
   const stateBgClass = isHinted ? 'bg-amber-300' : isError ? 'bg-red-200' : '';
   const dimClass = isDimmed ? 'opacity-30' : '';
   // The selected cell gets the `.cell-selected` cage-tint class — a
-  // darker tint of its own cage — unless hint / error already own it.
-  const selectedTint = isSelected && !stateBgClass;
+  // darker tint of its own cage — unless a hint / error already owns
+  // it. A notes hint owns the cell too: its ring stands in for the
+  // selection ring, so the selection tint steps aside.
+  const selectedTint = isSelected && !stateBgClass && !hintNotes;
 
   // Background: hint / error and the selected cell come from classes;
   // every other cell takes its cage fill inline.
@@ -142,15 +144,6 @@ export function Cell({
   const shadows: string[] = [];
   if (cellHighlight) {
     shadows.push(`inset 0 0 0 2px ${HIGHLIGHT_COLOR[cellHighlight]}`);
-  }
-  // A notes hint rings its target cell — the conclusion colour when the
-  // answer is settled (naked single, forced move, …), the assumption
-  // colour for a bare candidate list.
-  if (hintNotes) {
-    const settled = hintNotes.kind === 'answer' || hintNotes.survivor !== undefined;
-    shadows.push(
-      `inset 0 0 0 3px ${settled ? HIGHLIGHT_COLOR.conclusion : HIGHLIGHT_COLOR.assumption}`,
-    );
   }
   const cage: string[] = [];
   const inner: string[] = [];
@@ -187,6 +180,25 @@ export function Cell({
     borders.bottom === 'cage' ? `inset 0 -2px 0 0 ${rc}` : `0 2px 0 0 ${rc}`,
   ].join(', ');
 
+  // A notes hint rings its target cell (ADR-0015) — conclusion green
+  // when the answer is settled, assumption amber for a bare candidate
+  // list. Like the selection ring it is a raised child layer with
+  // per-edge geometry, so an interior bottom/right edge sits *on* the
+  // grid line and replaces it instead of doubling it.
+  const hintSettled =
+    !!hintNotes &&
+    (hintNotes.kind === 'answer' ||
+      (hintNotes.kind === 'grid' && hintNotes.survivor !== undefined));
+  const hrc = hintSettled
+    ? HIGHLIGHT_COLOR.conclusion
+    : HIGHLIGHT_COLOR.assumption;
+  const hintRingShadow = [
+    `inset 0 3px 0 0 ${hrc}`,
+    `inset 3px 0 0 0 ${hrc}`,
+    borders.right === 'cage' ? `inset -3px 0 0 0 ${hrc}` : `3px 0 0 0 ${hrc}`,
+    borders.bottom === 'cage' ? `inset 0 -3px 0 0 ${hrc}` : `0 3px 0 0 ${hrc}`,
+  ].join(', ');
+
   // A board-corner cell rounds that corner, so its frame box-shadow
   // (and the selection ring) follow the board's radius.
   const cornerRadius =
@@ -212,15 +224,15 @@ export function Cell({
         ...cornerRadius,
         ...(background ? { background } : {}),
         ...(shadows.length ? { boxShadow: shadows.join(', ') } : {}),
-        // Raise the selected cell so its ring child's outset segments
-        // sit above the neighbouring cells' grid lines.
-        ...(isSelected ? { zIndex: 5 } : {}),
+        // Raise a selected or hinted cell so its ring child's outset
+        // segments sit above the neighbouring cells' grid lines.
+        ...(isSelected || hintNotes ? { zIndex: 5 } : {}),
       }}
       onClick={onClick}
     >
       {/* Cage-corner patch — closes a cage L whose corner falls in this
           cell but is reached by neither of its own edges. */}
-      {!isSelected && borders.cornerTL && (
+      {!isSelected && !hintNotes && borders.cornerTL && (
         <span
           aria-hidden="true"
           style={{
@@ -234,8 +246,9 @@ export function Cell({
         />
       )}
       {/* Selection ring — a child layer so it fades in cleanly
-          (cell-ring-in). See `ringShadow` for the per-edge geometry. */}
-      {isSelected && (
+          (cell-ring-in). See `ringShadow` for the per-edge geometry. A
+          notes hint owns the cell, so its ring stands in for this one. */}
+      {isSelected && !hintNotes && (
         <span
           aria-hidden="true"
           style={{
@@ -244,6 +257,23 @@ export function Cell({
             pointerEvents: 'none',
             ...cornerRadius,
             boxShadow: ringShadow,
+            animation: 'cell-ring-in var(--motion-fast)',
+          }}
+        />
+      )}
+      {/* Hint ring — a raised child layer with the same per-edge
+          geometry as the selection ring, so an interior bottom/right
+          edge sits *on* the grid line rather than beside it (which read
+          as a thicker ring). See `hintRingShadow`. */}
+      {hintNotes && (
+        <span
+          aria-hidden="true"
+          style={{
+            position: 'absolute',
+            inset: 0,
+            pointerEvents: 'none',
+            ...cornerRadius,
+            boxShadow: hintRingShadow,
             animation: 'cell-ring-in var(--motion-fast)',
           }}
         />
