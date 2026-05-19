@@ -223,6 +223,12 @@ const ROLE_COLOR = {
   assumption: 'var(--cell-assumption)', deduction: 'var(--cell-deduction)',
   contradiction: 'var(--cell-contradiction)', conclusion: 'var(--cell-conclusion)',
 };
+/* The phase each step belongs to — named next to the step counter so
+   the coloured dot track decodes itself. */
+const PHASE = {
+  assumption: 'SETUP', deduction: 'DEDUCTION',
+  contradiction: 'CONTRADICTION', conclusion: 'CONCLUSION',
+};
 
 /* ---- state ------------------------------------------------------- */
 let tipIndex = 0;
@@ -346,7 +352,13 @@ function stepperCard(tip) {
   head.className = 'step-head';
   const count = document.createElement('span');
   count.className = 'step-count';
-  count.textContent = 'STEP ' + (step + 1) + ' OF ' + chain.length;
+  count.append(
+    document.createTextNode('STEP ' + (step + 1) + ' OF ' + chain.length + ' · '),
+  );
+  const phase = document.createElement('span');
+  phase.textContent = PHASE[entry.role];
+  phase.style.color = ROLE_COLOR[entry.role];
+  count.appendChild(phase);
   const nav = document.createElement('div');
   nav.className = 'step-nav';
   const prev = document.createElement('button');
