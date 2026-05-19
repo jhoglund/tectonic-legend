@@ -30,6 +30,12 @@
       "runtimeExecutable": "python3",
       "runtimeArgs": ["-m", "http.server", "7583", "--directory", "prototypes/2026-05-19-hint-types"],
       "port": 7583
+    },
+    {
+      "name": "note-tint",
+      "runtimeExecutable": "python3",
+      "runtimeArgs": ["-m", "http.server", "7584", "--directory", "prototypes/2026-05-19-note-tint"],
+      "port": 7584
     }
   ]
 }
