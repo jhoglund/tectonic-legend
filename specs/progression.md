@@ -18,8 +18,9 @@ A player is in exactly one stage at any time. Stages are advanced by demonstrati
 | 2 | **Confident** | + Medium | `naked-single` mastered (see §3) |
 | 3 | **Advanced** | + Hard | `hidden-single` mastered |
 | 4 | **Master** | + Expert | `forced-move` mastered AND 5 Hard solves |
+| 5 | **Legend** | (no new difficulty) | Every technique at Legend depth — see [ADR-0018](../docs/decisions/ADR-0018-legend-stage-and-mastery-depth.md) |
 
-Stages are stored in the player profile as `stage: 0 | 1 | 2 | 3 | 4`. The transition function `nextStageFor(profile): Stage | null` is a pure function in `src/lib/progression.ts` (to be written).
+Stages are stored in the player profile as `stage: 0 | 1 | 2 | 3 | 4 | 5`. The transition function `nextStageFor(profile): Stage | null` is a pure function in `src/lib/progression.ts`. Stage 5 is the entry rung of the Legend climb; the higher rungs (Apprentice → Adept → Grand → Mythic Legend) and the daily-puzzle leaderboard are specified in [ADR-0019](../docs/decisions/ADR-0019-legend-tiers-and-leaderboard.md) and carried on the profile as `legendRung: 0 | 1 | 2 | 3 | 4`.
 
 ### Down-stage policy
 
@@ -59,14 +60,20 @@ type TechniqueMastery = {
 
 The five slots map to hint-engine techniques per [`solving-techniques.md` §11](solving-techniques.md): `naked-single` and `hidden-single` are the basic singles, `forced-move` is **cage domination** (a cell that sees a whole adjacent cage's values), `pair-elimination` is the naked/hidden-subset and locked-candidate elimination pass, and `contradiction-chain` is the trial fallback of last resort.
 
-### Mastery thresholds
+### Mastery depth score
 
-A technique is **mastered** when:
+[ADR-0018](../docs/decisions/ADR-0018-legend-stage-and-mastery-depth.md) replaces the raw `selfAppliedCount >= 8` threshold with a composite 0–100 **depth score** per technique, weighted `40 / 30 / 20 / 10` over self-applications, distinct puzzles, solve quality (hint ratio + error rate + time-vs-par), and difficulty mix. The score is hidden from the player; the **chip + a non-numeric progress bar** are the surface (§9 anti-pattern still holds — no numbers in the UI).
 
-- `selfAppliedCount >= 8`, AND
-- `puzzlesContaining >= 3`.
+Chip state thresholds:
 
-These are first-draft values. Real soft-launch data may move them — tracked as an Open Question in [`docs/backlog.md`](../docs/backlog.md). Adjusting thresholds is a one-line change in `src/lib/progression.ts`.
+| State | Condition |
+|-------|-----------|
+| `learning` | `depth < 25` |
+| `familiar` | `25 ≤ depth < 60` |
+| `mastered` | `depth ≥ 60` **and** `puzzlesContaining ≥ 3` |
+| `legend` | `depth ≥ 90` **and** `puzzlesContaining ≥ 8` |
+
+The existing `mastered` boundary (selfApplied 8 / puzzles 3) lands at depth ≈ 60 by design, so a player who is mastered today stays mastered after the migration. Above `legend`, [ADR-0019](../docs/decisions/ADR-0019-legend-tiers-and-leaderboard.md) defines the higher rungs (Adept / Grand / Mythic Legend). All thresholds are first-draft; calibration source is soft-launch data.
 
 ### What counts as "self-applied"
 
@@ -78,15 +85,16 @@ If the player used a hint, the move is `assisted` and counts toward `usedCount` 
 
 ### Surfacing mastery
 
-Each technique gets a chip with three visual states. The chip appears in stats and on the post-solve summary.
+Each technique gets a chip with four visual states + a non-numeric progress bar beneath. The chip + bar appear in Stats and on the Solved screen.
 
-| State | Condition | Visual |
-|-------|-----------|--------|
-| `learning` | `usedCount < 5` | Outline chip, muted color |
-| `familiar` | `usedCount >= 5` AND not mastered | Filled chip, brand color |
-| `mastered` | mastery condition met | Filled chip with checkmark, brand emerald |
+| State | Visual |
+|-------|--------|
+| `learning` | Outline chip, muted colour |
+| `familiar` | Filled chip, brand colour |
+| `mastered` | Filled chip with checkmark, brand emerald |
+| `legend` | Filled chip with a gem halo; the halo's accent reflects the current Legend rung ([ADR-0019](../docs/decisions/ADR-0019-legend-tiers-and-leaderboard.md)) |
 
-Mastery is never expressed as a raw number to the player. The chip is the entire surface.
+Mastery is never expressed as a raw number to the player. The chip + progress bar are the entire surface; the depth score is internal.
 
 ---
 
@@ -170,7 +178,8 @@ The player profile is the data behind all of this. Local-only in v1; designed to
 
 ```ts
 type PlayerProfile = {
-  stage: 0 | 1 | 2 | 3 | 4;
+  stage: 0 | 1 | 2 | 3 | 4 | 5;
+  legendRung: 0 | 1 | 2 | 3 | 4;    // 0 = pre-Legend; 1–4 = Apprentice → Mythic (ADR-0019)
   techniques: Record<TechniqueName, TechniqueMastery>;
   tutorialsCompleted: number;       // Newcomer tutorials done — gates stage 0 → 1
   solveHistory: SolveRecord[];      // capped at last 1000
@@ -178,7 +187,7 @@ type PlayerProfile = {
   tier: 'free' | 'premium';
   premiumExpiresAt?: string;        // ISO date, for receipt-validated subs
   settings: { theme: string; sound: boolean; haptics: boolean };
-  schemaVersion: 1;
+  schemaVersion: 2;
 };
 
 type SolveRecord = {
@@ -186,12 +195,14 @@ type SolveRecord = {
   difficulty: Difficulty;
   gridSize: GridSize;
   timeMs: number;
+  parTimeMs?: number;               // benchmark for QUALITY's time term (ADR-0018)
   hintsUsed: { technique: TechniqueName; count: number }[];
+  errorsValidated: number;          // distinct wrong cells the player tapped Validate on
   isDailyPuzzle: boolean;
 };
 ```
 
-`schemaVersion: 1` is mandatory. Schema migrations are pure functions in `src/lib/profile-migrations.ts` (to be written when v2 ships).
+`schemaVersion: 2` is mandatory after [ADR-0018](../docs/decisions/ADR-0018-legend-stage-and-mastery-depth.md). The 1 → 2 migration in `src/lib/profile-migrations.ts` seeds `legendRung: 0`, `errorsValidated: 0` on existing solve records, and leaves `parTimeMs` undefined (it's derived from a difficulty × grid-size lookup at depth-score time when unset).
 
 ---
 
