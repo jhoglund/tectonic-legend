@@ -23,12 +23,17 @@ export function useDevView(): DevViewContextValue {
   return { viewAsGuest: false, setViewAsGuest: () => {} };
 }
 
-/** True iff the player has the developer role AND isn't viewing as a
- *  guest. Use this in place of `isDeveloper(profile)` at every UI
- *  surface that should hide for a developer previewing the guest path. */
+/** True iff developer UI should be shown right now. Three paths reach
+ *  it (ADR-0017): a dev build (`import.meta.env.DEV` — local `npm run
+ *  dev`, so no 7-tap or sign-in is needed during development), the
+ *  developer role on the profile (allowlisted email, or unlocked by
+ *  the 7-tap gesture), or — never — `viewAsGuest` overrides all of
+ *  them so a developer can preview the new-player experience. */
 export function useEffectiveDeveloper(
   isDeveloperFromProfile: boolean,
 ): boolean {
   const { viewAsGuest } = useDevView();
-  return isDeveloperFromProfile && !viewAsGuest;
+  if (viewAsGuest) return false;
+  if (import.meta.env.DEV) return true;
+  return isDeveloperFromProfile;
 }

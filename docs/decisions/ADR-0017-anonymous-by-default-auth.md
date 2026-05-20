@@ -30,12 +30,15 @@ Adopt **anonymous-by-default authentication, with account upgrade at value momen
 
 ### Developer access (refines [ADR-0014](ADR-0014-developer-role-and-debug-panel.md))
 
-The developer role still gates the in-app debug panel, with two paths to reach it:
+The in-app debug panel is reached by any of three paths, in this order of precedence:
 
+- **Dev build** (`import.meta.env.DEV === true`) — local `npm run dev` is always elevated; no 7-tap or sign-in needed during development. Production builds don't take this path.
 - **7-tap version row** (ADR-0014) — works on any device, no sign-in needed.
 - **Developer-allowlisted email** — auto-elevates on sign-in, as today.
 
-A "View as guest" toggle in the dev menu temporarily suppresses `isDeveloper()` at the consumer level — the developer can preview the new-player experience without signing out and losing the elevated role.
+A "View as guest" toggle in the dev menu overrides all three — the developer can preview the new-player experience without signing out and losing the elevated role. The toggle is persisted to `localStorage` so it survives a reload.
+
+Consumers read this combined state through `useEffectiveDeveloper(isDeveloperFromProfile)` (in `src/lib/devViewContext.ts`), so the policy is one chokepoint instead of being repeated at every gate.
 
 ## Consequences
 
