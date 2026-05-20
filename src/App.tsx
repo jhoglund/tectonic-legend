@@ -7,6 +7,7 @@ import { SettingsScreen } from './screens/SettingsScreen';
 import { AuthProvider } from './lib/AuthProvider';
 import { ProfileProvider } from './lib/ProfileProvider';
 import { PaywallProvider } from './lib/PaywallProvider';
+import { DevViewProvider } from './lib/DevViewProvider';
 
 /**
  * App shell — a phone-width column with a three-tab bottom bar
@@ -23,6 +24,7 @@ function App() {
     <AuthProvider>
       <ProfileProvider>
         <PaywallProvider>
+        <DevViewProvider>
           <div style={{ background: 'var(--surface)', minHeight: '100dvh' }}>
             {/* Phone-width column, centred via margin auto. Not a flex child —
                 flex items default to min-width:auto and would refuse to cap. */}
@@ -42,6 +44,7 @@ function App() {
               <TabBar active={tab} onChange={setTab} />
             </div>
           </div>
+        </DevViewProvider>
         </PaywallProvider>
       </ProfileProvider>
     </AuthProvider>

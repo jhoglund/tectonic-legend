@@ -6,6 +6,7 @@ import { DevTools } from '../components/DevTools';
 import { useProfile } from '../lib/profileContext';
 import { useAuth } from '../lib/authContext';
 import { isPremium, isDeveloper } from '../lib/profile';
+import { useEffectiveDeveloper } from '../lib/devViewContext';
 
 /** Taps on the Version row that unlock the developer role (ADR-0014). */
 const DEV_UNLOCK_TAPS = 7;
@@ -62,12 +63,18 @@ export function SettingsScreen() {
   // increments synchronously so rapid taps all land.
   const versionTaps = useRef(0);
 
-  const developer = isDeveloper(profile);
+  // The underlying role from the profile, and the effective flag the
+  // UI uses — the View-as-guest toggle (ADR-0017) flips `developer`
+  // off without changing the role, so the developer can preview the
+  // new-player experience.
+  const isDev = isDeveloper(profile);
+  const developer = useEffectiveDeveloper(isDev);
 
   // The Version row is the hidden developer-mode unlock — tap it
-  // DEV_UNLOCK_TAPS times (ADR-0014).
+  // DEV_UNLOCK_TAPS times (ADR-0014). Honour the underlying role so a
+  // developer viewing as guest doesn't double-elevate by accident.
   function tapVersion() {
-    if (developer) return;
+    if (isDev) return;
     versionTaps.current += 1;
     if (versionTaps.current >= DEV_UNLOCK_TAPS) {
       versionTaps.current = 0;
@@ -150,23 +157,30 @@ export function SettingsScreen() {
               ) : (
                 <>
                   <p
+                    className="text-sm font-medium"
+                    style={{ color: 'var(--text-primary)' }}
+                  >
+                    Playing as a guest
+                  </p>
+                  <p
                     className="text-sm"
                     style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
                   >
-                    Sign in to keep your progress safe and sync it across your
-                    devices.
+                    Save your progress to keep your puzzles, mastery and streak
+                    safe — and sync them across your devices.
                   </p>
                   <button
                     type="button"
                     onClick={() => setAuthOpen(true)}
-                    className="cursor-pointer py-2.5 text-sm font-medium"
+                    className="cursor-pointer py-2.5 text-sm font-semibold"
                     style={{
-                      color: 'var(--brand-600)',
-                      border: '1px solid var(--border)',
+                      color: 'var(--text-on-brand)',
+                      background: 'var(--brand-600)',
+                      border: '1px solid var(--brand-600)',
                       borderRadius: 'var(--radius-button)',
                     }}
                   >
-                    Sign in or create account
+                    Save your progress
                   </button>
                 </>
               )}

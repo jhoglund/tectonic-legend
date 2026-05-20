@@ -14,6 +14,7 @@ import { analytics } from '../lib/analytics';
 import { useProfile } from '../lib/profileContext';
 import { usePaywall } from '../lib/paywallContext';
 import { isPremium, isDeveloper } from '../lib/profile';
+import { useEffectiveDeveloper } from '../lib/devViewContext';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
 import type { HintNotes } from '../engine/hints';
@@ -61,7 +62,10 @@ export function SolvingScreen({
   onExit,
 }: SolvingScreenProps) {
   const { profile } = useProfile();
-  const developer = isDeveloper(profile);
+  // The View-as-guest toggle (ADR-0017) flips this off without losing
+  // the underlying developer role, so the dev can preview the player
+  // surface without signing out.
+  const developer = useEffectiveDeveloper(isDeveloper(profile));
   const { openPaywall } = usePaywall();
   // Contradiction-chain hints are premium — gate them at the hint engine.
   const hintGate = useMemo(
