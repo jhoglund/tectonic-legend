@@ -1,0 +1,303 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Toolbar icons + Validate success — prototype</title>
+<style>
+  :root {
+    --brand-600: #0891b2;
+    --text-primary: #0a0a0a;
+    --text-secondary: #525252;
+    --text-tertiary: #a3a3a3;
+    --text-on-brand: #ffffff;
+    --text-on-pressed: #ffffff;
+    --surface: #fafafa;
+    --surface-elevated: #ffffff;
+    --surface-active: #e5e5e5;
+    --surface-pressed: #404040;
+    --border: #e5e5e5;
+    --success: #10b981;
+    --success-dark: #065f46;
+    --danger: #dc2626;
+    --radius-button: 8px;
+    --radius-chip: 999px;
+    --motion-fast: 120ms ease-out;
+    --motion-base: 200ms ease-out;
+    --font-mono: 'JetBrains Mono', ui-monospace, monospace;
+  }
+  @media (prefers-color-scheme: dark) {
+    :root {
+      --brand-600: #06b6d4;
+      --text-primary: #fafafa;
+      --text-secondary: #a3a3a3;
+      --text-tertiary: #737373;
+      --text-on-brand: #0a0a0a;
+      --text-on-pressed: #0a0a0a;
+      --surface: #0a0a0a;
+      --surface-elevated: #171717;
+      --surface-active: #2a2a2a;
+      --surface-pressed: #e5e5e5;
+      --border: #2a2a2a;
+      --success: #34d399;
+      --success-dark: #064e3b;
+      --danger: #f87171;
+    }
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: Inter, system-ui, sans-serif;
+    background: var(--surface);
+    color: var(--text-primary);
+    padding: 24px 16px 64px;
+    max-width: 420px;
+    margin: 0 auto;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin-bottom: 4px; }
+  h2 { font-size: 15px; font-weight: 600; margin: 32px 0 12px; color: var(--text-secondary); }
+  p.desc { font-size: 13px; color: var(--text-tertiary); margin-bottom: 24px; line-height: 1.5; }
+
+  .toolbar {
+    display: flex;
+    width: 100%;
+    gap: 8px;
+  }
+
+  .solve-tool-icon {
+    flex: 1;
+    height: 40px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-button);
+    border: 1px solid var(--border);
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    transition: background-color var(--motion-base),
+      border-color var(--motion-base), color var(--motion-base);
+  }
+  .solve-tool-icon.is-active {
+    background: var(--surface-active);
+    border-color: var(--surface-active);
+  }
+  .solve-tool-icon:active {
+    background: var(--surface-pressed);
+    border-color: var(--surface-pressed);
+    color: var(--text-on-pressed);
+  }
+  .solve-tool-icon svg { flex-shrink: 0; }
+
+  .solve-undo {
+    flex: 0 0 auto;
+    width: 40px;
+    height: 40px;
+    cursor: pointer;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--border);
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+    display: grid;
+    place-items: center;
+    transition: background-color var(--motion-base),
+      border-color var(--motion-base), color var(--motion-base);
+  }
+  .solve-undo:active {
+    background: var(--surface-pressed);
+    border-color: var(--surface-pressed);
+    color: var(--text-on-pressed);
+  }
+
+  /* Validate success: green bg, dark green text */
+  .solve-tool-icon.validate-ok {
+    background: var(--success);
+    border-color: var(--success);
+    color: var(--success-dark);
+    transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+  }
+  .solve-tool-icon.validate-fade {
+    transition: background-color 1.8s ease-in, border-color 1.8s ease-in, color 1.8s ease-in;
+  }
+
+  .demo-row { margin-bottom: 8px; }
+  .demo-label {
+    font-size: 11px;
+    font-family: var(--font-mono);
+    color: var(--text-tertiary);
+    margin-bottom: 6px;
+  }
+  hr { border: none; border-top: 1px solid var(--border); margin: 16px 0; }
+  .try-btn {
+    display: inline-block;
+    margin-top: 10px;
+    padding: 6px 14px;
+    font-size: 12px;
+    font-weight: 500;
+    cursor: pointer;
+    border-radius: var(--radius-chip);
+    border: 1px solid var(--brand-600);
+    background: transparent;
+    color: var(--brand-600);
+  }
+  .try-btn:active { opacity: 0.7; }
+</style>
+</head>
+<body>
+
+<h1>Toolbar B — icon + label, eraser variants</h1>
+<p class="desc">
+  Inline icons (Heroicons outline 16px). Validate success flashes green
+  background with dark-green label, then fades back. Clear = erase selected cell,
+  not delete — three icon options below.
+</p>
+
+<!-- ============================================================ -->
+<h2>B1. Eraser icon (backspace style)</h2>
+<div class="demo-label">Heroicons "backspace" — the classic eraser/delete-character glyph</div>
+<!-- ============================================================ -->
+
+<div class="demo-row">
+  <div class="toolbar">
+    <button class="solve-tool-icon is-active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+      Notes
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>
+      Hint
+    </button>
+    <button class="solve-tool-icon" id="v1" onclick="flashValidate(this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      Check
+    </button>
+    <button class="solve-tool-icon">
+      <!-- Backspace / eraser -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9.75L14.25 12m0 0l2.25 2.25M14.25 12l2.25-2.25M14.25 12L12 14.25m-2.58 4.92l-6.862-6.862a1.5 1.5 0 0 1 0-2.121L9.42 3.07a1.5 1.5 0 0 1 1.06-.44h9.77a1.5 1.5 0 0 1 1.5 1.5v15.74a1.5 1.5 0 0 1-1.5 1.5h-9.77a1.5 1.5 0 0 1-1.06-.44z"/></svg>
+      Clear
+    </button>
+    <button class="solve-undo" aria-label="Undo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg>
+    </button>
+  </div>
+  <button class="try-btn" onclick="flashValidate(document.getElementById('v1'))">Try validate (no errors)</button>
+</div>
+
+<!-- ============================================================ -->
+<h2>B2. X-circle icon</h2>
+<div class="demo-label">Heroicons "x-circle" — clear/remove, less dramatic than trash</div>
+<!-- ============================================================ -->
+
+<div class="demo-row">
+  <div class="toolbar">
+    <button class="solve-tool-icon is-active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+      Notes
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>
+      Hint
+    </button>
+    <button class="solve-tool-icon" id="v2" onclick="flashValidate(this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      Check
+    </button>
+    <button class="solve-tool-icon">
+      <!-- X-circle -->
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      Clear
+    </button>
+    <button class="solve-undo" aria-label="Undo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg>
+    </button>
+  </div>
+  <button class="try-btn" onclick="flashValidate(document.getElementById('v2'))">Try validate (no errors)</button>
+</div>
+
+<!-- ============================================================ -->
+<h2>B3. Pencil eraser (custom)</h2>
+<div class="demo-label">A classic flat eraser — the physical-eraser metaphor for "rub out this cell"</div>
+<!-- ============================================================ -->
+
+<div class="demo-row">
+  <div class="toolbar">
+    <button class="solve-tool-icon is-active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+      Notes
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>
+      Hint
+    </button>
+    <button class="solve-tool-icon" id="v3" onclick="flashValidate(this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      Check
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M216,207.833H130.344l34.729-34.73.017-.014.015-.017,56.553-56.553a24.03,24.03,0,0,0,0-33.941L176.403,37.323a24,24,0,0,0-33.941,0L85.903,93.882l-.01.01-.01.01L29.324,150.461a24,24,0,0,0,0,33.941l37.089,37.088a8,8,0,0,0,5.657,2.343H216a8,8,0,0,0,0-16ZM153.776,48.638a8,8,0,0,1,11.313,0l45.255,45.255a8.009,8.009,0,0,1,0,11.313l-50.911,50.911L102.865,99.549Z"/></svg>
+      Clear
+    </button>
+    <button class="solve-undo" aria-label="Undo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg>
+    </button>
+  </div>
+  <button class="try-btn" onclick="flashValidate(document.getElementById('v3'))">Try validate (no errors)</button>
+</div>
+
+<!-- ============================================================ -->
+<hr>
+<h2>B4. "Erase" label instead of "Clear"</h2>
+<div class="demo-label">Same eraser icon as B3 but with "Erase" — might read better for a single cell</div>
+<!-- ============================================================ -->
+
+<div class="demo-row">
+  <div class="toolbar">
+    <button class="solve-tool-icon is-active">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+      Notes
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><circle cx="12" cy="17" r=".5"/></svg>
+      Hint
+    </button>
+    <button class="solve-tool-icon" id="v4" onclick="flashValidate(this)">
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z"/></svg>
+      Check
+    </button>
+    <button class="solve-tool-icon">
+      <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor"><path d="M216,207.833H130.344l34.729-34.73.017-.014.015-.017,56.553-56.553a24.03,24.03,0,0,0,0-33.941L176.403,37.323a24,24,0,0,0-33.941,0L85.903,93.882l-.01.01-.01.01L29.324,150.461a24,24,0,0,0,0,33.941l37.089,37.088a8,8,0,0,0,5.657,2.343H216a8,8,0,0,0,0-16ZM153.776,48.638a8,8,0,0,1,11.313,0l45.255,45.255a8.009,8.009,0,0,1,0,11.313l-50.911,50.911L102.865,99.549Z"/></svg>
+      Erase
+    </button>
+    <button class="solve-undo" aria-label="Undo">
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path transform="rotate(90 12 12)" fill-rule="evenodd" clip-rule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"/></svg>
+    </button>
+  </div>
+  <button class="try-btn" onclick="flashValidate(document.getElementById('v4'))">Try validate (no errors)</button>
+</div>
+
+<script>
+function flashValidate(btn) {
+  btn.classList.remove('validate-ok', 'validate-fade');
+  void btn.offsetWidth;
+
+  // Step 1: snap to green (dark green text on green bg)
+  btn.classList.add('validate-ok');
+
+  // Step 2: after a beat, begin the slow fade back
+  setTimeout(() => {
+    btn.classList.add('validate-fade');
+    btn.classList.remove('validate-ok');
+  }, 800);
+
+  // Step 3: clean up
+  setTimeout(() => {
+    btn.classList.remove('validate-fade');
+  }, 2800);
+}
+</script>
+
+</body>
+</html>

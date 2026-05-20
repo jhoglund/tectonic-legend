@@ -184,15 +184,38 @@ export function SolvingScreen({
   // few seconds after the player taps Validate, never live.
   const [showErrors, setShowErrors] = useState(false);
   const [validateNonce, setValidateNonce] = useState(0);
+  // Validate success feedback (I3): green flash when no errors found.
+  const [validateOk, setValidateOk] = useState(false);
+  const [validateFade, setValidateFade] = useState(false);
+  // Track whether the last validate tap found errors (set synchronously
+  // in the callback so the effect only schedules timers).
+  const [validateHadErrors, setValidateHadErrors] = useState(false);
   const validate = useCallback(() => {
+    const errorsNow = gameState
+      ? gameState.errors.some((row) => row.some(Boolean))
+      : false;
+    setValidateHadErrors(errorsNow);
     setShowErrors(true);
+    if (!errorsNow) {
+      setValidateOk(true);
+      setValidateFade(false);
+    }
     setValidateNonce((n) => n + 1);
-  }, []);
+  }, [gameState]);
   useEffect(() => {
     if (validateNonce === 0) return;
+    if (!validateHadErrors) {
+      // No errors — run the green flash → fade-back sequence.
+      const t1 = window.setTimeout(() => {
+        setValidateFade(true);
+        setValidateOk(false);
+      }, 800);
+      const t2 = window.setTimeout(() => setValidateFade(false), 2800);
+      return () => { clearTimeout(t1); clearTimeout(t2); };
+    }
     const id = window.setTimeout(() => setShowErrors(false), 6000);
     return () => clearTimeout(id);
-  }, [validateNonce]);
+  }, [validateNonce, validateHadErrors]);
 
   // True while Validate is surfacing real mistakes — the toolbar's
   // Validate control becomes "Remove" so the player can clear them.
@@ -400,33 +423,52 @@ export function SolvingScreen({
           {/* number keypad */}
           <Keypad maxNumber={maxNumber} onNumber={handleNumberInput} />
 
-          {/* toolbar — Notes / Hint / Validate / Clear, then a round Undo */}
+          {/* toolbar — Notes / Hint / Check / Clear, then a round Undo */}
           <div className="flex w-full gap-2">
-            {(
-              [
-                { label: 'Notes', onClick: toggleNotes, active: notesMode },
-                { label: 'Hint', onClick: () => setHintMenuOpen(true), active: false },
-                showingErrors
-                  ? { label: 'Remove', onClick: handleRemoveErrors, active: true, tone: 'danger' as const }
-                  : { label: 'Validate', onClick: validate, active: showErrors },
-                { label: 'Clear', onClick: handleClear, active: false },
-              ] as { label: string; onClick: () => void; active: boolean; tone?: 'danger' }[]
-            ).map((tool) => (
+            <button
+              type="button"
+              onClick={toggleNotes}
+              className={`solve-tool${notesMode ? ' is-active' : ''}`}
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 1 1 3.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" /></svg>
+              Notes
+            </button>
+            <button
+              type="button"
+              onClick={() => setHintMenuOpen(true)}
+              className="solve-tool"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10" /><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3" /><circle cx="12" cy="17" r=".5" /></svg>
+              Hint
+            </button>
+            {showingErrors ? (
               <button
-                key={tool.label}
                 type="button"
-                onClick={tool.onClick}
+                onClick={handleRemoveErrors}
+                className="solve-tool is-danger"
+              >
+                Remove
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={validate}
                 className={`solve-tool${
-                  tool.tone === 'danger'
-                    ? ' is-danger'
-                    : tool.active
-                      ? ' is-active'
-                      : ''
+                  validateOk ? ' is-valid' : validateFade ? ' is-valid-fade' : showErrors ? ' is-active' : ''
                 }`}
               >
-                {tool.label}
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 1 1-18 0 9 9 0 0 1 18 0z" /></svg>
+                Check
               </button>
-            ))}
+            )}
+            <button
+              type="button"
+              onClick={handleClear}
+              className="solve-tool"
+            >
+              <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,207.833H130.344l34.729-34.73.017-.014.015-.017,56.553-56.553a24.03,24.03,0,0,0,0-33.941L176.403,37.323a24,24,0,0,0-33.941,0L85.903,93.882l-.01.01-.01.01L29.324,150.461a24,24,0,0,0,0,33.941l37.089,37.088a8,8,0,0,0,5.657,2.343H216a8,8,0,0,0,0-16ZM153.776,48.638a8,8,0,0,1,11.313,0l45.255,45.255a8.009,8.009,0,0,1,0,11.313l-50.911,50.911L102.865,99.549Z" /></svg>
+              Clear
+            </button>
             <button
               type="button"
               onClick={undo}
@@ -434,19 +476,8 @@ export function SolvingScreen({
               aria-label="Undo"
               className="solve-undo"
             >
-              <svg
-                width="20"
-                height="20"
-                viewBox="0 0 24 24"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path
-                  transform="rotate(90 12 12)"
-                  fillRule="evenodd"
-                  clipRule="evenodd"
-                  d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z"
-                />
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor" aria-hidden="true">
+                <path transform="rotate(90 12 12)" fillRule="evenodd" clipRule="evenodd" d="M15 3.75A5.25 5.25 0 0 0 9.75 9v10.19l4.72-4.72a.75.75 0 1 1 1.06 1.06l-6 6a.75.75 0 0 1-1.06 0l-6-6a.75.75 0 1 1 1.06-1.06l4.72 4.72V9a6.75 6.75 0 0 1 13.5 0v3a.75.75 0 0 1-1.5 0V9c0-2.9-2.35-5.25-5.25-5.25Z" />
               </svg>
             </button>
           </div>

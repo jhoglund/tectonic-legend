@@ -53,6 +53,7 @@
 
   /* --- Status ------------------------------------------------- */
   --success: #10b981;
+  --success-dark: #065f46;
   --warning: #f59e0b;
   --danger: #dc2626;
   --info: #3b82f6;
@@ -185,6 +186,7 @@
 
     /* Status */
     --success: #34d399;
+    --success-dark: #064e3b;
     --warning: #fbbf24;
     --danger: #f87171;
     --info: #60a5fa;
@@ -252,16 +254,21 @@
 .solve-tool {
   flex: 1;
   height: 40px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
   border: 1px solid var(--border);
   border-radius: var(--radius-button);
   background: var(--surface-elevated);
-  color: var(--text-primary);
+  color: var(--text-secondary);
   cursor: pointer;
   transition: background-color var(--motion-base),
     border-color var(--motion-base), color var(--motion-base);
 }
+.solve-tool svg { flex-shrink: 0; }
 .solve-tool.is-active {
   background: var(--surface-active);
   border-color: var(--surface-active);
@@ -275,6 +282,15 @@
   background: var(--surface-pressed);
   border-color: var(--surface-pressed);
   color: var(--text-on-pressed);
+}
+.solve-tool.is-valid {
+  background: var(--success);
+  border-color: var(--success);
+  color: var(--success-dark);
+  transition: background-color 150ms ease-out, border-color 150ms ease-out, color 150ms ease-out;
+}
+.solve-tool.is-valid-fade {
+  transition: background-color 1.8s ease-in, border-color 1.8s ease-in, color 1.8s ease-in;
 }
 .solve-undo {
   flex: 0 0 auto;
