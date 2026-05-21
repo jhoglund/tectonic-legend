@@ -135,7 +135,10 @@ function RegionChip({ set }: { set: number[] }) {
  * (`borders.cornerTL`), the cell paints a small cage patch to close it.
  *
  * The selected cell's ring is a separate child layer that fades in
- * (`cell-ring-in`): inset on the edges the cell draws itself, outset on
+ * (`cell-ring-in`). It paints only on the cell's *cage* edges — inside
+ * its own cage, the regular 1px inner gridline is kept so the selection
+ * still reads as part of the region. On the edges it does paint, the
+ * geometry is inset on the edges the cell draws itself and outset on
  * the edges a neighbour draws, so it lands exactly on the grid line and
  * — raised above its neighbours — replaces it rather than doubling it.
  * A player-entered value grows into place via `cell-value-enter`. Both
@@ -212,20 +215,32 @@ export function Cell({
   }
   shadows.push(...cage, ...inner);
 
-  // The selection ring lands on a grid line on every edge: inset on the
-  // top/left this cell draws, and on the bottom/right of a board-edge
-  // cell (which draws its own frame there); outset on an interior
-  // bottom/right, where the neighbour draws the line. Raised by z-index,
-  // it then replaces that line instead of doubling it. Its colour is the
-  // cage-tinted ring (`--cell-sel-ring`, set by `.cell-selected`), with
-  // the brand colour as a fallback for the rare selected-while-hinted.
+  // The selection ring paints the heavy `--cell-sel-ring` line only on
+  // edges that are cage boundaries — on an edge inside the cell's own
+  // cage the regular 1px inner gridline (painted by this cell or its
+  // neighbour) is left intact so the selected cell still reads as part
+  // of the region. On the edges it does paint: inset on the top/left
+  // this cell draws and on the bottom/right of a board-edge cell;
+  // outset on an interior cage edge, where the neighbour draws the
+  // line. Raised by z-index, it replaces the line instead of doubling
+  // it. The brand colour is a fallback for the rare selected-while-hinted.
   const rc = 'var(--cell-sel-ring, var(--brand-600))';
   const ringShadow = [
-    `inset 0 2px 0 0 ${rc}`,
-    `inset 2px 0 0 0 ${rc}`,
-    borders.right === 'cage' ? `inset -2px 0 0 0 ${rc}` : `2px 0 0 0 ${rc}`,
-    borders.bottom === 'cage' ? `inset 0 -2px 0 0 ${rc}` : `0 2px 0 0 ${rc}`,
-  ].join(', ');
+    borders.top === 'cage' ? `inset 0 2px 0 0 ${rc}` : null,
+    borders.left === 'cage' ? `inset 2px 0 0 0 ${rc}` : null,
+    borders.rightEdge === 'cage'
+      ? borders.right === 'cage'
+        ? `inset -2px 0 0 0 ${rc}`
+        : `2px 0 0 0 ${rc}`
+      : null,
+    borders.bottomEdge === 'cage'
+      ? borders.bottom === 'cage'
+        ? `inset 0 -2px 0 0 ${rc}`
+        : `0 2px 0 0 ${rc}`
+      : null,
+  ]
+    .filter(Boolean)
+    .join(', ');
 
   // A notes hint rings its target cell (ADR-0015) — conclusion green
   // when the answer is settled, assumption amber for a bare candidate
@@ -289,8 +304,10 @@ export function Cell({
       onClick={onClick}
     >
       {/* Cage-corner patch — closes a cage L whose corner falls in this
-          cell but is reached by neither of its own edges. */}
-      {!isSelected && !hintNotes && !isRegionCell && borders.cornerTL && (
+          cell but is reached by neither of its own edges. Drawn even
+          when selected, since the selection ring no longer covers inner
+          edges; suppressed only when a hint / region ring owns the cell. */}
+      {!hintNotes && !isRegionCell && borders.cornerTL && (
         <span
           aria-hidden="true"
           style={{

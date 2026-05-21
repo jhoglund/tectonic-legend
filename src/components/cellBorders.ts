@@ -14,6 +14,14 @@ export interface CellBorders {
    *  `left`), so interior cells leave these 'none'. */
   bottom: CellEdge;
   right: CellEdge;
+  /** The actual edge type on the right / bottom side, regardless of
+   *  which cell paints the line. 'cage' on the board frame or where the
+   *  neighbour is in a different cage; 'inner' where the neighbour
+   *  shares this cell's cage. Used by ring layers (selection, hint,
+   *  region) to decide whether to draw a heavy ring on that edge or
+   *  let the existing inner gridline show through. */
+  rightEdge: 'cage' | 'inner';
+  bottomEdge: 'cage' | 'inner';
   /** True when a cage boundary turns a corner exactly at the cell's
    *  top-left point, yet both of the cell's own edges there are `inner`
    *  — so neither cage segment reaches into this cell. The cell must
@@ -61,6 +69,18 @@ export function computeBorders(
   const bottom: CellEdge = lastRow ? 'cage' : 'none';
   const right: CellEdge = lastCol ? 'cage' : 'none';
 
+  // The actual right / bottom edge type, regardless of which cell paints
+  // the line. Ring layers use this to skip 'inner' edges and let the
+  // existing gridline show through.
+  const rightEdge: 'cage' | 'inner' =
+    lastCol || cellToGroup.get(posKey(row, col + 1)) !== myGroup
+      ? 'cage'
+      : 'inner';
+  const bottomEdge: 'cage' | 'inner' =
+    lastRow || cellToGroup.get(posKey(row + 1, col)) !== myGroup
+      ? 'cage'
+      : 'inner';
+
   const boardCorner: CellBorders['boardCorner'] =
     row === 0 && col === 0
       ? 'tl'
@@ -81,5 +101,5 @@ export function computeBorders(
     left === 'inner' &&
     cellToGroup.get(posKey(row - 1, col - 1)) !== myGroup;
 
-  return { top, left, bottom, right, cornerTL, boardCorner };
+  return { top, left, bottom, right, rightEdge, bottomEdge, cornerTL, boardCorner };
 }
