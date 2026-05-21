@@ -35,11 +35,11 @@ context:
   (backlog items 17–18). `PRD.md` §6 describes the free/premium split; ADR-0007
   and ADR-0008 are still `Proposed`.
 - **Placeholder content still in the repo** (rejection risk — see §5):
-  - `index.html` `<title>` is `tectonic-for-the-win`.
   - `README.md` is the stock Vite template.
   - `src/screens/SettingsScreen.tsx` is a one-paragraph stub — no Restore
     Purchase, no How to Play, no About, no privacy link.
-  - App name is unresolved (ADR-0006).
+  - *(Resolved 2026-05-21)* App name is `Tectonic Legend` (ADR-0006);
+    `<title>` and the in-app wordmark were aligned in the rename PR.
 - **Tests:** 39 passing (engine + progression). No crash-handling review done
   for the native shell yet (it does not exist yet).
 
@@ -378,7 +378,7 @@ npx cap sync ios
 ```
 
 `webDir` must be `dist` (Vite's output). **Watch this:** `vite.config.ts` sets
-`base: '/tectonic-for-the-win/'` — that base path is for GitHub Pages and will
+`base: '/tectonic-legend/'` — that base path is for GitHub Pages and will
 **break asset loading inside the Capacitor WebView**, which serves from the
 bundle root. The native build needs `base: '/'` (or `'./'`). Handle it with a
 build-mode switch (e.g. a `capacitor` mode, or an env flag) so the web deploy
@@ -476,9 +476,9 @@ From a reviewer-mindset audit of the current repo. Priorities:
 | R4 | **P1** | IAP messaging | Paywall must show exact price, billing period, that subscriptions auto-renew, and link to Apple's subscription management. No "buy on our website" / external-payment links for digital unlocks. | 3.1.1, 3.1.2 | When building the paywall, include all subscription-disclosure copy and StoreKit-only purchase. ADR-0008's lifetime-vs-annual issue must be resolved first — a paywall where $6.99 lifetime dominates $24.99/yr annual is a UX/pricing flaw, not a rejection, but fix it before it ships. |
 | R5 | **P1** | Privacy labels | App Store Connect privacy answers must exactly match runtime behaviour. Mimir's enabled/disabled state changes the truthful answer. | 5.1.1, 5.1.2 | Decide Mimir on/off for the production build (§1.1) and fill the labels (§1.3) to match. Add `PrivacyInfo.xcprivacy` (§1.2). |
 | R6 | **P1** | Privacy policy | No privacy policy URL exists; one is required for every app. | 5.1.1 | Publish a privacy page on the brand domain (§1.4) before submitting. |
-| R7 | **P1** | Metadata accuracy | `index.html` `<title>` is `tectonic-for-the-win`; `README.md` is the stock Vite template. Neither blocks review directly, but the title leaks into the WebView and looks like an unfinished app. | 2.3, 2.1 | Set a real `<title>`. Replace the README (does not affect review but is hygiene). |
+| R7 | **P1** | Metadata accuracy | `<title>` resolved to `Tectonic Legend` (rename PR, 2026-05-21); `README.md` is still the stock Vite template. The README does not block review but is hygiene. | 2.3, 2.1 | Replace the README. |
 | R8 | **P1** | App name | Brand undecided (ADR-0006). The store record cannot be created without a final, unique name; "Tectonic" alone collides with Keesing. | 2.3, 5.2 | Resolve ADR-0006 and run a trademark search before creating the App Store Connect record. |
-| R9 | **P2** | Completeness | No native crash review possible yet (no shell). WebView apps can white-screen on asset-path errors — see the `base: '/tectonic-for-the-win/'` trap in §4.1. | 2.1 | After scaffolding, verify the WebView loads with `base: '/'`; test launch, offline, and a full solve on a real device. |
+| R9 | **P2** | Completeness | No native crash review possible yet (no shell). WebView apps can white-screen on asset-path errors — see the `base: '/tectonic-legend/'` trap in §4.1. | 2.1 | After scaffolding, verify the WebView loads with `base: '/'`; test launch, offline, and a full solve on a real device. |
 | R10 | **P2** | Min functionality | Capacitor apps get scrutinised under "is this just a website in a wrapper?" | 4.2 | Tectonic is a real offline game with a local engine, persistence, daily puzzles, and native chrome — it clears 4.2 comfortably. Make sure StatusBar/SafeArea/splash are configured so it feels native, not like a hosted page. |
 | R11 | **P2** | Share / external content | The share artifact (backlog item 15) copies text/links. No UGC, no inbound content, no messaging — low risk. | 1.2 | No moderation needed. Just ensure shared URLs point to your own domain/app, not arbitrary user input. |
 | R12 | **P3** | Accessibility / polish | Tutorial content is first-draft (backlog item 10 "needs a polish pass"); Dynamic Type / VoiceOver not yet verified. | 4.0 | Not a rejection blocker for a puzzle game, but polish the tutorial and do a Dynamic Type pass before paid acquisition. |

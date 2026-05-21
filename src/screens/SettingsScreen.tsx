@@ -285,8 +285,8 @@ export function SettingsScreen() {
               className="text-sm"
               style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
             >
-              Tectonic is a logic puzzle of cages and numbers — no guessing,
-              just reasoning.{' '}
+              Tectonic Legend is a logic puzzle of cages and numbers — no
+              guessing, just reasoning.{' '}
               {status === 'disabled'
                 ? 'Your progress is kept on this device only.'
                 : 'Your progress is saved on this device, and synced to your account when you’re signed in.'}

@@ -82,7 +82,7 @@ export function RedeemCodeSheet({ open, onClose }: RedeemCodeSheetProps) {
           Redeem a code
         </h2>
         <p className="mb-4 text-sm" style={{ color: 'var(--text-secondary)' }}>
-          Enter a voucher code to unlock Tectonic Premium.
+          Enter a voucher code to unlock Tectonic Legend Premium.
         </p>
 
         {redeemed ? (

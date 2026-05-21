@@ -77,7 +77,7 @@ Adopt **Cagey** as the primary brand with subtitle **"Tectonic & Suguru Puzzles.
 - Run a proper USPTO/EUIPO clearance search (or a quick paid clearance via a service like Trademarkia) in **Class 9 (software)** and **Class 41 (games/entertainment)**.
 - Confirm the App Store name is free in NZ, CA, IE, US (App Store Connect rejects duplicate names per storefront).
 - Secure the domain and the `@cagey`-style social handles in the same pass.
-The repo can stay `tectonic-for-the-win` as a working title; renaming it is cosmetic.
+The repo was renamed to `tectonic-legend` on 2026-05-21 alongside the brand-name decision (ADR-0006).
 
 ---
 

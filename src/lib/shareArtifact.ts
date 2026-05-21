@@ -72,7 +72,7 @@ export function buildShareText(args: ShareArtifactArgs): string {
   const time = `${Math.floor(elapsedSeconds / 60)}:${String(
     elapsedSeconds % 60,
   ).padStart(2, '0')}`;
-  const header = `Tectonic — ${isDaily ? 'Daily · ' : ''}${
+  const header = `Tectonic Legend — ${isDaily ? 'Daily · ' : ''}${
     DIFFICULTY_LABEL[difficulty]
   } ${rows}×${cols}`;
   const hintLine =

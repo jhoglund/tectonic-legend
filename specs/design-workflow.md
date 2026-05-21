@@ -98,7 +98,7 @@ $EDITOR prototypes/<slug>/BRIEF.md   # narrow §7 to this session's surfaces
 Then in Open Design at `http://open-design.test`:
 
 1. **New Project** → **Import folder** (the manual `baseDir` input on the web; the file picker on the desktop app).
-2. Paste the absolute path: `/Users/jonashoglund/dev/tectonic-for-the-win/prototypes/<slug>`.
+2. Paste the absolute path: `/Users/jonashoglund/dev/tectonic-legend/prototypes/<slug>`.
 3. Pick a **skill** matching the surface:
    - `mobile-app` — in-app surfaces (onboarding, stage-up, paywall, stats)
    - `web-prototype` — share artifact, web app landing

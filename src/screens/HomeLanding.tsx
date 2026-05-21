@@ -52,7 +52,7 @@ export function HomeLanding({
 
   return (
     <div>
-      <ScreenHeader title="Tectonic" />
+      <ScreenHeader title="Tectonic Legend" />
       <div className="flex flex-col gap-4 px-4 pt-2 pb-8">
         {/* a warm line after a long gap (backlog item 16) */}
         {showReentry && (

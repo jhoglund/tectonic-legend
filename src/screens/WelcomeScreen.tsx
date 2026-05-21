@@ -24,7 +24,7 @@ export function WelcomeScreen({ onStart, onSkip }: WelcomeScreenProps) {
           className="text-3xl font-semibold"
           style={{ color: 'var(--text-primary)' }}
         >
-          Welcome to Tectonic
+          Welcome to Tectonic Legend
         </h1>
         <p
           className="text-base"

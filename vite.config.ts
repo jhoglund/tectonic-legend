@@ -48,7 +48,7 @@ export default defineConfig(({ mode }) => {
   return {
     // GitHub Pages serves under a sub-path; the Capacitor iOS bundle
     // loads from the app root. `vite build --mode capacitor` picks `/`.
-    base: mode === 'capacitor' ? '/' : '/tectonic-for-the-win/',
+    base: mode === 'capacitor' ? '/' : '/tectonic-legend/',
     plugins: [react(), tailwindcss(), mimirPlugin],
     server: {
       host: '127.0.0.1',
@@ -62,21 +62,21 @@ export default defineConfig(({ mode }) => {
       // the SDK first-party — bypasses tracker blocklists, Safari ITP,
       // and host-site CSP. See Mimir README "Same-origin reverse proxy".
       // Match both bare /_m/... (used by fetch from JS) and the base-prefixed
-      // /tectonic-for-the-win/_m/... (used by the script tag, which Vite
+      // /tectonic-legend/_m/... (used by the script tag, which Vite
       // rewrites with the `base` prefix).
       proxy: {
-        '^(?:/tectonic-for-the-win)?/_m/script\\.js$': {
+        '^(?:/tectonic-legend)?/_m/script\\.js$': {
           target: 'https://mimir.test',
           changeOrigin: true,
           secure: false,
           rewrite: () => '/mimir.js',
         },
-        '^(?:/tectonic-for-the-win)?/_m/api': {
+        '^(?:/tectonic-legend)?/_m/api': {
           target: 'https://mimir.test',
           changeOrigin: true,
           secure: false,
           rewrite: (p) =>
-            p.replace(/^\/tectonic-for-the-win/, '').replace(/^\/_m/, ''),
+            p.replace(/^\/tectonic-legend/, '').replace(/^\/_m/, ''),
         },
       },
     },
