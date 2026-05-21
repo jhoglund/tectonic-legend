@@ -45,7 +45,8 @@ describe('defaultProfile', () => {
     expect(p.solveHistory).toEqual([]);
     expect(p.streak).toEqual({ current: 0, longest: 0, lastSolveDate: '' });
     expect(p.tier).toBe('free');
-    expect(p.schemaVersion).toBe(1);
+    expect(p.schemaVersion).toBe(2);
+    expect(p.legendRung).toBe(0);
     for (const t of TECHNIQUE_NAMES) {
       expect(p.techniques[t]).toEqual({
         technique: t,
@@ -335,5 +336,31 @@ describe('loadProfile / saveProfile', () => {
       JSON.stringify({ ...defaultProfile(), schemaVersion: 99 }),
     );
     expect(loadProfile()).toEqual(defaultProfile());
+  });
+
+  it('migrates a v1 profile to v2, seeding the new fields', () => {
+    // A v1 blob has no legendRung on the profile and no errorsValidated
+    // on solve records. The migration must seed both.
+    const v1 = {
+      ...defaultProfile(),
+      schemaVersion: 1,
+      legendRung: undefined,
+      solveHistory: [
+        {
+          date: '2026-05-15T12:00:00.000Z',
+          difficulty: 'easy' as const,
+          gridSize: '5x5' as const,
+          timeMs: 60_000,
+          hintsUsed: [],
+          isDailyPuzzle: false,
+        },
+      ],
+    };
+    localStorage.setItem('tectonic.profile', JSON.stringify(v1));
+    const loaded = loadProfile();
+    expect(loaded.schemaVersion).toBe(2);
+    expect(loaded.legendRung).toBe(0);
+    expect(loaded.solveHistory[0].errorsValidated).toBe(0);
+    expect(loaded.solveHistory[0].parTimeMs).toBeUndefined();
   });
 });

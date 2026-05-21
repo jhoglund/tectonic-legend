@@ -93,6 +93,8 @@ export function SolvingScreen({
     toggleNotes,
     getShareUrl,
     getHintedCells,
+    recordValidation,
+    getErrorsValidated,
     undo,
     redo,
   } = useGame(
@@ -203,9 +205,13 @@ export function SolvingScreen({
     if (!errorsNow) {
       setValidateOk(true);
       setValidateFade(false);
+    } else {
+      // Record each currently-wrong cell against the solve's quality
+      // score (ADR-0018). Deduplicated per cell across the solve.
+      recordValidation();
     }
     setValidateNonce((n) => n + 1);
-  }, [gameState]);
+  }, [gameState, recordValidation]);
   useEffect(() => {
     if (validateNonce === 0) return;
     if (!validateHadErrors) {
@@ -360,6 +366,7 @@ export function SolvingScreen({
           gridSize={initialGridSize}
           techniquesUsed={techniquesUsed}
           selfAppliedMoves={selfAppliedMoves}
+          errorsValidated={getErrorsValidated()}
           isDaily={isDaily}
           getShareUrl={getShareUrl}
           getHintedCells={getHintedCells}

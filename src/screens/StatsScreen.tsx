@@ -168,9 +168,13 @@ export function StatsScreen() {
         {/* Technique mastery */}
         <div style={cardStyle}>
           <SectionTitle>TECHNIQUE MASTERY</SectionTitle>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-3">
             {TECHNIQUE_NAMES.map((t) => (
-              <MasteryChip key={t} mastery={techniques[t]} />
+              <MasteryChip
+                key={t}
+                mastery={techniques[t]}
+                solveHistory={solveHistory}
+              />
             ))}
           </div>
 

@@ -72,6 +72,20 @@ export function HomeLanding({
             style={{ color: 'var(--text-primary)' }}
           >
             {STAGE_NAMES[profile.stage]}
+            {profile.stage === 5 && (
+              <span
+                aria-hidden="true"
+                style={{
+                  marginLeft: '0.4em',
+                  color: 'var(--warning)',
+                  fontSize: '0.85em',
+                  textShadow:
+                    '0 0 6px color-mix(in oklch, var(--warning) 60%, transparent)',
+                }}
+              >
+                ✦
+              </span>
+            )}
           </p>
         </div>
 

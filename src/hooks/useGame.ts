@@ -70,6 +70,10 @@ export function useGame(
   // Cells the hint engine has surfaced this game; a later fill in one
   // is assisted, never self-applied. A ref — touched only in callbacks.
   const hintedCells = useRef<Set<string>>(new Set());
+  // Distinct cells the player has tapped Validate on while wrong — the
+  // depth score's QUALITY term reads this (ADR-0018). A cell counted
+  // once per puzzle even if validated again after a correction.
+  const validatedErrorCells = useRef<Set<string>>(new Set());
   // Undo / redo — full move history, no cap. `past` holds states before
   // the current one; `future` holds states undone away from.
   const [past, setPast] = useState<GameState[]>([]);
@@ -96,6 +100,7 @@ export function useGame(
     setTechniquesUsed({});
     setSelfAppliedMoves({});
     hintedCells.current = new Set();
+    validatedErrorCells.current = new Set();
 
     setTimeout(() => {
       const [rows, cols] = gridSizeDimensions(actualSize);
@@ -364,6 +369,26 @@ export function useGame(
    *  the Solved screen to colour the shareable solve artifact. */
   const getHintedCells = useCallback(() => new Set(hintedCells.current), []);
 
+  /** Record that the player tapped Validate — each currently-wrong cell
+   *  becomes a distinct error against this solve's QUALITY (ADR-0018).
+   *  A cell already counted this solve is not double-counted. */
+  const recordValidation = useCallback(() => {
+    if (!gameState) return;
+    const { errors } = gameState;
+    for (let r = 0; r < errors.length; r++) {
+      for (let c = 0; c < errors[r].length; c++) {
+        if (errors[r][c]) validatedErrorCells.current.add(posKey(r, c));
+      }
+    }
+  }, [gameState]);
+
+  /** How many distinct wrong cells the player has tapped Validate on
+   *  this solve — passed into recordSolve at completion. */
+  const getErrorsValidated = useCallback(
+    () => validatedErrorCells.current.size,
+    [],
+  );
+
   return {
     gameState,
     difficulty,
@@ -387,6 +412,8 @@ export function useGame(
     toggleNotes,
     getShareUrl,
     getHintedCells,
+    recordValidation,
+    getErrorsValidated,
     undo,
     redo,
   };

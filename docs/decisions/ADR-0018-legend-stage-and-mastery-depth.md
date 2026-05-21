@@ -53,8 +53,8 @@ Where the components are derived from `SolveRecord`s containing technique `T`:
 
 | Component | What it measures | Cap |
 |-----------|------------------|-----|
-| `SELF` | `selfAppliedCount` for `T` | `SELF_TARGET = 20` |
-| `PUZZLES` | `puzzlesContaining` for `T` (distinct puzzles the player self-applied `T` in) | `PUZZLES_TARGET = 12` |
+| `SELF` | `selfAppliedCount` for `T` | `SELF_TARGET = 12` |
+| `PUZZLES` | `puzzlesContaining` for `T` (distinct puzzles the player self-applied `T` in) | `PUZZLES_TARGET = 5` |
 | `QUALITY` | A 0–1 score from solves featuring `T`: low hint ratio, low error rate, time within par. Averaged over the player's last 10 solves featuring `T`. | 0–1 |
 | `DIFFICULTY` | Fraction of those 10 solves that were Hard or Expert. | 0–1 |
 
@@ -67,7 +67,7 @@ Chip-state thresholds (no change to the existing player-facing semantics — re-
 | `mastered` | `depth ≥ 60` **and** `puzzlesContaining ≥ 3` |
 | `legend` | `depth ≥ 90` **and** `puzzlesContaining ≥ 8` |
 
-`SELF_TARGET = 20` and `PUZZLES_TARGET = 12` are deliberate stretches — well beyond the current `selfApplied >= 8 / puzzles >= 3` `mastered` threshold (which sits at roughly `depth = 60` under the new formula, by design — existing mastered players stay mastered, by intent).
+`SELF_TARGET = 12` and `PUZZLES_TARGET = 5` were calibrated so that an existing v1 mastered player (`selfApplied >= 8`, `puzzles >= 3`) lands at depth ≈ 60 with merely average QUALITY + DIFFICULTY, i.e. stays mastered through the migration by intent. The earlier draft of this ADR proposed 20 / 12; that put a v1-mastered player at depth ≈ 50, drifting them below the `mastered` chip threshold — wrong for migration. Above mastered, the `legend` chip (depth ≥ 90) still demands real QUALITY + DIFFICULTY contributions; the `legendRung` ladder of ADR-0019 climbs on `puzzlesContaining` (un-capped) once depth pegs at 100.
 
 These targets are first-draft. They're tunable in one place — `src/lib/progression.ts` — and the soft-launch data tells us whether `legend` is reachable at the right rate. Tracked in the open-questions section of [`progression.md`](../../specs/progression.md).
 

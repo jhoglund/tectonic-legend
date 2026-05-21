@@ -42,6 +42,8 @@ interface SolvedScreenProps {
   techniquesUsed: Record<string, number>;
   /** Unaided technique applications this solve, keyed by Hint.type. */
   selfAppliedMoves: Record<string, number>;
+  /** Distinct wrong cells the player Validated this solve (ADR-0018). */
+  errorsValidated: number;
   /** Whether this solve was the daily puzzle. */
   isDaily: boolean;
   getShareUrl: () => string | null;
@@ -62,6 +64,7 @@ export function SolvedScreen({
   gridSize,
   techniquesUsed,
   selfAppliedMoves,
+  errorsValidated,
   isDaily,
   getShareUrl,
   getHintedCells,
@@ -109,6 +112,7 @@ export function SolvedScreen({
       timeMs: elapsedSeconds * 1000,
       isDailyPuzzle: isDaily,
       techniques,
+      errorsValidated,
     });
 
     const sum = (r: Record<string, number>) =>
@@ -133,6 +137,7 @@ export function SolvedScreen({
       hintedCells,
       isDaily,
       url: getShareUrl(),
+      solverStage: profile.stage,
     });
     analytics.puzzleShared(difficulty, gridSize);
     // Native share sheet on iOS; clipboard everywhere else.
@@ -249,9 +254,13 @@ export function SolvedScreen({
           >
             TECHNIQUE MASTERY
           </p>
-          <div className="flex flex-wrap gap-2">
+          <div className="flex flex-col gap-3">
             {masteryTechniques.map((t) => (
-              <MasteryChip key={t} mastery={profile.techniques[t]} />
+              <MasteryChip
+                key={t}
+                mastery={profile.techniques[t]}
+                solveHistory={profile.solveHistory}
+              />
             ))}
           </div>
         </div>

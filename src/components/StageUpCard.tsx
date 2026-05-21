@@ -7,7 +7,7 @@ import { analytics } from '../lib/analytics';
  * the new stage; the body frames the technique the unlocked difficulty
  * asks for. Quiet, warm, adult — no confetti, no animation.
  */
-const CARDS: Record<1 | 2 | 3 | 4, { headline: string; body: string }> = {
+const CARDS: Record<1 | 2 | 3 | 4 | 5, { headline: string; body: string }> = {
   1: {
     headline: "You're a Beginner now.",
     body: 'Easy puzzles are open. Every one can be solved with naked singles — a cell with a single number left, the move you just practised.',
@@ -24,10 +24,14 @@ const CARDS: Record<1 | 2 | 3 | 4, { headline: string; body: string }> = {
     headline: "You're a Master now.",
     body: 'Expert puzzles are unlocked. They turn on contradiction chains — proving a value wrong by following it until it breaks.',
   },
+  5: {
+    headline: "You're a Legend now.",
+    body: "You've worked every technique to its depth — the puzzle is yours. The climb continues from here.",
+  },
 };
 
 interface StageUpCardProps {
-  /** The stage just entered (1–4). */
+  /** The stage just entered (1–5). */
   stage: PlayerStage;
   onContinue: () => void;
 }

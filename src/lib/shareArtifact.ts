@@ -1,5 +1,6 @@
 import type { Difficulty, GameState } from '../engine/types';
 import { posKey } from '../engine/types';
+import type { PlayerStage } from './progression';
 
 /**
  * The shareable solve artifact (ADR-0004) — a compact, spoiler-free,
@@ -29,6 +30,9 @@ export interface ShareArtifactArgs {
   isDaily: boolean;
   /** Challenge URL to append, if any. */
   url: string | null;
+  /** The solver's stage at solve time — used to append the Legend ✦
+   *  tag to the share artifact (ADR-0018). */
+  solverStage?: PlayerStage;
 }
 
 /** The emoji grid alone — used for the on-screen preview. */
@@ -53,8 +57,16 @@ export function shareGrid(
 
 /** The full shareable text block. */
 export function buildShareText(args: ShareArtifactArgs): string {
-  const { gameState, difficulty, elapsedSeconds, hintCount, hintedCells, isDaily, url } =
-    args;
+  const {
+    gameState,
+    difficulty,
+    elapsedSeconds,
+    hintCount,
+    hintedCells,
+    isDaily,
+    url,
+    solverStage,
+  } = args;
   const { rows, cols } = gameState.puzzle.layout;
 
   const time = `${Math.floor(elapsedSeconds / 60)}:${String(
@@ -67,10 +79,14 @@ export function buildShareText(args: ShareArtifactArgs): string {
     hintCount === 0
       ? 'no hints'
       : `${hintCount} hint${hintCount > 1 ? 's' : ''}`;
+  // Legend ✦ tag — appears after the time/hint line when the solver
+  // has reached stage 5 (ADR-0018). Rung-aware variant (Mythic Legend
+  // ✦, etc.) lands with ADR-0019.
+  const legendTag = solverStage === 5 ? ' · Legend ✦' : '';
 
   const parts = [
     header,
-    `${time} · ${hintLine}`,
+    `${time} · ${hintLine}${legendTag}`,
     '',
     shareGrid(gameState, hintedCells),
   ];

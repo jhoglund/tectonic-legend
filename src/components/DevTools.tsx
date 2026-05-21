@@ -1,10 +1,12 @@
-import { defaultProfile, isPremium } from '../lib/profile';
+import { defaultProfile, isPremium, type SolveRecord } from '../lib/profile';
 import { useAuth } from '../lib/authContext';
 import { useDevView } from '../lib/devViewContext';
 import {
   STAGE_NAMES,
   TECHNIQUE_NAMES,
   MASTERY,
+  SELF_TARGET,
+  DEPTH,
   type PlayerStage,
   type MasteryState,
   type TechniqueMastery,
@@ -31,27 +33,59 @@ function authLabel(
   return status.toUpperCase();
 }
 
-const STAGES: PlayerStage[] = [0, 1, 2, 3, 4];
-const MASTERY_STATES: MasteryState[] = ['learning', 'familiar', 'mastered'];
+const STAGES: PlayerStage[] = [0, 1, 2, 3, 4, 5];
+const MASTERY_STATES: MasteryState[] = ['learning', 'familiar', 'mastered', 'legend'];
 
 /** Counter fixtures that land every technique on the given chip state
- *  (the thresholds live in progression.ts). */
+ *  (the thresholds live in progression.ts). The `legend` state needs
+ *  the depth-score's QUALITY and DIFFICULTY terms to be high — those
+ *  read solve history, so `masteryAllHistory` returns a synthetic
+ *  history alongside the counters. */
 function masteryAll(
   state: MasteryState,
 ): Record<TechniqueName, TechniqueMastery> {
   const counts =
-    state === 'mastered'
+    state === 'legend'
       ? {
-          usedCount: MASTERY.selfApplied,
-          selfAppliedCount: MASTERY.selfApplied,
-          puzzlesContaining: MASTERY.puzzles,
+          usedCount: 40,
+          selfAppliedCount: SELF_TARGET + 8,
+          puzzlesContaining: DEPTH.legend.puzzles + 4,
         }
-      : state === 'familiar'
-        ? { usedCount: MASTERY.familiarUsed, selfAppliedCount: 0, puzzlesContaining: 0 }
-        : { usedCount: 0, selfAppliedCount: 0, puzzlesContaining: 0 };
+      : state === 'mastered'
+        ? {
+            usedCount: MASTERY.selfApplied,
+            selfAppliedCount: MASTERY.selfApplied,
+            puzzlesContaining: MASTERY.puzzles,
+          }
+        : state === 'familiar'
+          ? {
+              usedCount: MASTERY.familiarUsed,
+              selfAppliedCount: 0,
+              puzzlesContaining: 0,
+            }
+          : { usedCount: 0, selfAppliedCount: 0, puzzlesContaining: 0 };
   return Object.fromEntries(
     TECHNIQUE_NAMES.map((t) => [t, { technique: t, ...counts }]),
   ) as Record<TechniqueName, TechniqueMastery>;
+}
+
+/** A synthetic solve history that pegs the depth score's QUALITY and
+ *  DIFFICULTY terms for every technique (no hints used, no errors,
+ *  fast solves, all hard) — used by the `legend` mastery fixture. */
+function legendSyntheticHistory(): SolveRecord[] {
+  const now = new Date().toISOString();
+  return TECHNIQUE_NAMES.flatMap((t) =>
+    Array.from({ length: 10 }, () => ({
+      date: now,
+      difficulty: 'hard' as const,
+      gridSize: '5x5' as const,
+      timeMs: 60_000,
+      hintsUsed: [],
+      techniqueTally: [{ technique: t, used: 6, selfApplied: 6 }],
+      isDailyPuzzle: false,
+      errorsValidated: 0,
+    })),
+  );
 }
 
 const card: React.CSSProperties = {
@@ -143,7 +177,15 @@ export function DevTools({ onOpenAuth }: DevToolsProps) {
             key={m}
             label={m}
             onClick={() =>
-              devSetProfile((p) => ({ ...p, techniques: masteryAll(m) }))
+              devSetProfile((p) => ({
+                ...p,
+                techniques: masteryAll(m),
+                // Legend needs solve history for QUALITY + DIFFICULTY;
+                // the other states stay where they were so this button
+                // does not blow away the player's solve record.
+                solveHistory:
+                  m === 'legend' ? legendSyntheticHistory() : p.solveHistory,
+              }))
             }
           />
         ))}

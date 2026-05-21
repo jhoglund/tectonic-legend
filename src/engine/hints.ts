@@ -1083,7 +1083,7 @@ export function classifyMove(
   row: number,
   col: number,
   value: number,
-): 'naked_single' | 'hidden_single' | 'domination' | null {
+): 'naked_single' | 'hidden_single' | 'domination' | 'pair_elimination' | null {
   if (grid[row][col] !== 0) return null;
   const candidates = computeCandidates(grid, layout);
   const cands = candidates[row][col];
@@ -1103,7 +1103,28 @@ export function classifyMove(
   if (fits === 1) return 'hidden_single';
 
   const dom = dominationFor(layout, candidates, row, col);
-  return dom && dom.value === value ? 'domination' : null;
+  if (dom && dom.value === value) return 'domination';
+
+  // Pair-elimination self-credit (ADR-0018 / solving-techniques §11).
+  // We rerun the deductive pass on the pre-move grid and check whether
+  // its first placement pins this cell with this value. This catches
+  // the common case (the deductive loop's first hit lands here) and is
+  // honest about its limit — when the loop happens to pin a different
+  // cell first, this move stays uncredited even if the same strikes
+  // would also have pinned this cell. Refining is a follow-up; this is
+  // the gating dependency for the pair-elimination chip ever reaching
+  // `mastered` (and Legend stage 5).
+  const deductive = findDeductiveHint(grid, layout, candidates);
+  if (
+    deductive &&
+    deductive.row === row &&
+    deductive.col === col &&
+    deductive.value === value
+  ) {
+    return 'pair_elimination';
+  }
+
+  return null;
 }
 
 export function findCandidatesHint(

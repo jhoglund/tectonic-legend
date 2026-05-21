@@ -9,6 +9,7 @@ import {
   nextStageFor,
 } from './progression';
 import { verifyVoucher } from './vouchers';
+import { migrateProfile } from './profile-migrations';
 
 /**
  * The player profile — local-only persistence for the difficulty
@@ -30,8 +31,21 @@ export interface SolveRecord {
   difficulty: Difficulty;
   gridSize: GridSize;
   timeMs: number;
+  /** Hint-only summary, kept for the Stats aggregation. */
   hintsUsed: { technique: TechniqueName; count: number }[];
+  /** Per-technique tally — used vs self-applied — needed by the depth
+   *  score's QUALITY term (ADR-0018). Optional, since v1-migrated
+   *  records don't carry it; depth falls back to hintsUsed in that
+   *  case. */
+  techniqueTally?: { technique: TechniqueName; used: number; selfApplied: number }[];
   isDailyPuzzle: boolean;
+  /** Distinct cells the player tapped Validate on while wrong
+   *  (ADR-0018, schema v2). Feeds the QUALITY term of the depth score. */
+  errorsValidated: number;
+  /** Benchmark solve time for this puzzle's difficulty × grid size,
+   *  for QUALITY's time term. Omitted when not pre-seeded; the depth
+   *  score falls back to a static table lookup. */
+  parTimeMs?: number;
 }
 
 export interface PlayerProfile {
@@ -40,6 +54,9 @@ export interface PlayerProfile {
    *  trails `stage`, a stage-up card is pending (progression.md §5). */
   celebratedStage: PlayerStage;
   techniques: Record<TechniqueName, TechniqueMastery>;
+  /** Newcomer tutorial rung within stage 5. 0 = pre-Legend; 1–4 =
+   *  Apprentice → Adept → Grand → Mythic Legend (ADR-0019). */
+  legendRung: 0 | 1 | 2 | 3 | 4;
   /** Newcomer tutorial puzzles completed (gates stage 0 → 1). */
   tutorialsCompleted: number;
   solveHistory: SolveRecord[];
@@ -54,7 +71,7 @@ export interface PlayerProfile {
   /** ISO timestamp of the last meaningful change. Drives last-write-wins
    *  account sync (ADR-0013); a pristine profile carries the epoch. */
   updatedAt: string;
-  schemaVersion: 1;
+  schemaVersion: 2;
 }
 
 /** Per-technique tally a finished solve reports to recordSolve(). */
@@ -75,6 +92,9 @@ export interface SolveOutcome {
   /** ISO timestamp; defaults to now. */
   date?: string;
   techniques: SolveTechniqueTally[];
+  /** Distinct cells the player tapped Validate on while wrong
+   *  (ADR-0018). Optional — caller defaults to 0 when not tracked. */
+  errorsValidated?: number;
 }
 
 function freshTechniques(): Record<TechniqueName, TechniqueMastery> {
@@ -89,6 +109,7 @@ export function defaultProfile(): PlayerProfile {
     stage: 0,
     celebratedStage: 0,
     techniques: freshTechniques(),
+    legendRung: 0,
     tutorialsCompleted: 0,
     solveHistory: [],
     streak: { current: 0, longest: 0, lastSolveDate: '' },
@@ -97,7 +118,7 @@ export function defaultProfile(): PlayerProfile {
     settings: { theme: 'system', sound: true, haptics: true },
     role: 'player',
     updatedAt: EPOCH,
-    schemaVersion: 1,
+    schemaVersion: 2,
   };
 }
 
@@ -140,13 +161,22 @@ export function recordSolve(
   const hintsUsed = outcome.techniques
     .map((t) => ({ technique: t.technique, count: t.used - t.selfApplied }))
     .filter((h) => h.count > 0);
+  const techniqueTally = outcome.techniques
+    .filter((t) => t.used > 0 || t.selfApplied > 0)
+    .map((t) => ({
+      technique: t.technique,
+      used: t.used,
+      selfApplied: t.selfApplied,
+    }));
   const record: SolveRecord = {
     date,
     difficulty: outcome.difficulty,
     gridSize: outcome.gridSize,
     timeMs: outcome.timeMs,
     hintsUsed,
+    techniqueTally,
     isDailyPuzzle: outcome.isDailyPuzzle,
+    errorsValidated: outcome.errorsValidated ?? 0,
   };
   const solveHistory = [...profile.solveHistory, record].slice(
     -SOLVE_HISTORY_CAP,
@@ -182,6 +212,7 @@ export function recordSolve(
       techniques,
       tutorialsCompleted: profile.tutorialsCompleted,
       hardSolveCount,
+      history: solveHistory,
     });
     if (next === null) break;
     stage = next;
@@ -215,6 +246,7 @@ export function recordTutorialCompletion(
       hardSolveCount: profile.solveHistory.filter(
         (s) => s.difficulty === 'hard',
       ).length,
+      history: profile.solveHistory,
     });
     if (next === null) break;
     stage = next;
@@ -270,7 +302,9 @@ export function normalizeProfile(
         ? parsed.updatedAt
         : new Date().toISOString(),
     role: parsed.role === 'developer' ? 'developer' : 'player',
-    schemaVersion: 1,
+    legendRung:
+      ((parsed.legendRung as 0 | 1 | 2 | 3 | 4 | undefined) ?? 0),
+    schemaVersion: 2,
   };
 }
 
@@ -432,9 +466,11 @@ export function loadProfile(): PlayerProfile {
     const raw = localStorage.getItem(STORAGE_KEY);
     if (!raw) return defaultProfile();
     const parsed = JSON.parse(raw) as Record<string, unknown>;
-    // schemaVersion mismatch → start clean (migrations land with v2).
-    if (!parsed || parsed.schemaVersion !== 1) return defaultProfile();
-    return normalizeProfile(parsed);
+    if (!parsed) return defaultProfile();
+    // Run any pending schema migration before normalising.
+    const migrated = migrateProfile(parsed);
+    if (!migrated) return defaultProfile();
+    return normalizeProfile(migrated);
   } catch {
     return defaultProfile();
   }
