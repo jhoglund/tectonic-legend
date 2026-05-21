@@ -2,7 +2,7 @@ import { defineConfig, loadEnv, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 
-export default defineConfig(({ mode }) => {
+export default defineConfig(({ command, mode }) => {
   // Mimir analytics config — read from .env files, with real environment
   // variables taking precedence so CI can inject it without a committed
   // .env. Dev points the URLs at the same-origin proxy paths below;
@@ -46,9 +46,11 @@ export default defineConfig(({ mode }) => {
       : null
 
   return {
-    // GitHub Pages serves under a sub-path; the Capacitor iOS bundle
-    // loads from the app root. `vite build --mode capacitor` picks `/`.
-    base: mode === 'capacitor' ? '/' : '/tectonic-legend/',
+    // GitHub Pages serves under a sub-path; the Capacitor iOS bundle and
+    // the local dev server both load from the app root. `vite build --mode
+    // capacitor` and `vite` (serve) pick `/`; only the default web build
+    // gets the `/tectonic-legend/` prefix for Pages.
+    base: command === 'serve' || mode === 'capacitor' ? '/' : '/tectonic-legend/',
     plugins: [react(), tailwindcss(), mimirPlugin],
     server: {
       host: '127.0.0.1',
