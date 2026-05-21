@@ -38,10 +38,13 @@ The product feels like a cool, focused puzzle space — not a warm consumer app.
 | `border` | `#e5e5e5` | `#2a2a2a` |
 | `surface-active` | `#e5e5e5` | `#2a2a2a` |
 | `surface-pressed` | `#404040` | `#e5e5e5` |
+| `surface-track` | `#d4d4d4` | `#050505` |
 
 > `border-cage` is defined under §2a (the board palette) — it is an OKLCH neutral.
 >
 > `surface-active` / `surface-pressed` are the Solving-screen control states (variant-11 graduation): `surface-active` is the toggle-on tint for a toolbar button (e.g. Notes on); `surface-pressed` is the negative momentary press fill (dark in light mode, light in dark mode), paired with `text-on-pressed`.
+>
+> `surface-track` is the recessed track behind a segmented control (the grid-size toggle in the New-puzzle sheet). Light: a clear darker gray so the white "elevated" active pill stands out. Dark: a notch darker than `surface`, so the active `surface-elevated` pill still reads as raised.
 
 ## 2a. Board & cage colors
 

@@ -8,6 +8,7 @@ import { HintText } from '../components/HintText';
 import { HintMenu } from '../components/HintMenu';
 import { PauseSheet } from '../components/PauseSheet';
 import { AbandonAlert } from '../components/AbandonAlert';
+import { ClearPuzzleAlert } from '../components/ClearPuzzleAlert';
 import { SolvedScreen } from './SolvedScreen';
 import { useGame } from '../hooks/useGame';
 import { analytics } from '../lib/analytics';
@@ -88,6 +89,8 @@ export function SolvingScreen({
     handleCellClick,
     handleNumberInput,
     handleClear,
+    hasPlayerProgress,
+    clearAll,
     removeErrors,
     handleHint,
     toggleNotes,
@@ -183,6 +186,7 @@ export function SolvingScreen({
   const solved = gameState?.isSolved ?? false;
   const [paused, setPaused] = useState(false);
   const [abandonOpen, setAbandonOpen] = useState(false);
+  const [clearOpen, setClearOpen] = useState(false);
   const [hintMenuOpen, setHintMenuOpen] = useState(false);
   const [elapsed, setElapsed] = useState(0);
 
@@ -215,12 +219,18 @@ export function SolvingScreen({
   useEffect(() => {
     if (validateNonce === 0) return;
     if (!validateHadErrors) {
-      // No errors — run the green flash → fade-back sequence.
+      // No errors — run the green flash → fade-back sequence, then
+      // drop `showErrors` so the class doesn't fall through to
+      // `is-active` (which would leave the button in the darker
+      // surface-active state instead of the default).
       const t1 = window.setTimeout(() => {
         setValidateFade(true);
         setValidateOk(false);
       }, 800);
-      const t2 = window.setTimeout(() => setValidateFade(false), 2800);
+      const t2 = window.setTimeout(() => {
+        setValidateFade(false);
+        setShowErrors(false);
+      }, 2800);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
     const id = window.setTimeout(() => setShowErrors(false), 6000);
@@ -240,15 +250,15 @@ export function SolvingScreen({
 
   // Solve timer — runs while a puzzle is live, unsolved, and not paused.
   useEffect(() => {
-    if (!gameState || solved || paused || abandonOpen) return;
+    if (!gameState || solved || paused || abandonOpen || clearOpen) return;
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
-  }, [gameState, solved, paused, abandonOpen]);
+  }, [gameState, solved, paused, abandonOpen, clearOpen]);
 
   // Keyboard play — number entry, delete, notes, hint, arrow navigation.
   useEffect(() => {
     function handleKeyDown(e: KeyboardEvent) {
-      if (!gameState || paused || abandonOpen || solved) return;
+      if (!gameState || paused || abandonOpen || clearOpen || solved) return;
 
       if ((e.metaKey || e.ctrlKey) && (e.key === 'z' || e.key === 'Z')) {
         e.preventDefault();
@@ -298,6 +308,7 @@ export function SolvingScreen({
     maxNumber,
     paused,
     abandonOpen,
+    clearOpen,
     solved,
     handleNumberInput,
     handleClear,
@@ -474,8 +485,12 @@ export function SolvingScreen({
             )}
             <button
               type="button"
-              onClick={handleClear}
+              onClick={() => {
+                if (hasPlayerProgress()) setClearOpen(true);
+              }}
+              disabled={!hasPlayerProgress()}
               className="solve-tool"
+              style={{ opacity: hasPlayerProgress() ? 1 : 0.5 }}
             >
               <svg width="16" height="16" viewBox="0 0 256 256" fill="currentColor" aria-hidden="true"><path d="M216,207.833H130.344l34.729-34.73.017-.014.015-.017,56.553-56.553a24.03,24.03,0,0,0,0-33.941L176.403,37.323a24,24,0,0,0-33.941,0L85.903,93.882l-.01.01-.01.01L29.324,150.461a24,24,0,0,0,0,33.941l37.089,37.088a8,8,0,0,0,5.657,2.343H216a8,8,0,0,0,0-16ZM153.776,48.638a8,8,0,0,1,11.313,0l45.255,45.255a8.009,8.009,0,0,1,0,11.313l-50.911,50.911L102.865,99.549Z" /></svg>
               Clear
@@ -559,6 +574,14 @@ export function SolvingScreen({
         open={abandonOpen}
         onAbandon={onExit}
         onKeepSolving={() => setAbandonOpen(false)}
+      />
+      <ClearPuzzleAlert
+        open={clearOpen}
+        onClear={() => {
+          clearAll();
+          setClearOpen(false);
+        }}
+        onCancel={() => setClearOpen(false)}
       />
     </div>
   );

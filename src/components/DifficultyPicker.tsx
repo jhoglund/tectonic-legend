@@ -94,7 +94,7 @@ export function DifficultyPicker({
         {/* grid-size segmented control */}
         <div
           className="mb-4 flex gap-1 p-1"
-          style={{ background: 'var(--surface)', borderRadius: 'var(--radius-button)' }}
+          style={{ background: 'var(--surface-track)', borderRadius: 'var(--radius-button)' }}
         >
           {(['5x5', '8x8'] as GridSize[]).map((s) => {
             const active = size === s;

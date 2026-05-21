@@ -18,6 +18,7 @@
   /* --- Surfaces ----------------------------------------------- */
   --surface: #fafafa;
   --surface-elevated: #ffffff;
+  --surface-track: #d4d4d4;             /* segmented-control track */
   --surface-board: #ffffff;
   --surface-cell: #ffffff;
   --surface-cell-clue: #f5f5f5;
@@ -155,6 +156,7 @@
     /* Surfaces */
     --surface: #0a0a0a;
     --surface-elevated: #171717;
+    --surface-track: #050505;             /* segmented-control track */
     --surface-board: #0f1419;
     --surface-cell: #1a1f24;
     --surface-cell-clue: #262626;

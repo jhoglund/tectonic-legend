@@ -229,6 +229,40 @@ export function useGame(
     commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: false });
   }, [gameState, selectedCell, commit]);
 
+  /** True when any player-entered value or note is on the board — the
+   *  Clear-puzzle action has something to clear. */
+  const hasPlayerProgress = useCallback(() => {
+    if (!gameState) return false;
+    const { rows, cols } = gameState.puzzle.layout;
+    for (let r = 0; r < rows; r++) {
+      for (let c = 0; c < cols; c++) {
+        if (gameState.isClue[r][c]) continue;
+        if (gameState.grid[r][c] !== 0) return true;
+        if (gameState.notes[r][c].size > 0) return true;
+      }
+    }
+    return false;
+  }, [gameState]);
+
+  /** Wipe every non-clue cell and all notes. Undoable. */
+  const clearAll = useCallback(() => {
+    if (!gameState) return;
+    const { rows, cols } = gameState.puzzle.layout;
+    const newGrid = gameState.grid.map((row, r) =>
+      row.map((v, c) => (gameState.isClue[r][c] ? v : 0)),
+    );
+    const newNotes = Array.from({ length: rows }, () =>
+      Array.from({ length: cols }, () => new Set<number>()),
+    );
+    const newErrors = findErrors(
+      newGrid,
+      gameState.puzzle.layout,
+      gameState.puzzle.solution,
+      gameState.isClue,
+    );
+    commit({ ...gameState, grid: newGrid, notes: newNotes, errors: newErrors, isSolved: false });
+  }, [gameState, commit]);
+
   /** Clear every cell currently flagged as an error (wrong entries). */
   const removeErrors = useCallback(() => {
     if (!gameState) return;
@@ -406,6 +440,8 @@ export function useGame(
     handleCellClick,
     handleNumberInput,
     handleClear,
+    hasPlayerProgress,
+    clearAll,
     removeErrors,
     handleHint,
     setHintMode,
