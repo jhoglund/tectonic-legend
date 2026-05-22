@@ -7,6 +7,13 @@ import { Cell } from './Cell';
 import type { CellHighlight } from './Cell';
 import { computeBorders } from './cellBorders';
 
+/** Number of distinct cage tints in the design palette
+ *  (`--cage-1`…`--cage-5`). The greedy plain-smallest coloring would
+ *  often only use the first three slots, leaving boards visually
+ *  monotone; this lets us spread across all five when the layout has
+ *  enough groups. */
+const CAGE_PALETTE_SIZE = 5;
+
 function colorGroups(layout: PuzzleLayout): number[] {
   const { rows, cols, groups, cellToGroup } = layout;
 
@@ -28,15 +35,45 @@ function colorGroups(layout: PuzzleLayout): number[] {
     }
   }
 
+  // Color the groups balanced across the 5-tint palette: process the
+  // most-constrained group (largest adjacency) first, and at each step
+  // pick the palette colour with the lowest current usage that no
+  // neighbour already owns. This spreads the five tints evenly — five
+  // groups produce all five colours when the adjacency allows it,
+  // rather than the plain-greedy "use the smallest free index" that
+  // tended to reuse only the first three.
   const colors = new Array(groups.length).fill(-1);
-  for (const group of groups) {
-    const usedByNeighbors = new Set<number>();
-    for (const nid of adj.get(group.id)!) {
-      if (colors[nid] !== -1) usedByNeighbors.add(colors[nid]);
+  const usage = new Array(CAGE_PALETTE_SIZE).fill(0);
+  const order = groups
+    .map((g) => g.id)
+    .sort((a, b) => adj.get(b)!.size - adj.get(a)!.size);
+
+  for (const gid of order) {
+    const banned = new Set<number>();
+    for (const nid of adj.get(gid)!) {
+      if (colors[nid] !== -1) banned.add(colors[nid]);
     }
-    let color = 0;
-    while (usedByNeighbors.has(color)) color++;
-    colors[group.id] = color;
+    let pick = -1;
+    let pickUsage = Infinity;
+    for (let c = 0; c < CAGE_PALETTE_SIZE; c++) {
+      if (banned.has(c)) continue;
+      if (usage[c] < pickUsage) {
+        pickUsage = usage[c];
+        pick = c;
+      }
+    }
+    if (pick === -1) {
+      // Adjacency consumed every palette slot (rare — the Four Colour
+      // Theorem makes this all but impossible on planar cage maps).
+      // Fall back to the original smallest-free-index pattern; the
+      // Cell renderer mods by the palette size so the cage still draws.
+      let c = CAGE_PALETTE_SIZE;
+      while (banned.has(c % CAGE_PALETTE_SIZE)) c++;
+      pick = c;
+    } else {
+      usage[pick]++;
+    }
+    colors[gid] = pick;
   }
   return colors;
 }
