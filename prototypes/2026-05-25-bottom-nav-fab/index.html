@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Bottom Nav FAB Alternatives</title>
+<style>
+  :root {
+    --brand-50: #ecfeff;
+    --brand-100: #cffafe;
+    --brand-500: #06b6d4;
+    --brand-600: #0891b2;
+    --brand-700: #0e7490;
+    --surface: #fafafa;
+    --surface-elevated: #ffffff;
+    --border: #e5e5e5;
+    --text-primary: #0a0a0a;
+    --text-secondary: #525252;
+    --text-tertiary: #a3a3a3;
+    --text-on-brand: #ffffff;
+    --shadow-glass: 0 16px 42px rgba(8,20,24,0.12), 0 1px 0 rgba(255,255,255,0.86) inset;
+    --shadow-fab: 0 4px 16px rgba(0,0,0,0.16);
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    background: #eeeeef;
+    color: var(--text-primary);
+  }
+  .page {
+    max-width: 1280px;
+    margin: 0 auto;
+    padding: 32px 20px 48px;
+  }
+  header {
+    margin-bottom: 24px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 28px;
+    line-height: 34px;
+    font-weight: 650;
+  }
+  .intro {
+    max-width: 760px;
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
+    align-items: start;
+  }
+  .variant {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .variant h2 {
+    margin: 0;
+    font-size: 15px;
+    line-height: 20px;
+    font-weight: 650;
+  }
+  .variant p {
+    margin: 0;
+    min-height: 40px;
+    color: var(--text-secondary);
+    font-size: 13px;
+    line-height: 18px;
+  }
+  .phone {
+    position: relative;
+    height: 560px;
+    overflow: hidden;
+    border-radius: 34px;
+    background: var(--surface);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.14);
+  }
+  .content {
+    padding: 24px 18px 110px;
+  }
+  .date {
+    color: var(--text-tertiary);
+    font-size: 11px;
+    font-weight: 650;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .topline {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .title {
+    margin-top: 3px;
+    font-size: 30px;
+    line-height: 34px;
+    font-weight: 700;
+  }
+  .settings {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+  }
+  .card {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+  }
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chip {
+    border-radius: 999px;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+  }
+  .stage-copy {
+    flex: 1;
+  }
+  .stage-copy strong {
+    display: block;
+    font-size: 13px;
+  }
+  .stage-copy span {
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .track {
+    width: 52px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+  .daily-title {
+    margin-top: 2px;
+    font-size: 18px;
+    font-weight: 700;
+  }
+  .mini-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 150px;
+    margin: 16px auto 12px;
+    overflow: hidden;
+    border: 2px solid #707070;
+    border-radius: 9px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-right: 1px solid rgba(0,0,0,0.12);
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+    font-family: "JetBrains Mono", ui-monospace, monospace;
+    font-weight: 700;
+  }
+  .c1 { background: #bfe4dc; }
+  .c2 { background: #f6dbe2; }
+  .c3 { background: #c7d7ec; }
+  .c4 { background: #fff2b8; }
+  .c5 { background: #f3f1ec; }
+  .primary {
+    display: grid;
+    place-items: center;
+    height: 44px;
+    border-radius: 9px;
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    font-weight: 700;
+    font-size: 15px;
+  }
+  .nav {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    gap: 6px;
+    padding: 7px;
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 30px;
+    background: rgba(255,255,255,0.88);
+    box-shadow: var(--shadow-glass);
+    backdrop-filter: blur(20px) saturate(1.15);
+  }
+  .tab,
+  .new {
+    border: 0;
+    font: inherit;
+    cursor: default;
+  }
+  .tab {
+    display: flex;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 999px;
+    background: transparent;
+    color: var(--text-secondary);
+  }
+  .tab svg {
+    width: 22px;
+    height: 22px;
+  }
+  .tab span {
+    font-size: 10px;
+    font-weight: 750;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+  }
+  .new {
+    min-height: 48px;
+    border-radius: 999px;
+    font-size: 14px;
+    font-weight: 750;
+  }
+  .active-fill {
+    background: var(--brand-100);
+    color: var(--brand-700);
+  }
+  .new-fill {
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    box-shadow: var(--shadow-fab);
+  }
+  .active-quiet {
+    color: var(--brand-700);
+  }
+  .active-quiet svg {
+    stroke-width: 2.4;
+  }
+  .active-quiet span {
+    color: var(--text-primary);
+  }
+  .active-underline {
+    position: relative;
+    color: var(--text-primary);
+  }
+  .active-underline::after {
+    content: "";
+    position: absolute;
+    left: 50%;
+    bottom: 5px;
+    width: 26px;
+    height: 3px;
+    transform: translateX(-50%);
+    border-radius: 999px;
+    background: var(--brand-600);
+  }
+  .new-outline {
+    border: 1px solid color-mix(in oklch, var(--brand-600) 42%, var(--border));
+    background: var(--surface-elevated);
+    color: var(--brand-700);
+  }
+  .new-low {
+    background: var(--brand-50);
+    color: var(--brand-700);
+  }
+  .new-float {
+    transform: translateY(-14px);
+    min-height: 56px;
+    border: 5px solid rgba(255,255,255,0.88);
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    box-shadow: var(--shadow-fab);
+  }
+  .nav-split {
+    grid-template-columns: 1fr 82px 1fr;
+  }
+  .note {
+    margin-top: 8px;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    line-height: 17px;
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Bottom Nav FAB Alternatives</h1>
+      <p class="intro">
+        The current issue is hierarchy: both the active Today tab and the central + New action use filled brand pills.
+        These variants try different ways to make navigation feel quieter while keeping new-puzzle creation obvious.
+      </p>
+    </header>
+
+    <section class="grid">
+      <article class="variant">
+        <h2>A. Quiet Active, Filled + New</h2>
+        <p>Recommended. Today is active through ink weight only; + New owns the filled pill.</p>
+        <div class="phone">
+          <div class="content">
+            <div class="topline">
+              <div><div class="date">Monday, May 25</div><div class="title">Today</div></div>
+              <div class="settings">☼</div>
+            </div>
+            <div class="card stage"><span class="chip">Beginner</span><div class="stage-copy"><strong>0 of 3 toward Confident</strong><span>Self-solve naked singles in 3 more puzzles</span></div><div class="track"></div></div>
+            <div class="card"><div class="date">Daily puzzle</div><div class="daily-title">A 5×5, easy</div><div class="mini-board">
+              <div class="cell c1">3</div><div class="cell c1"></div><div class="cell c3">1</div><div class="cell c3"></div><div class="cell c3">5</div>
+              <div class="cell c1">1</div><div class="cell c1"></div><div class="cell c1">5</div><div class="cell c3">3</div><div class="cell c3"></div>
+              <div class="cell c5"></div><div class="cell c5">3</div><div class="cell c4"></div><div class="cell c4">4</div><div class="cell c2"></div>
+              <div class="cell c5">1</div><div class="cell c5"></div><div class="cell c4"></div><div class="cell c4"></div><div class="cell c2"></div>
+              <div class="cell c5">2</div><div class="cell c3">3</div><div class="cell c3"></div><div class="cell c3"></div><div class="cell c3">1</div>
+            </div><div class="primary">Play today’s puzzle</div></div>
+          </div>
+          <nav class="nav">
+            <button class="tab active-quiet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg><span>Today</span></button>
+            <button class="new new-fill">+ New</button>
+            <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
+          </nav>
+        </div>
+        <div class="note">Best hierarchy: one filled control in the nav. Active tab remains readable but does not fight the CTA.</div>
+      </article>
+
+      <article class="variant">
+        <h2>B. Underline Active, Filled + New</h2>
+        <p>Tab state becomes an iOS-like selection indicator; + New stays primary.</p>
+        <div class="phone">
+          <div class="content">
+            <div class="topline"><div><div class="date">Monday, May 25</div><div class="title">Today</div></div><div class="settings">☼</div></div>
+            <div class="card stage"><span class="chip">Beginner</span><div class="stage-copy"><strong>0 of 3 toward Confident</strong><span>Self-solve naked singles in 3 more puzzles</span></div><div class="track"></div></div>
+            <div class="card"><div class="date">Daily puzzle</div><div class="daily-title">A 5×5, easy</div><div class="mini-board">
+              <div class="cell c1">3</div><div class="cell c1"></div><div class="cell c3">1</div><div class="cell c3"></div><div class="cell c3">5</div>
+              <div class="cell c1">1</div><div class="cell c1"></div><div class="cell c1">5</div><div class="cell c3">3</div><div class="cell c3"></div>
+              <div class="cell c5"></div><div class="cell c5">3</div><div class="cell c4"></div><div class="cell c4">4</div><div class="cell c2"></div>
+              <div class="cell c5">1</div><div class="cell c5"></div><div class="cell c4"></div><div class="cell c4"></div><div class="cell c2"></div>
+              <div class="cell c5">2</div><div class="cell c3">3</div><div class="cell c3"></div><div class="cell c3"></div><div class="cell c3">1</div>
+            </div><div class="primary">Play today’s puzzle</div></div>
+          </div>
+          <nav class="nav">
+            <button class="tab active-underline"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg><span>Today</span></button>
+            <button class="new new-fill">+ New</button>
+            <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
+          </nav>
+        </div>
+        <div class="note">Very clear, but a little more “system tab bar” and less pill-native.</div>
+      </article>
+
+      <article class="variant">
+        <h2>C. Filled Active, Outlined + New</h2>
+        <p>Keep the active tab treatment, but demote + New into an outlined action.</p>
+        <div class="phone">
+          <div class="content">
+            <div class="topline"><div><div class="date">Monday, May 25</div><div class="title">Today</div></div><div class="settings">☼</div></div>
+            <div class="card stage"><span class="chip">Beginner</span><div class="stage-copy"><strong>0 of 3 toward Confident</strong><span>Self-solve naked singles in 3 more puzzles</span></div><div class="track"></div></div>
+            <div class="card"><div class="date">Daily puzzle</div><div class="daily-title">A 5×5, easy</div><div class="mini-board">
+              <div class="cell c1">3</div><div class="cell c1"></div><div class="cell c3">1</div><div class="cell c3"></div><div class="cell c3">5</div>
+              <div class="cell c1">1</div><div class="cell c1"></div><div class="cell c1">5</div><div class="cell c3">3</div><div class="cell c3"></div>
+              <div class="cell c5"></div><div class="cell c5">3</div><div class="cell c4"></div><div class="cell c4">4</div><div class="cell c2"></div>
+              <div class="cell c5">1</div><div class="cell c5"></div><div class="cell c4"></div><div class="cell c4"></div><div class="cell c2"></div>
+              <div class="cell c5">2</div><div class="cell c3">3</div><div class="cell c3"></div><div class="cell c3"></div><div class="cell c3">1</div>
+            </div><div class="primary">Play today’s puzzle</div></div>
+          </div>
+          <nav class="nav">
+            <button class="tab active-fill"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg><span>Today</span></button>
+            <button class="new new-outline">+ New</button>
+            <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
+          </nav>
+        </div>
+        <div class="note">Safest if navigation state matters more than creation. New becomes less tappable, though.</div>
+      </article>
+
+      <article class="variant">
+        <h2>D. Raised Center FAB</h2>
+        <p>Separate the create action spatially from the tab selection state.</p>
+        <div class="phone">
+          <div class="content">
+            <div class="topline"><div><div class="date">Monday, May 25</div><div class="title">Today</div></div><div class="settings">☼</div></div>
+            <div class="card stage"><span class="chip">Beginner</span><div class="stage-copy"><strong>0 of 3 toward Confident</strong><span>Self-solve naked singles in 3 more puzzles</span></div><div class="track"></div></div>
+            <div class="card"><div class="date">Daily puzzle</div><div class="daily-title">A 5×5, easy</div><div class="mini-board">
+              <div class="cell c1">3</div><div class="cell c1"></div><div class="cell c3">1</div><div class="cell c3"></div><div class="cell c3">5</div>
+              <div class="cell c1">1</div><div class="cell c1"></div><div class="cell c1">5</div><div class="cell c3">3</div><div class="cell c3"></div>
+              <div class="cell c5"></div><div class="cell c5">3</div><div class="cell c4"></div><div class="cell c4">4</div><div class="cell c2"></div>
+              <div class="cell c5">1</div><div class="cell c5"></div><div class="cell c4"></div><div class="cell c4"></div><div class="cell c2"></div>
+              <div class="cell c5">2</div><div class="cell c3">3</div><div class="cell c3"></div><div class="cell c3"></div><div class="cell c3">1</div>
+            </div><div class="primary">Play today’s puzzle</div></div>
+          </div>
+          <nav class="nav nav-split">
+            <button class="tab active-quiet"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg><span>Today</span></button>
+            <button class="new new-float">+ New</button>
+            <button class="tab"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg><span>Stats</span></button>
+          </nav>
+        </div>
+        <div class="note">Strong affordance and clear separation, but it may feel more app-store/social than puzzle-tool.</div>
+      </article>
+    </section>
+  </main>
+</body>
+</html>

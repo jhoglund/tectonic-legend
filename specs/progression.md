@@ -106,9 +106,9 @@ Three curated puzzles for Newcomer, plus one per stage-up. Stored as typed fixtu
 
 Each is a short, **fully guided** 5×5 — the player taps the one highlighted cell's value, step by step, with a per-step explanation. Wrong taps are nudged, never recorded. (First-draft scope: tutorials are entirely scripted rather than mixing guided and free play — simpler to build and a tighter onboarding beat. Revisit with soft-launch data.)
 
-1. **Reading the board.** Solution mostly filled; the player completes 3 cells. The steps walk through the cage rule and the no-touching-neighbors rule.
-2. **Naked singles.** 5 guided cells, each framed as ruling every value but one out by cage + neighbors.
-3. **Cage completion.** 5 guided cells, each the last empty cell of its cage.
+1. **Read a cage.** Solution mostly filled; the player completes 3 cells using only the cage rule and sees coordinates (`A1`, `B2`, etc.) in the explanation copy.
+2. **Complete a cage.** 5 guided cells, each the last empty cell of its cage. This reinforces scanning fuller cages before adding neighbour logic.
+3. **Find a naked single.** 5 guided cells, each framed as ruling every value but one out by cage + neighbours. This is the first combined-rule beginner move.
 
 ### Stage-up tutorials
 

@@ -567,10 +567,12 @@ function findDeductiveHint(
 }
 
 interface DeductionStep {
+  id: number;
   row: number;
   col: number;
   value: number;
   technique: 'naked_single' | 'hidden_single';
+  deps: number[];
 }
 
 interface TrialResult {
@@ -581,6 +583,33 @@ interface TrialResult {
    *  hint can point the board highlight and the text at the same cell.
    *  Absent when the contradiction is a value with nowhere to go. */
   conflictCell?: { row: number; col: number };
+  contradictionDeps?: number[];
+}
+
+type CandidateCauses = Map<number, number>[][];
+
+function uniquePositiveIds(ids: Iterable<number | undefined>): number[] {
+  return [...new Set([...ids].filter((id): id is number => id !== undefined && id >= 0))];
+}
+
+export function trimStepsToContradiction(result: TrialResult): DeductionStep[] {
+  const needed = new Set(result.contradictionDeps ?? []);
+
+  const byId = new Map(result.steps.map((step) => [step.id, step]));
+  const stack = [...needed];
+  while (stack.length > 0) {
+    const id = stack.pop()!;
+    const step = byId.get(id);
+    if (!step) continue;
+    for (const dep of step.deps) {
+      if (!needed.has(dep)) {
+        needed.add(dep);
+        stack.push(dep);
+      }
+    }
+  }
+
+  return result.steps.filter((step) => needed.has(step.id));
 }
 
 function simulateTrial(
@@ -596,26 +625,75 @@ function simulateTrial(
   const simCands: Set<number>[][] = baseCandidates.map((row) =>
     row.map((s) => new Set(s))
   );
+  const causes: CandidateCauses = Array.from({ length: rows }, () =>
+    Array.from({ length: cols }, () => new Map<number, number>())
+  );
   const steps: DeductionStep[] = [];
+  let nextStepId = 1;
   // The empty cell a failed assignment strips of its last candidate —
   // simAssign records it so the contradiction can name the cell.
   let conflict: { row: number; col: number } | null = null;
+  let conflictDeps: number[] = [];
 
-  function simAssign(r: number, c: number, val: number): boolean {
+  function candidateCause(r: number, c: number, val: number): number | undefined {
+    return causes[r][c].get(val);
+  }
+
+  function recordRemoval(r: number, c: number, val: number, causeId: number): void {
+    if (simGrid[r][c] !== 0 || !simCands[r][c].has(val)) return;
+    simCands[r][c].delete(val);
+    causes[r][c].set(val, causeId);
+  }
+
+  function noValueDeps(r: number, c: number): number[] {
+    const groupSize = groups[cellGroup[r][c]].cells.length;
+    return uniquePositiveIds(
+      Array.from({ length: groupSize }, (_, i) => candidateCause(r, c, i + 1)),
+    );
+  }
+
+  function nakedDeps(r: number, c: number, val: number): number[] {
+    const groupSize = groups[cellGroup[r][c]].cells.length;
+    return uniquePositiveIds(
+      Array.from({ length: groupSize }, (_, i) => i + 1)
+        .filter((candidate) => candidate !== val && !simCands[r][c].has(candidate))
+        .map((candidate) => candidateCause(r, c, candidate)),
+    );
+  }
+
+  function hiddenDeps(group: { cells: { row: number; col: number }[] }, val: number): number[] {
+    return uniquePositiveIds(
+      group.cells
+        .filter(({ row, col }) => simGrid[row][col] === 0 && !simCands[row][col].has(val))
+        .map(({ row, col }) => candidateCause(row, col, val)),
+    );
+  }
+
+  function valueNowhereDeps(group: { cells: { row: number; col: number }[] }, val: number): number[] {
+    return uniquePositiveIds(
+      group.cells
+        .filter(({ row, col }) => simGrid[row][col] === 0)
+        .map(({ row, col }) => candidateCause(row, col, val)),
+    );
+  }
+
+  function simAssign(r: number, c: number, val: number, causeId: number): boolean {
     simGrid[r][c] = val;
     simCands[r][c].clear();
     for (const [nr, nc] of neighbors[r][c]) {
-      simCands[nr][nc].delete(val);
+      recordRemoval(nr, nc, val, causeId);
       if (simGrid[nr][nc] === 0 && simCands[nr][nc].size === 0) {
         conflict = { row: nr, col: nc };
+        conflictDeps = noValueDeps(nr, nc);
         return false;
       }
     }
     for (const cell of groups[cellGroup[r][c]].cells) {
       if (cell.row === r && cell.col === c) continue;
-      simCands[cell.row][cell.col].delete(val);
+      recordRemoval(cell.row, cell.col, val, causeId);
       if (simGrid[cell.row][cell.col] === 0 && simCands[cell.row][cell.col].size === 0) {
         conflict = { row: cell.row, col: cell.col };
+        conflictDeps = noValueDeps(cell.row, cell.col);
         return false;
       }
     }
@@ -629,11 +707,12 @@ function simulateTrial(
       contradiction: true,
       steps,
       conflictCell: cc,
+      contradictionDeps: conflictDeps,
       contradictionReason: `${cellLabel(cc.row, cc.col)} has no value left`,
     };
   }
 
-  if (!simAssign(trialRow, trialCol, trialValue)) {
+  if (!simAssign(trialRow, trialCol, trialValue, 0)) {
     return cellConflict();
   }
 
@@ -646,12 +725,14 @@ function simulateTrial(
         if (simGrid[r][c] !== 0) continue;
         if (simCands[r][c].size === 0) {
           conflict = { row: r, col: c };
+          conflictDeps = noValueDeps(r, c);
           return cellConflict();
         }
         if (simCands[r][c].size === 1) {
           const val = simCands[r][c].values().next().value!;
-          steps.push({ row: r, col: c, value: val, technique: 'naked_single' });
-          if (!simAssign(r, c, val)) {
+          const id = nextStepId++;
+          steps.push({ id, row: r, col: c, value: val, technique: 'naked_single', deps: nakedDeps(r, c, val) });
+          if (!simAssign(r, c, val, id)) {
             return cellConflict();
           }
           changed = true;
@@ -679,12 +760,14 @@ function simulateTrial(
           return {
             contradiction: true,
             steps,
+            contradictionDeps: valueNowhereDeps(group, v),
             contradictionReason: `${v} has nowhere left to go in its cage`,
           };
         }
         if (count === 1) {
-          steps.push({ row: lastR, col: lastC, value: v, technique: 'hidden_single' });
-          if (!simAssign(lastR, lastC, v)) {
+          const id = nextStepId++;
+          steps.push({ id, row: lastR, col: lastC, value: v, technique: 'hidden_single', deps: hiddenDeps(group, v) });
+          if (!simAssign(lastR, lastC, v, id)) {
             return cellConflict();
           }
           changed = true;
@@ -717,7 +800,8 @@ function formatTrialExplanation(
     text: `Assume ${cellLabel(trialRow, trialCol)} is ${trialValue}.`,
   });
 
-  const stepsToShow = result.steps.slice(0, 4);
+  const relevantSteps = trimStepsToContradiction(result);
+  const stepsToShow = relevantSteps.slice(0, 4);
   for (const step of stepsToShow) {
     const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
     texts.push(`→ ${cellLabel(step.row, step.col)} is forced to ${step.value} (${reason})`);
@@ -727,8 +811,8 @@ function formatTrialExplanation(
       text: `${cellLabel(step.row, step.col)} is then forced to ${step.value} — ${reason}.`,
     });
   }
-  if (result.steps.length > 4) {
-    const extra = result.steps.slice(4);
+  if (relevantSteps.length > 4) {
+    const extra = relevantSteps.slice(4);
     texts.push(`→ ...${extra.length} more forced moves...`);
     for (const step of extra) {
       const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
@@ -823,9 +907,10 @@ function tryEliminationsForCell(
           row: cellR, col: cellC, value: v, role: 'assumption',
           text: `Assume ${cellLabel(cellR, cellC)} is ${v}.`,
         }];
-        if (result.steps.length > 0) {
-          texts.push(`→ ...after ${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
-          for (const step of result.steps) {
+        const relevantSteps = trimStepsToContradiction(result);
+        if (relevantSteps.length > 0) {
+          texts.push(`→ ...after ${relevantSteps.length} forced move${relevantSteps.length > 1 ? 's' : ''}, a deeper contradiction is reached`);
+          for (const step of relevantSteps) {
             const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
             chainEntries.push({
               row: step.row, col: step.col, value: step.value, role: 'deduction',
@@ -870,9 +955,10 @@ function tryEliminationsForCell(
                 row: cellR, col: cellC, value: v, role: 'assumption',
                 text: `Assume ${cellLabel(cellR, cellC)} is ${v}.`,
               }];
-              if (result.steps.length > 0) {
-                texts.push(`→ ...${result.steps.length} forced move${result.steps.length > 1 ? 's' : ''} follow`);
-                for (const step of result.steps) {
+              const relevantSteps = trimStepsToContradiction(result);
+              if (relevantSteps.length > 0) {
+                texts.push(`→ ...${relevantSteps.length} forced move${relevantSteps.length > 1 ? 's' : ''} follow`);
+                for (const step of relevantSteps) {
                   const reason = step.technique === 'naked_single' ? 'only candidate' : 'only spot in cage';
                   chainEntries.push({
                     row: step.row, col: step.col, value: step.value, role: 'deduction',

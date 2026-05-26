@@ -136,6 +136,13 @@
   --shadow-card: 0 2px 8px rgba(0, 0, 0, 0.06);
   --shadow-modal: 0 12px 40px rgba(0, 0, 0, 0.18);
   --shadow-fab: 0 4px 16px rgba(0, 0, 0, 0.16);
+  --shadow-glass: 0 16px 42px rgba(8, 20, 24, 0.12), 0 1px 0 rgba(255, 255, 255, 0.86) inset;
+
+  /* --- Glass -------------------------------------------------- */
+  --glass-surface: rgba(255, 255, 255, 0.88);
+  --glass-border: rgba(255, 255, 255, 0.82);
+  --glass-blur: 20px;
+  --glass-saturation: 1.15;
 
   /* --- Motion (categorical, not arbitrary) -------------------- */
   --motion-fast: 120ms ease-out;
@@ -214,6 +221,11 @@
     --cage-3-note: oklch(from var(--cage-3) 0.70 calc(c * 1.5) h);
     --cage-4-note: oklch(from var(--cage-4) 0.70 calc(c * 1.5) h);
     --cage-5-note: oklch(from var(--cage-5) 0.70 calc(c * 1.5) h);
+    --shadow-glass: 0 18px 48px rgba(0, 0, 0, 0.38), 0 2px 10px rgba(0, 0, 0, 0.26);
+    --glass-surface: rgba(23, 23, 23, 0.88);
+    --glass-border: rgba(255, 255, 255, 0.12);
+    --glass-blur: 36px;
+    --glass-saturation: 1.4;
   }
 }
 
@@ -380,4 +392,39 @@ body {
   font-family: var(--font-ui);
   background: var(--surface);
   color: var(--text-primary);
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid var(--brand-600);
+  outline-offset: 2px;
+}
+
+.status-safe-area {
+  height: env(safe-area-inset-top, 0px);
+  background: transparent;
+  box-shadow: none;
+  backdrop-filter: blur(16px) saturate(1.08);
+  -webkit-backdrop-filter: blur(16px) saturate(1.08);
+}
+
+.safe-area-pad-top {
+  padding-top: env(safe-area-inset-top, 0px);
+}
+
+.nav-clearance {
+  padding-bottom: calc(6.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.bottom-nav-shell {
+  bottom: 0.75rem;
+  bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
+
+.bottom-nav-glass {
+  background: var(--glass-surface);
+  border: 1px solid var(--glass-border);
+  box-shadow: var(--shadow-glass);
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-saturation));
 }

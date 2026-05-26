@@ -100,6 +100,8 @@ interface BoardProps {
    *  (ADR-0015). For a stepped pair-elimination hint, the caller passes
    *  the frame for the current step. */
   hintNotes?: HintNotes | null;
+  /** Compact previews keep cage/grid lines proportional at thumbnail size. */
+  compact?: boolean;
 }
 
 export function Board({
@@ -111,12 +113,26 @@ export function Board({
   showErrors = false,
   showCoordinates = false,
   hintNotes = null,
+  compact = false,
 }: BoardProps) {
-  const { puzzle, grid, isClue, notes, errors } = gameState;
+  const { puzzle, grid, isClue, notes } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
+  const boardStyle: CSSProperties & Record<string, string> = {
+    width: '100%',
+    gridTemplateColumns: `repeat(${cols}, 1fr)`,
+    borderRadius: 'var(--radius-card)',
+    overflow: 'hidden',
+    ...(compact
+      ? {
+          '--border-cage-width': '1px',
+          '--border-inner-width': '0.5px',
+          '--radius-card': '5px',
+        }
+      : {}),
+  };
 
   // A region hint (ADR-0016) — the Forced move's dominating cage —
   // rings its empty cells blue and draws the value-set chip on one of
@@ -152,12 +168,7 @@ export function Board({
   const boardGrid = (
     <div
       className="grid"
-      style={{
-        width: '100%',
-        gridTemplateColumns: `repeat(${cols}, 1fr)`,
-        borderRadius: 'var(--radius-card)',
-        overflow: 'hidden',
-      }}
+      style={boardStyle}
     >
       {Array.from({ length: rows }, (_, r) =>
         Array.from({ length: cols }, (_, c) => {
@@ -177,6 +188,11 @@ export function Board({
           const key = posKey(r, c);
           const overlay = cellOverlays?.get(key) ?? null;
           const isDimmed = cellOverlays !== null && !cellOverlays.has(key);
+          const isWrongEntry =
+            showErrors &&
+            !isClue[r][c] &&
+            grid[r][c] !== 0 &&
+            grid[r][c] !== puzzle.solution[r][c];
 
           return (
             <Cell
@@ -184,7 +200,7 @@ export function Board({
               value={grid[r][c]}
               isClue={isClue[r][c]}
               isSelected={isSelected}
-              isError={showErrors && errors[r][c]}
+              isError={isWrongEntry}
               isHinted={!cellOverlays && isHintCell && !cellHintNotes}
               isDimmed={isDimmed}
               cellHighlight={overlay?.highlight ?? null}

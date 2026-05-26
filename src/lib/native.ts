@@ -13,6 +13,7 @@ import { StatusBar, Style } from '@capacitor/status-bar';
 export async function initNative(): Promise<void> {
   if (!Capacitor.isNativePlatform()) return;
   try {
+    await StatusBar.setOverlaysWebView({ overlay: true });
     await StatusBar.setStyle({ style: Style.Default });
   } catch {
     // Status-bar plugin unavailable — non-fatal; the app still runs.

@@ -5,6 +5,7 @@ export type Tab = 'home' | 'stats' | 'settings';
 interface TabBarProps {
   active: Tab;
   onChange: (tab: Tab) => void;
+  onNewPuzzle: () => void;
 }
 
 const iconProps = {
@@ -21,7 +22,7 @@ const iconProps = {
 const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
   {
     id: 'home',
-    label: 'Home',
+    label: 'Today',
     icon: (
       <svg {...iconProps} aria-hidden="true">
         <rect x="3" y="3" width="18" height="18" rx="3" />
@@ -38,45 +39,73 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
       </svg>
     ),
   },
-  {
-    id: 'settings',
-    label: 'Settings',
-    icon: (
-      <svg {...iconProps} aria-hidden="true">
-        <circle cx="12" cy="12" r="3" />
-        <path d="M12 2v3M12 19v3M4.2 4.2l2.1 2.1M17.7 17.7l2.1 2.1M2 12h3M19 12h3M4.2 19.8l2.1-2.1M17.7 6.3l2.1-2.1" />
-      </svg>
-    ),
-  },
 ];
 
-/** iOS-style bottom tab bar. Three destinations per ADR-0011's v1 nav. */
-export function TabBar({ active, onChange }: TabBarProps) {
+/** Liquid-glass global nav. Today / new puzzle / Stats. */
+export function TabBar({ active, onChange, onNewPuzzle }: TabBarProps) {
   return (
     <nav
-      className="flex shrink-0"
-      style={{
-        background: 'var(--surface-elevated)',
-        borderTop: '1px solid var(--border)',
-        paddingBottom: 'env(safe-area-inset-bottom)',
-      }}
+      className="bottom-nav-shell fixed left-0 right-0 z-50 pointer-events-none"
+      aria-label="Primary"
     >
-      {TABS.map((tab) => {
-        const isActive = active === tab.id;
-        return (
+      <div className="mx-auto max-w-[430px] px-3">
+        <div className="bottom-nav-glass pointer-events-auto grid grid-cols-3 items-center gap-1 rounded-[28px] px-2 py-1.5">
+          {TABS.slice(0, 1).map((tab) => {
+            const isActive = active === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onChange(tab.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className="flex min-w-0 cursor-pointer select-none flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 transition-colors"
+                style={{
+                  color: isActive ? 'var(--brand-700)' : 'var(--text-secondary)',
+                  background: 'transparent',
+                }}
+              >
+                <span className="grid h-5 w-5 place-items-center">{tab.icon}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
           <button
-            key={tab.id}
             type="button"
-            onClick={() => onChange(tab.id)}
-            aria-current={isActive ? 'page' : undefined}
-            className="flex flex-1 flex-col items-center gap-1 pt-2 pb-1.5 cursor-pointer select-none"
-            style={{ color: isActive ? 'var(--brand-600)' : 'var(--text-tertiary)' }}
+            onClick={onNewPuzzle}
+            className="flex min-w-0 cursor-pointer select-none items-center justify-center gap-1.5 rounded-full px-2 py-3 text-sm font-semibold transition-transform active:scale-[0.98]"
+            style={{
+              background: 'var(--brand-600)',
+              color: 'var(--text-on-brand)',
+              boxShadow: 'var(--shadow-fab)',
+            }}
           >
-            {tab.icon}
-            <span className="text-[11px] font-medium">{tab.label}</span>
+            + New
           </button>
-        );
-      })}
+          {TABS.slice(1).map((tab) => {
+            const isActive = active === tab.id;
+            return (
+              <button
+                key={tab.id}
+                type="button"
+                onClick={() => onChange(tab.id)}
+                aria-current={isActive ? 'page' : undefined}
+                className="flex min-w-0 cursor-pointer select-none flex-col items-center justify-center gap-0.5 rounded-full px-2 py-1.5 transition-colors"
+                style={{
+                  color: isActive ? 'var(--brand-700)' : 'var(--text-secondary)',
+                  background: 'transparent',
+                }}
+              >
+                <span className="grid h-5 w-5 place-items-center">{tab.icon}</span>
+                <span className="text-[10px] font-semibold uppercase tracking-[0.08em]">
+                  {tab.label}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </div>
     </nav>
   );
 }

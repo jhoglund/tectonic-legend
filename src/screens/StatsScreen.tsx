@@ -1,6 +1,11 @@
 import { useMemo, useState } from 'react';
-import { ScreenHeader } from '../components/ScreenHeader';
 import { MasteryChip } from '../components/MasteryChip';
+import {
+  CompactAppBar,
+  IconButton,
+  SectionLabel,
+  TonalCard,
+} from '../components/MaterialSurfaces';
 import { useProfile } from '../lib/profileContext';
 import { usePaywall } from '../lib/paywallContext';
 import { isPremium } from '../lib/profile';
@@ -21,44 +26,6 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 function formatTime(ms: number): string {
   const s = Math.round(ms / 1000);
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
-}
-
-const cardStyle: React.CSSProperties = {
-  background: 'var(--surface-elevated)',
-  border: '1px solid var(--border)',
-  borderRadius: 'var(--radius-card)',
-  padding: 'var(--space-4)',
-};
-
-function SectionTitle({ children }: { children: string }) {
-  return (
-    <p
-      className="mb-3 text-xs font-semibold"
-      style={{ color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}
-    >
-      {children}
-    </p>
-  );
-}
-
-function StatRow({ label, value }: { label: string; value: string }) {
-  return (
-    <div className="flex items-center justify-between py-1.5">
-      <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-        {label}
-      </span>
-      <span
-        className="text-sm font-medium"
-        style={{
-          color: 'var(--text-primary)',
-          fontFamily: 'var(--font-mono)',
-          fontVariantNumeric: 'tabular-nums',
-        }}
-      >
-        {value}
-      </span>
-    </div>
-  );
 }
 
 /**
@@ -88,6 +55,18 @@ export function StatsScreen() {
     return best;
   }, [solveHistory]);
 
+  const averageTimes = useMemo(() => {
+    const totals = new Map<Difficulty, { total: number; count: number }>();
+    for (const s of solveHistory) {
+      const prev = totals.get(s.difficulty) ?? { total: 0, count: 0 };
+      totals.set(s.difficulty, {
+        total: prev.total + s.timeMs,
+        count: prev.count + 1,
+      });
+    }
+    return totals;
+  }, [solveHistory]);
+
   const counts = useMemo(() => {
     const week = now - 7 * 86_400_000;
     const month = now - 30 * 86_400_000;
@@ -113,11 +92,34 @@ export function StatsScreen() {
     return { tally, max, hasAny: tally.size > 0 };
   }, [solveHistory]);
 
+  const playedDays = useMemo(() => {
+    const days = new Set(
+      solveHistory.map((s) => new Date(s.date).toISOString().slice(0, 10)),
+    );
+    return Array.from({ length: 28 }, (_, offset) => {
+      const d = new Date(now);
+      d.setDate(d.getDate() - (27 - offset));
+      return days.has(d.toISOString().slice(0, 10));
+    });
+  }, [solveHistory, now]);
+
+  const daysPlayed = playedDays.filter(Boolean).length;
+
   if (solveHistory.length < SOLVES_TO_UNLOCK) {
     const left = SOLVES_TO_UNLOCK - solveHistory.length;
     return (
       <div>
-        <ScreenHeader title="Stats" />
+        <CompactAppBar
+          title="Stats"
+          right={
+            <IconButton label="Range">
+              <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M7 10h10M9 14h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+                <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+              </svg>
+            </IconButton>
+          }
+        />
         <div className="px-6 py-20 text-center">
           <p
             className="text-sm leading-relaxed"
@@ -144,30 +146,85 @@ export function StatsScreen() {
 
   return (
     <div>
-      <ScreenHeader title="Stats" />
+      <CompactAppBar
+        title="Stats"
+        right={
+          <IconButton label="Range">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M7 10h10M9 14h6" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" />
+              <circle cx="12" cy="12" r="9" stroke="currentColor" strokeWidth="1.5" />
+            </svg>
+          </IconButton>
+        }
+      />
       <div className="flex flex-col gap-4 px-4 pb-8">
         {/* Solve performance */}
-        <div style={cardStyle}>
-          <SectionTitle>SOLVE PERFORMANCE</SectionTitle>
-          {DIFFICULTY_ORDER.filter((d) => bestTimes.has(d)).map((d) => (
-            <StatRow
-              key={d}
-              label={`Best — ${DIFFICULTY_LABEL[d]}`}
-              value={formatTime(bestTimes.get(d)!)}
-            />
-          ))}
-          <div
-            className="my-2"
-            style={{ borderTop: '1px solid var(--border)' }}
-          />
-          <StatRow label="Solved this week" value={String(counts.week)} />
-          <StatRow label="Solved this month" value={String(counts.month)} />
-          <StatRow label="Solved all-time" value={String(counts.all)} />
-        </div>
+        <TonalCard tonal>
+          <p
+            className="text-xs font-medium uppercase"
+            style={{ color: 'var(--text-secondary)', letterSpacing: '0.06em' }}
+          >
+            Solve performance
+          </p>
+          <p
+            className="mt-2 text-2xl font-semibold"
+            style={{ color: 'var(--text-primary)' }}
+          >
+            {bestTimes.size} of 4 difficulties active
+          </p>
+          <p className="mt-1 text-sm" style={{ color: 'var(--text-secondary)' }}>
+            {counts.month} solved this month · {counts.all} all-time
+          </p>
+          <div className="mt-3 flex flex-col">
+            {DIFFICULTY_ORDER.map((d) => {
+              const best = bestTimes.get(d);
+              const avg = averageTimes.get(d);
+              const solved = solveHistory.filter((s) => s.difficulty === d).length;
+              return (
+                <div
+                  key={d}
+                  className="grid items-center gap-2 py-3"
+                  style={{
+                    gridTemplateColumns: '1fr 64px 76px',
+                    borderTop: '1px solid var(--border)',
+                  }}
+                >
+                  <div
+                    className="text-sm"
+                    style={{ color: best == null ? 'var(--text-tertiary)' : 'var(--text-primary)' }}
+                  >
+                    {DIFFICULTY_LABEL[d]}
+                    <small className="block text-xs" style={{ color: 'var(--text-tertiary)' }}>
+                      {solved > 0 ? `${solved} solved` : 'locked or unplayed'}
+                    </small>
+                  </div>
+                  <div
+                    className="text-right text-sm font-medium"
+                    style={{
+                      color: best == null ? 'var(--text-tertiary)' : 'var(--brand-600)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    {best == null ? '-' : formatTime(best)}
+                  </div>
+                  <div
+                    className="text-right text-xs font-medium"
+                    style={{
+                      color: 'var(--text-secondary)',
+                      fontFamily: 'var(--font-mono)',
+                    }}
+                  >
+                    {avg == null ? '-' : `avg ${formatTime(avg.total / avg.count)}`}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </TonalCard>
 
         {/* Technique mastery */}
-        <div style={cardStyle}>
-          <SectionTitle>TECHNIQUE MASTERY</SectionTitle>
+        <SectionLabel>Technique mastery</SectionLabel>
+        <TonalCard>
           <div className="flex flex-col gap-3">
             {TECHNIQUE_NAMES.map((t) => (
               <MasteryChip
@@ -264,28 +321,72 @@ export function StatsScreen() {
               )}
             </>
           )}
-        </div>
+        </TonalCard>
 
         {/* Streaks */}
-        <div style={cardStyle}>
-          <SectionTitle>STREAKS</SectionTitle>
-          <StatRow
-            label="Current streak"
-            value={`${streak.current} ${streak.current === 1 ? 'day' : 'days'}`}
-          />
-          <StatRow
-            label="Longest streak"
-            value={`${streak.longest} ${streak.longest === 1 ? 'day' : 'days'}`}
-          />
+        <SectionLabel>Solve cadence</SectionLabel>
+        <TonalCard>
+          <div className="flex items-center gap-4">
+            <div className="grid flex-1 gap-1" style={{ gridTemplateColumns: 'repeat(14, 1fr)' }}>
+              {playedDays.map((played, i) => (
+                <span
+                  key={i}
+                  style={{
+                    aspectRatio: '1',
+                    borderRadius: 'var(--space-1)',
+                    background: played ? 'var(--brand-600)' : 'var(--border)',
+                  }}
+                />
+              ))}
+            </div>
+            <div className="text-right">
+              <p
+                className="text-2xl font-medium"
+                style={{
+                  color: 'var(--text-primary)',
+                  fontFamily: 'var(--font-mono)',
+                  fontVariantNumeric: 'tabular-nums',
+                }}
+              >
+                {daysPlayed}
+              </p>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                days played
+                <br />
+                of last 28
+              </p>
+            </div>
+          </div>
+          <div className="mt-4 grid grid-cols-2 gap-3">
+            <div>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Current streak
+              </p>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {streak.current} {streak.current === 1 ? 'day' : 'days'}
+              </p>
+            </div>
+            <div>
+              <p className="text-xs" style={{ color: 'var(--text-secondary)' }}>
+                Longest streak
+              </p>
+              <p className="text-sm font-medium" style={{ color: 'var(--text-primary)' }}>
+                {streak.longest} {streak.longest === 1 ? 'day' : 'days'}
+              </p>
+            </div>
+          </div>
           {streakResetLine && (
             <p
-              className="mt-2 text-xs"
+              className="mt-3 text-xs"
               style={{ color: 'var(--text-tertiary)' }}
             >
               {streakResetLine}
             </p>
           )}
-        </div>
+          <p className="mt-3 text-center text-xs" style={{ color: 'var(--text-tertiary)' }}>
+            Cadence is for your reference. Tectonic does not punish gaps.
+          </p>
+        </TonalCard>
       </div>
     </div>
   );

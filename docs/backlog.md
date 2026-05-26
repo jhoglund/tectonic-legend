@@ -22,15 +22,25 @@ Active work, in progress or paused awaiting input.
 **Phases 0–4 substantially complete.** 84 tests green. What remains is Phase 5 — ship.
 
 **Deferred slices** (carried forward to v1.1+):
-- Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
-- Mid-solve mastery-crossing moment — self-applied detection feeds data, but the live "you just mastered X" beat is not built.
+- Mid-solve mastery-crossing moment — self-applied detection feeds real data, but the live "you just mastered X" beat is not built.
 - Self-applied credit covers naked/hidden singles only — forced-move and pair-elimination self-credit deferred.
 
 ---
 
 ### v1.0 submission — one-week sprint
 
-Seven days to App Store submission. The game is feature-complete; this sprint is about polish, assets, and submission mechanics.
+Seven days to App Store submission. The game is feature-complete; this sprint is about the remaining submission blockers.
+
+**What bc6a291 (2026-05-25) shipped:**
+- ✅ Active-game persistence (`unresolvedPuzzles.ts` — resume in-progress puzzles)
+- ✅ Screenshot capture rig (`figmaExactScreens.tsx` — all 7 screens at 390×844)
+- ✅ ExportOptions.plist + code signing configured (team `S4UF72BD94`, automatic signing)
+- ✅ OAuth deep links (`tectonic://auth/callback` in AppDelegate + Info.plist)
+- ✅ Material surfaces component library + glass-morphism floating nav
+- ✅ Full UI polish pass (Home, Solving, Solved, Stats, Tutorial, Welcome, TabBar)
+- ✅ Hint engine polish (richer reasoning data: regions, steps, contradiction chains)
+- ✅ Design tokens finalized (glass elevation, typography scale, cage fills, motion)
+- ✅ Prototypes refined into shipped features (bottom nav FAB, typefaces)
 
 #### Day 1 (Mon May 26) — Decisions + prep
 
@@ -39,36 +49,37 @@ Seven days to App Store submission. The game is feature-complete; this sprint is
 - [ ] Confirm bundle ID: `com.jhoglund.tectoniclegend` (or keep `com.jhoglund.tectonic`) — must decide before creating App Store Connect record
 - [ ] Acquire domain (e.g. `tectoniclegend.app`) for privacy policy + support URLs
 
-#### Day 2 (Tue May 27) — Privacy + support pages
+#### Day 2 (Tue May 27) — Code: v1.0 submission readiness
 
-- [ ] Publish privacy policy at `<domain>/privacy` — honest, minimal ("Data Not Collected" posture, Mimir OFF for v1.0)
-- [ ] Publish support page at `<domain>/support` — How to Play, FAQ, contact email
 - [ ] Disable/hide paywall triggers for v1.0 (everything unlocked, no premium gates)
-- [ ] Hide auth/sign-in UI for v1.0 (local-only, no Supabase in v1.0)
+- [ ] Decide auth posture for v1.0: keep anonymous-by-default (ADR-0017) or hide auth entirely? If Supabase isn't configured for prod, ensure graceful degradation works on device.
 - [ ] Replace stock Vite README.md (audit item R7)
+- [ ] Add `PrivacyInfo.xcprivacy` with empty `NSPrivacyCollectedDataTypes` (Mimir OFF)
+- [ ] Set version to `1.0.0`, build number `1`
 
 #### Day 3 (Wed May 28) — App icon + screenshots
 
-- [ ] Design app icon (1024×1024 PNG, no alpha, no rounded corners)
+- [ ] Design app icon (1024×1024 PNG, no alpha, no rounded corners) — Open Design
 - [ ] Generate all icon sizes via `@capacitor/assets`
-- [ ] Capture 5–6 real screenshots at 1320×2868 (iPhone 6.9"):
-  1. Hero — Home with stage chip ("Learn the logic, not the levels")
-  2. Teaching hint — Solving screen + hint menu
-  3. The journey — Stage-up card
+- [ ] Capture 5–6 screenshots at 1320×2868 (iPhone 6.9") — leverage `figmaExactScreens.tsx` rig or real-device capture:
+  1. Hero — Home with daily puzzle + stage chip ("Learn the logic, not the levels")
+  2. Teaching hint — Solving screen + hint overlay with technique label
+  3. The journey — Stage-up card or progression visualizer
   4. Contradiction stepper — step-by-step walkthrough
-  5. Mastery & stats — Stats screen with mastery chips
-  6. Daily + share — Home daily puzzle card
+  5. Mastery & stats — Stats screen with technique mastery chips + progress bars
+  6. Daily + share — Daily puzzle card + share artifact
 - [ ] Add caption text to screenshots (Open Design or screenshot generator)
 
-#### Day 4 (Thu May 29) — Device testing + polish
+#### Day 4 (Thu May 29) — Device testing + web pages
 
 - [ ] `npm run sync:ios` → Xcode → real device testing:
-  - Launch → tutorial → solve → daily puzzle → share → backgrounding → offline
+  - Full flow: launch → tutorial (+ skip) → solve → daily puzzle → resume → share → backgrounding → offline
+  - Verify unresolved-puzzle resume works (new feature)
   - StatusBar / SafeArea / splash screen look native
   - No white-screen on asset loading (verify `base: '/'` in Capacitor build)
-- [ ] Tutorial polish pass (item 10 — pacing, visual treatment)
-- [ ] Set version to `1.0.0`, build number `1`
-- [ ] Add `PrivacyInfo.xcprivacy` with empty `NSPrivacyCollectedDataTypes` (Mimir OFF)
+- [ ] Publish privacy policy at `<domain>/privacy` — honest, minimal ("Data Not Collected", no analytics in v1.0)
+- [ ] Publish support page at `<domain>/support` — How to Play, FAQ, contact email
+- [ ] Tutorial content review — pacing and visual treatment (item 10, flagged as first-draft)
 
 #### Day 5 (Fri May 30) — App Store Connect + TestFlight
 
@@ -91,14 +102,16 @@ Seven days to App Store submission. The game is feature-complete; this sprint is
 
 - [ ] Fix any crash/UX issues from TestFlight
 - [ ] Final smoke test on device
-- [ ] Write App Review Notes (draft in `docs/app-store-launch.md` §5)
+- [ ] Write App Review Notes (draft in `docs/app-store-launch.md` §5):
+  > No account/login — all progress stored locally. No demo credentials needed.
+  > Launch → tutorial (or Skip) → solve any puzzle. Hints via toolbar button.
+  > Works fully offline. No IAP in v1.0.
 
 #### Day 7 (Sun June 1) — Submit
 
 - [ ] Set availability: NZ + CA (+ IE if desired)
 - [ ] Attach build to v1.0 release
 - [ ] Submit for review (typically 24–48 hours)
-- [ ] Celebrate 🎉
 
 ---
 
@@ -154,16 +167,18 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
     - **✅ Local vouchers** — `src/lib/vouchers.ts` + redeem flow in Settings: self-verifying `TEC-XXXX-XXXX` codes carrying a lifetime or N-day grant, validated offline. Premium entitlement on the profile (`isPremium`, timed-grant expiry). No Apple account, no backend. Done 2026-05-16 — see [`docs/vouchers.md`](vouchers.md). The timed (N-day) code is the local stand-in for a temporary offer.
     - **Apple-native (deferred to v1.1, needs item 17).** App Store **Offer Codes** for store-side vouchers; **Introductory & Promotional Offers** for real price discounts (free trial, win-back).
     - Lettered (17a) to avoid renumbering 18–24.
-18. **◑ Paywall** — built and **wired** 2026-05-16. `PaywallProvider` mounts it app-wide; `openPaywall(trigger)` records the trigger for the funnel. Two premium gates live: contradiction-chain hints (`useGame`) and the technique-mastery histogram (`StatsScreen`). Verified end-to-end: locked stat → paywall → voucher redeem → premium → unlocked. **For v1.0:** disable/hide all premium gates so everything is free. **For v1.1:** wire StoreKit purchase, re-enable gates, add ad SDK + interstitials.
+18. **◑ Paywall** — built and **wired** 2026-05-16. `PaywallProvider` mounts it app-wide; `openPaywall(trigger)` records the trigger for the funnel. Two premium gates live: contradiction-chain hints (`useGame`) and the technique-mastery histogram (`StatsScreen`). Verified end-to-end: locked stat → paywall → voucher redeem → premium → unlocked. **For v1.0 submission:** disable all premium gates so everything is free (no paywall visible to reviewers). **For v1.1:** wire StoreKit purchase, re-enable gates, add ad SDK + interstitials.
 19. **✅ Settings (trimmed)** — How to Play + About; replaces the stub the App Store audit flagged. Theme/sound/haptics deferred (features don't exist yet). Done 2026-05-16.
 
 ### Phase 5 — Ship
 
-20. **◑ Analytics integration** — Mimir wired (2026-05-15): SDK injected by a `vite.config` plugin when `VITE_MIMIR_*` is set; `src/lib/analytics.ts` emits semantic events; verified dev (event → `/_m/api/ingest` → 202). **Remaining:** paywall/IAP events (Phase 4); prod analytics is dormant until Mimir is publicly hosted and the repo variables/secret are set.
-21. **✅ Capacitor iOS scaffolding** — `@capacitor/*` 8, `capacitor.config.ts`, `ios/` Xcode project (SPM-based), conditional `base`, status-bar init. Done 2026-05-16. Build to device: `npm run sync:ios` then Xcode.
-22. **App Store assets** — icon, screenshots, description, keywords. Prep + drafts in `docs/app-store-launch.md`; assets themselves not built.
-23. **TestFlight beta** — 10–20 testers. Pipeline documented in `docs/app-store-launch.md`; Apple-account-gated.
-24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
+20. **◑ Analytics integration** — Mimir wired (2026-05-15): SDK injected by a `vite.config` plugin when `VITE_MIMIR_*` is set; `src/lib/analytics.ts` emits semantic events; verified dev (event → `/_m/api/ingest` → 202). **v1.0 ships with Mimir OFF** (simplest privacy posture: "Data Not Collected"). Prod analytics deferred to v1.1.
+21. **✅ Capacitor iOS scaffolding** — `@capacitor/*` 8, `capacitor.config.ts`, `ios/` Xcode project (SPM-based), conditional `base`, status-bar init. Done 2026-05-16. ExportOptions.plist + signing configured 2026-05-25. Build to device: `npm run sync:ios` then Xcode.
+21a. **✅ Active-game persistence** — `src/lib/unresolvedPuzzles.ts`: up to 20 in-progress puzzles in localStorage, resumable from Home. `UnresolvedPuzzlesScreen` for browsing. Done 2026-05-25 (`bc6a291`). Previously listed as a deferred slice; now shipped.
+21b. **✅ Screenshot capture rig** — `src/figmaExactScreens.tsx`: all 7 app screens at 390×844 with realistic game state. Available for App Store screenshot generation. Done 2026-05-25.
+22. **◑ App Store assets** — icon, screenshots, description, keywords. Metadata drafts in `docs/app-store-launch.md`; screenshot rig ready (21b). **Remaining:** design the 1024² app icon, capture final screenshots at 1320×2868, add marketing captions.
+23. **TestFlight beta** — 5–10 internal testers (no review required). Apple Developer enrolled; TestFlight pipeline working.
+24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). v1.0 validates retention only (no IAP). Targets in `PRD.md` §10.
 
 ### v1.1 — Monetization (target: 2–3 weeks post-submission)
 
@@ -200,6 +215,7 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
 - **I7. Floating pill nav bar.** Replace the global bottom tab bar with an iOS-native floating button bar — rounded corners (pill).
 - **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
 - **I9. Deductive hint techniques.** Give the hint engine a deductive middle tier so logic hints explain a deduction instead of narrating a backtracking search. *Done 2026-05-18* — [`specs/solving-techniques.md`](../specs/solving-techniques.md) catalogues the tiers; `src/engine/hints.ts` now runs cage domination (`findDominationHint`, the `forced-move` technique) and a naked/hidden-subset + locked-candidate elimination loop (`findDeductiveHint`, the `pair-elimination` technique) before the `findContradictionHint` fallback. Probe over 28 hard/expert solves: contradiction trials dropped to 6 of 567 hints. The generator now also grades difficulty by required technique (`gradeDifficulty`) instead of backtrack count, so a label means "needs this technique" — `progression.md` §2. **Optional follow-ups:** self-credit `pair-elimination` in `classifyMove`; flip-flop / parity-chain hints (spec §8); a clue-density pass if 8×8 medium generation (~6 s) needs trimming.
+- **I10. ✅ Auth sheet bottom clearance.** Done 2026-05-25. The account overlay now stacks above the floating bottom tab bar and constrains its height to the viewport, so the lower controls are not covered on iPhone.
 
 ---
 

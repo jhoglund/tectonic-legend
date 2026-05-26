@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect, useRef } from 'react';
-import type { GameState, Difficulty, Puzzle, GridSize, HintMode } from '../engine/types';
+import type { GameState, Difficulty, GridSize, HintMode } from '../engine/types';
 import { posKey } from '../engine/types';
 import { findErrors, isSolved } from '../engine/validator';
 import { generatePuzzle } from '../engine/generator';
@@ -12,33 +12,7 @@ import {
 } from '../engine/hints';
 import type { Hint } from '../engine/hints';
 import { encodeState, decodeState } from '../engine/urlCodec';
-
-function createGameState(puzzle: Puzzle): GameState {
-  const { layout, clues } = puzzle;
-  const { rows, cols } = layout;
-
-  const grid = clues.map((row) => [...row]);
-  const isClue = clues.map((row) => row.map((v) => v !== 0));
-  const notes = Array.from({ length: rows }, () =>
-    Array.from({ length: cols }, () => new Set<number>())
-  );
-  const errors = Array.from({ length: rows }, () =>
-    Array(cols).fill(false)
-  ) as boolean[][];
-
-  return {
-    puzzle,
-    grid,
-    isClue,
-    notes,
-    errors,
-    isSolved: false,
-  };
-}
-
-function gridSizeDimensions(size: GridSize): [number, number] {
-  return size === '8x8' ? [8, 8] : [5, 5];
-}
+import { createGameState, gridSizeDimensions } from '../lib/gameState';
 
 export function useGame(
   initial?: {
@@ -46,6 +20,8 @@ export function useGame(
     gridSize: GridSize;
     /** Deterministic generator seed — set for the daily puzzle. */
     seed?: number;
+    /** Encoded unfinished game state, used by Home's Resume surface. */
+    resumeEncodedState?: string;
   },
   /** Premium gate for contradiction-chain hints (the paywall trigger). */
   gate?: {
@@ -112,28 +88,30 @@ export function useGame(
     }, 50);
   }, [gridSize]);
 
-  const loadFromUrl = useCallback(() => {
-    const hash = window.location.hash.replace(/^#/, '');
-    if (!hash) return false;
-    const decoded = decodeState(hash);
+  const loadEncodedState = useCallback((encoded: string) => {
+    const decoded = decodeState(encoded);
     if (!decoded) return false;
 
     const { puzzle, grid, difficulty: diff, gridSize: size } = decoded;
     setDifficulty(diff);
     setGridSize(size);
 
-    const state = createGameState(puzzle);
-    state.grid = grid;
-    state.isClue = puzzle.clues.map((row) => row.map((v) => v !== 0));
-    state.errors = findErrors(grid, puzzle.layout, puzzle.solution, state.isClue);
-    state.isSolved = isSolved(grid, puzzle.layout, state.errors);
+    const state = createGameState(puzzle, grid);
     setGameState(state);
     setPast([]);
     setFuture([]);
+    return true;
+  }, []);
+
+  const loadFromUrl = useCallback(() => {
+    const hash = window.location.hash.replace(/^#/, '');
+    if (!hash) return false;
+    const loaded = loadEncodedState(hash);
+    if (!loaded) return false;
 
     window.history.replaceState(null, '', window.location.pathname);
     return true;
-  }, []);
+  }, [loadEncodedState]);
 
   useEffect(() => {
     // Mount bootstrap, deferred to a macrotask so it doesn't call
@@ -141,7 +119,7 @@ export function useGame(
     // extra render). loadFromUrl() restores a shared-link game;
     // otherwise generate a fresh Easy 5x5.
     const t = setTimeout(() => {
-      if (!loadFromUrl()) {
+      if (!loadFromUrl() && !(initial?.resumeEncodedState && loadEncodedState(initial.resumeEncodedState))) {
         startNewGame(
           initial?.difficulty ?? 'easy',
           initial?.gridSize ?? '5x5',
@@ -272,7 +250,12 @@ export function useGame(
     let removed = false;
     for (let r = 0; r < rows; r++) {
       for (let c = 0; c < cols; c++) {
-        if (gameState.errors[r][c]) {
+        if (
+          gameState.errors[r][c] &&
+          !gameState.isClue[r][c] &&
+          newGrid[r][c] !== 0 &&
+          newGrid[r][c] !== gameState.puzzle.solution[r][c]
+        ) {
           newGrid[r][c] = 0;
           newNotes[r][c].clear();
           removed = true;
@@ -393,6 +376,10 @@ export function useGame(
     setNotesMode((prev) => !prev);
   }, []);
 
+  const clearHint = useCallback(() => {
+    setHint(null);
+  }, []);
+
   const getShareUrl = useCallback(() => {
     if (!gameState) return null;
     const encoded = encodeState(gameState.puzzle, gameState.grid, difficulty);
@@ -411,7 +398,14 @@ export function useGame(
     const { errors } = gameState;
     for (let r = 0; r < errors.length; r++) {
       for (let c = 0; c < errors[r].length; c++) {
-        if (errors[r][c]) validatedErrorCells.current.add(posKey(r, c));
+        if (
+          errors[r][c] &&
+          !gameState.isClue[r][c] &&
+          gameState.grid[r][c] !== 0 &&
+          gameState.grid[r][c] !== gameState.puzzle.solution[r][c]
+        ) {
+          validatedErrorCells.current.add(posKey(r, c));
+        }
       }
     }
   }, [gameState]);
@@ -444,6 +438,7 @@ export function useGame(
     clearAll,
     removeErrors,
     handleHint,
+    clearHint,
     setHintMode,
     toggleNotes,
     getShareUrl,

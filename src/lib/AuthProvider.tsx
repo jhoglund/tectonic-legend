@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
-import type { User } from '@supabase/supabase-js';
+import { Capacitor } from '@capacitor/core';
+import type { EmailOtpType, User } from '@supabase/supabase-js';
 import { supabase } from './supabase';
 import { analytics } from './analytics';
 import {
@@ -29,8 +30,27 @@ function statusFor(user: AuthUser | null): AuthStatus {
  *  and completes sign-in without any router help. */
 function redirectTo(): string {
   if (typeof window === 'undefined') return '';
+  if (Capacitor.isNativePlatform()) return 'tectonic://auth/callback';
   // Strip any existing hash so a fresh OAuth callback hash lands clean.
   return window.location.origin + window.location.pathname;
+}
+
+function isNativeAuth(): boolean {
+  return typeof window !== 'undefined' && Capacitor.isNativePlatform();
+}
+
+function paramsFromAuthUrl(url: string): Record<string, string> {
+  const parsed = new URL(url);
+  const params: Record<string, string> = {};
+  if (parsed.hash.startsWith('#')) {
+    new URLSearchParams(parsed.hash.slice(1)).forEach((value, key) => {
+      params[key] = value;
+    });
+  }
+  parsed.searchParams.forEach((value, key) => {
+    params[key] = value;
+  });
+  return params;
 }
 
 /**
@@ -103,6 +123,59 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     };
   }, []);
 
+  const handleAuthCallback = useCallback(async (url: string) => {
+    if (!supabase) return;
+    const params = paramsFromAuthUrl(url);
+    if (params.error || params.error_description) {
+      console.warn('[AuthProvider] auth callback failed', params.error_description ?? params.error);
+      return;
+    }
+    if (params.code) {
+      const { error } = await supabase.auth.exchangeCodeForSession(params.code);
+      if (error) console.warn('[AuthProvider] code exchange failed', error.message);
+      return;
+    }
+    if (params.token_hash && params.type) {
+      const { error } = await supabase.auth.verifyOtp({
+        token_hash: params.token_hash,
+        type: params.type as EmailOtpType,
+      });
+      if (error) console.warn('[AuthProvider] token hash verification failed', error.message);
+      return;
+    }
+    if (params.access_token && params.refresh_token) {
+      const { error } = await supabase.auth.setSession({
+        access_token: params.access_token,
+        refresh_token: params.refresh_token,
+      });
+      if (error) console.warn('[AuthProvider] session callback failed', error.message);
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!supabase || typeof window === 'undefined') return;
+
+    const target = window as typeof window & {
+      __handleAuthCallback?: (url: string) => void;
+      __pendingAuthCallback?: string;
+    };
+    target.__handleAuthCallback = (url: string) => {
+      void handleAuthCallback(url);
+    };
+    if (target.__pendingAuthCallback) {
+      const pending = target.__pendingAuthCallback;
+      delete target.__pendingAuthCallback;
+      void handleAuthCallback(pending);
+    }
+    const params = paramsFromAuthUrl(window.location.href);
+    if (params.code || params.token_hash || params.access_token) {
+      void handleAuthCallback(window.location.href);
+    }
+    return () => {
+      delete target.__handleAuthCallback;
+    };
+  }, [handleAuthCallback]);
+
   /** Apple / Google share one shape: link onto the anonymous user if
    *  there is one (preserving the user ID + everything attached), or
    *  redirect to a fresh sign-in if accounts are not enabled. */
@@ -149,12 +222,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       // confirmation that attaches this email to the existing user once
       // the link is followed — the anonymous progress is preserved.
       // For everyone else: `signInWithOtp` sends a fresh sign-in link.
+      const emailRedirectTo = redirectTo();
       const op =
-        user && user.isAnonymous
-          ? await supabase.auth.updateUser({ email: trimmed })
+        user && user.isAnonymous && !isNativeAuth()
+          ? await supabase.auth.updateUser(
+              { email: trimmed },
+              { emailRedirectTo },
+            )
           : await supabase.auth.signInWithOtp({
               email: trimmed,
-              options: { emailRedirectTo: redirectTo() },
+              options: { emailRedirectTo },
             });
       if (op.error) return { ok: false, message: op.error.message };
       analytics.signedUp();

@@ -5,6 +5,7 @@ interface NotesStepperProps {
   stepIndex: number;
   onStep: (delta: number) => void;
   onJump: (index: number) => void;
+  onSkip: () => void;
   /** Marks the tapped cell reference on the board. */
   onCellRef: (row: number, col: number) => void;
 }
@@ -19,6 +20,7 @@ export function NotesStepper({
   stepIndex,
   onStep,
   onJump,
+  onSkip,
   onCellRef,
 }: NotesStepperProps) {
   const step = steps[stepIndex];
@@ -47,14 +49,25 @@ export function NotesStepper({
         Pair elimination
       </span>
 
-      <div className="mb-2 flex items-center justify-between">
+      <div className="mb-2 flex items-center justify-between gap-2">
         <span
           className="text-xs font-semibold"
           style={{ color: 'var(--text-tertiary)', letterSpacing: '0.04em' }}
         >
           STEP {stepIndex + 1} OF {steps.length}
         </span>
-        <div className="flex gap-1">
+        <div className="flex items-center gap-1">
+          <button
+            type="button"
+            onClick={onSkip}
+            className="cursor-pointer px-2 py-0.5 text-sm font-semibold"
+            style={{
+              borderRadius: 'var(--radius-button)',
+              color: 'var(--brand-600)',
+            }}
+          >
+            Skip
+          </button>
           <button
             type="button"
             onClick={() => onStep(-1)}
