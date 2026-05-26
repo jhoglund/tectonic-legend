@@ -1,6 +1,12 @@
 import { useEffect, useRef, useState } from 'react';
-import { Board } from '../components/Board';
 import { MasteryChip } from '../components/MasteryChip';
+import {
+  IconButton,
+  PrimaryButton,
+  SecondaryButton,
+  SectionLabel,
+  TonalCard,
+} from '../components/MaterialSurfaces';
 import type { GameState, Difficulty, GridSize } from '../engine/types';
 import { useProfile } from '../lib/profileContext';
 import { analytics } from '../lib/analytics';
@@ -78,6 +84,34 @@ export function SolvedScreen({
   const timeStr = `${Math.floor(elapsedSeconds / 60)}:${String(elapsedSeconds % 60).padStart(2, '0')}`;
   const techniqueRows = Object.entries(techniquesUsed).filter(([, n]) => n > 0);
   const hintCount = Object.values(techniquesUsed).reduce((a, b) => a + b, 0);
+  const recentComparable = profile.solveHistory
+    .filter((s) => s.difficulty === difficulty && s.gridSize === gridSize)
+    .slice(-7);
+  const avgComparable =
+    recentComparable.length > 0
+      ? recentComparable.reduce((sum, s) => sum + s.timeMs, 0) / recentComparable.length
+      : null;
+  const maxTechniqueCount = Math.max(1, ...techniqueRows.map(([, n]) => n));
+  const resultTitle =
+    errorsValidated === 0
+      ? hintCount === 0
+        ? 'Clean solve'
+        : 'Steady solve'
+      : 'Solved';
+
+  function formatMs(ms: number) {
+    const seconds = Math.round(ms / 1000);
+    return `${Math.floor(seconds / 60)}:${String(seconds % 60).padStart(2, '0')}`;
+  }
+
+  function comparisonLine() {
+    if (avgComparable == null) return 'First recorded solve at this level.';
+    const deltaSeconds = Math.round((elapsedSeconds * 1000 - avgComparable) / 1000);
+    if (deltaSeconds === 0) return 'Right on your recent average.';
+    const abs = Math.abs(deltaSeconds);
+    const label = `${Math.floor(abs / 60)}:${String(abs % 60).padStart(2, '0')}`;
+    return deltaSeconds < 0 ? `${label} faster than avg` : `${label} slower than avg`;
+  }
 
   // Techniques the player has any history with — their mastery chips
   // reflect the profile *after* this solve has been recorded.
@@ -155,105 +189,111 @@ export function SolvedScreen({
   }
 
   return (
-    <div
-      className="flex flex-col items-center gap-5 px-4 pb-12"
-      style={{ paddingTop: 'calc(env(safe-area-inset-top) + 28px)' }}
-    >
-      <p
-        className="text-sm font-semibold"
-        style={{ color: 'var(--success)', letterSpacing: '0.06em' }}
-      >
-        SOLVED
-      </p>
-      <p
-        className="text-4xl font-semibold"
+    <div className="flex min-h-screen flex-col">
+      <header
         style={{
-          color: 'var(--text-primary)',
-          fontFamily: 'var(--font-mono)',
-          fontVariantNumeric: 'tabular-nums',
+          background: 'var(--brand-600)',
+          color: 'var(--text-on-brand)',
+          paddingTop: 'env(safe-area-inset-top)',
         }}
       >
-        {timeStr}
-      </p>
-
-      <Board
-        gameState={gameState}
-        selectedCell={null}
-        hint={null}
-        cellOverlays={null}
-        onCellClick={() => {}}
-      />
-
-      {/* this-solve summary */}
-      <div
-        className="w-full"
-        style={{
-          background: 'var(--surface-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-card)',
-          overflow: 'hidden',
-        }}
-      >
-        <div className="flex items-center justify-between px-4 py-3">
-          <span className="text-sm" style={{ color: 'var(--text-secondary)' }}>
-            Puzzle
-          </span>
-          <span
-            className="text-sm font-medium"
-            style={{ color: 'var(--text-primary)' }}
-          >
-            {DIFFICULTY_LABEL[difficulty]} · {gridSize === '5x5' ? '5×5' : '8×8'}
-          </span>
+        <div className="grid items-center px-1" style={{ gridTemplateColumns: '48px 1fr 48px', minHeight: 56 }}>
+          <IconButton label="Close" onClick={onExit} inverse>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </IconButton>
+          <p className="text-center text-sm font-medium">Solved</p>
+          <IconButton label="Share" onClick={handleShare} inverse>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M4 12v7a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-7M16 6l-4-4-4 4M12 2v14" stroke="currentColor" strokeWidth="1.7" strokeLinecap="round" strokeLinejoin="round" />
+            </svg>
+          </IconButton>
         </div>
-
-        <div style={{ borderTop: '1px solid var(--border)' }} />
-
-        {techniqueRows.length === 0 ? (
-          <p className="px-4 py-3 text-sm" style={{ color: 'var(--text-secondary)' }}>
-            No hints used — you solved this one yourself.
+        <div className="px-6 pb-8 pt-2">
+          <p className="text-xs font-medium uppercase" style={{ letterSpacing: '0.06em', opacity: 0.8 }}>
+            {DIFFICULTY_LABEL[difficulty]} · {gridSize === '5x5' ? '5×5' : '8×8'}
           </p>
-        ) : (
-          techniqueRows.map(([type, count]) => (
-            <div
-              key={type}
-              className="flex items-center justify-between px-4 py-3"
-              style={{ borderTop: '1px solid var(--border)' }}
-            >
-              <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
-                {TECHNIQUE_LABEL[type] ?? type}
-              </span>
-              <span
-                className="text-sm font-medium"
+          <h1 className="mt-2 text-3xl font-semibold">{resultTitle}</h1>
+          <p className="mt-1 text-sm" style={{ opacity: 0.86 }}>
+            {hintCount === 0
+              ? 'No hints used.'
+              : `${hintCount} ${hintCount === 1 ? 'hint' : 'hints'} used.`}{' '}
+            {comparisonLine()}
+          </p>
+        </div>
+      </header>
+
+      <main className="flex flex-1 flex-col gap-4 px-4 pb-6" style={{ marginTop: 'calc(var(--space-4) * -1)' }}>
+        <TonalCard accent={false} className="grid grid-cols-3 gap-3" style={{ zIndex: 1 }}>
+          {[
+            ['Time', timeStr, avgComparable == null ? 'new' : `avg ${formatMs(avgComparable)}`],
+            ['Hints', String(hintCount), hintCount === 0 ? 'clean' : 'assisted'],
+            ['Errors', String(errorsValidated), errorsValidated === 0 ? 'none' : 'validated'],
+          ].map(([label, value, sub]) => (
+            <div key={label}>
+              <p className="text-xs font-medium uppercase" style={{ color: 'var(--text-secondary)', letterSpacing: '0.04em' }}>
+                {label}
+              </p>
+              <p
+                className="mt-1 text-2xl font-medium"
                 style={{
-                  color: 'var(--text-tertiary)',
+                  color: 'var(--text-primary)',
                   fontFamily: 'var(--font-mono)',
                   fontVariantNumeric: 'tabular-nums',
                 }}
               >
-                ×{count}
-              </span>
+                {value}
+              </p>
+              <p className="text-xs font-medium" style={{ color: label === 'Errors' && errorsValidated === 0 ? 'var(--success)' : 'var(--text-tertiary)' }}>
+                {sub}
+              </p>
             </div>
-          ))
-        )}
-      </div>
+          ))}
+        </TonalCard>
+
+        <SectionLabel>Techniques used</SectionLabel>
+        <TonalCard accent={false}>
+          {techniqueRows.length === 0 ? (
+            <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              No hints used. You solved this one yourself.
+            </p>
+          ) : (
+            <div className="flex flex-col gap-3">
+              {techniqueRows.map(([type, count]) => (
+                <div key={type} className="grid items-center gap-3" style={{ gridTemplateColumns: 'minmax(96px, 1.1fr) 1fr 32px' }}>
+                  <span className="text-sm" style={{ color: 'var(--text-primary)' }}>
+                    {TECHNIQUE_LABEL[type] ?? type}
+                  </span>
+                  <span
+                    className="h-2 overflow-hidden rounded-full"
+                    style={{ background: 'var(--brand-50)' }}
+                  >
+                    <span
+                      className="block h-full rounded-full"
+                      style={{
+                        width: `${(count / maxTechniqueCount) * 100}%`,
+                        background: 'var(--brand-600)',
+                      }}
+                    />
+                  </span>
+                  <span
+                    className="text-right text-sm font-medium"
+                    style={{ color: 'var(--text-secondary)', fontFamily: 'var(--font-mono)' }}
+                  >
+                    {count}
+                  </span>
+                </div>
+              ))}
+            </div>
+          )}
+        </TonalCard>
 
       {/* technique mastery — recognition of where the player stands */}
       {masteryTechniques.length > 0 && (
-        <div
-          className="w-full"
-          style={{
-            background: 'var(--surface-elevated)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-card)',
-            padding: 'var(--space-4)',
-          }}
-        >
-          <p
-            className="mb-3 text-xs font-semibold"
-            style={{ color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}
-          >
-            TECHNIQUE MASTERY
-          </p>
+        <>
+          <SectionLabel>Mastery</SectionLabel>
+          <TonalCard accent={false}>
           <div className="flex flex-col gap-3">
             {masteryTechniques.map((t) => (
               <MasteryChip
@@ -263,19 +303,14 @@ export function SolvedScreen({
               />
             ))}
           </div>
-        </div>
+          </TonalCard>
+        </>
       )}
 
       {/* shareable solve artifact — a spoiler-free brag (ADR-0004) */}
-      <div
-        className="flex w-full flex-col items-center gap-3"
-        style={{
-          background: 'var(--surface-elevated)',
-          border: '1px solid var(--border)',
-          borderRadius: 'var(--radius-card)',
-          padding: 'var(--space-4)',
-        }}
-      >
+      <SectionLabel>Share</SectionLabel>
+      <TonalCard accent={false}>
+        <div className="flex flex-col items-center gap-3">
         <div
           style={{
             whiteSpace: 'pre',
@@ -286,32 +321,17 @@ export function SolvedScreen({
         >
           {shareGrid(gameState, hintedCells)}
         </div>
-        <button
-          type="button"
-          onClick={handleShare}
-          className="w-full cursor-pointer py-3 text-base font-medium"
-          style={{
-            color: 'var(--brand-600)',
-            border: '1px solid var(--border)',
-            borderRadius: 'var(--radius-button)',
-          }}
-        >
+        <SecondaryButton onClick={handleShare}>
           {copied ? 'Copied' : 'Share result'}
-        </button>
-      </div>
+        </SecondaryButton>
+        </div>
+      </TonalCard>
 
-      <button
-        type="button"
-        onClick={onExit}
-        className="w-full cursor-pointer py-3.5 text-base font-semibold"
-        style={{
-          background: 'var(--brand-600)',
-          color: 'var(--text-on-brand)',
-          borderRadius: 'var(--radius-button)',
-        }}
-      >
-        Done
-      </button>
+      <div className="mt-auto grid grid-cols-2 gap-3 pt-2">
+        <SecondaryButton onClick={handleShare}>Share</SecondaryButton>
+        <PrimaryButton onClick={onExit}>Next puzzle</PrimaryButton>
+      </div>
+      </main>
     </div>
   );
 }

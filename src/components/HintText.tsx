@@ -10,11 +10,15 @@
 /** Column letter + 1-based row, e.g. "C3" — matched as a whole word. */
 const CELL_REF = /\b([A-H][1-9])\b/g;
 const IS_CELL_REF = /^[A-H][1-9]$/;
+const CELL_REF_OR_VALUE = /\b([A-H][1-9]|[1-8])\b/g;
+const IS_VALUE = /^[1-8]$/;
 
 interface HintTextProps {
   text: string;
   /** Colour for the cell-reference tokens. */
   accent?: string;
+  /** Bold standalone values, used by tutorial copy. */
+  emphasizeValues?: boolean;
   /** Called with the 0-based row/col when a reference is tapped. */
   onCellRef: (row: number, col: number) => void;
 }
@@ -22,11 +26,27 @@ interface HintTextProps {
 export function HintText({
   text,
   accent = 'var(--brand-600)',
+  emphasizeValues = false,
   onCellRef,
 }: HintTextProps) {
+  const splitter = emphasizeValues ? CELL_REF_OR_VALUE : CELL_REF;
   return (
     <>
-      {text.split(CELL_REF).map((part, i) => {
+      {text.split(splitter).map((part, i) => {
+        if (IS_VALUE.test(part) && emphasizeValues) {
+          return (
+            <strong
+              key={i}
+              style={{
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-mono)',
+                fontWeight: 700,
+              }}
+            >
+              {part}
+            </strong>
+          );
+        }
         if (!IS_CELL_REF.test(part)) return <span key={i}>{part}</span>;
         const col = part.charCodeAt(0) - 65;
         const row = Number(part[1]) - 1;

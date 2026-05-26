@@ -179,6 +179,18 @@ A Forced move's dominating cage is drawn as a **value-set chip** — a single ho
 | `shadow-card` | `0 2px 8px rgba(0,0,0,0.06)` | Cards |
 | `shadow-modal` | `0 12px 40px rgba(0,0,0,0.18)` | Paywall, stage-up |
 | `shadow-fab` | `0 4px 16px rgba(0,0,0,0.16)` | Floating action button (if used) |
+| `shadow-glass` | light: `0 16px 42px rgba(8,20,24,0.12), 0 1px 0 rgba(255,255,255,0.86) inset`; dark: `0 18px 48px rgba(0,0,0,0.38), 0 2px 10px rgba(0,0,0,0.26)` | Floating liquid-glass global nav |
+
+## 9a. Glass
+
+Used only for floating navigation chrome. Keep it constrained so the puzzle surface remains calm.
+
+| Token | Light | Dark |
+|-------|-------|------|
+| `glass-surface` | `rgba(255,255,255,0.88)` | `rgba(23,23,23,0.88)` |
+| `glass-border` | `rgba(255,255,255,0.82)` | `rgba(255,255,255,0.12)` |
+| `glass-blur` | `20px` | `36px` |
+| `glass-saturation` | `1.15` | `1.4` |
 
 ## 10. Motion
 

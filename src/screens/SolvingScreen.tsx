@@ -16,6 +16,10 @@ import { useProfile } from '../lib/profileContext';
 import { usePaywall } from '../lib/paywallContext';
 import { isPremium, isDeveloper } from '../lib/profile';
 import { useEffectiveDeveloper } from '../lib/devViewContext';
+import {
+  removeUnresolvedPuzzle,
+  upsertUnresolvedPuzzle,
+} from '../lib/unresolvedPuzzles';
 import { posKey } from '../engine/types';
 import type { Difficulty, GridSize } from '../engine/types';
 import type { HintNotes } from '../engine/hints';
@@ -39,10 +43,15 @@ const DIFFICULTY_LABEL: Record<Difficulty, string> = {
 };
 
 interface SolvingScreenProps {
+  puzzleId: string;
   initialDifficulty: Difficulty;
   initialGridSize: GridSize;
   /** Deterministic seed — set when this is the daily puzzle. */
   seed?: number;
+  /** Encoded unfinished game state, used by Home's Resume surface. */
+  resumeEncodedState?: string;
+  /** Timer carry-over when resuming an unfinished game. */
+  initialElapsedSeconds?: number;
   /** Whether this session is the daily puzzle (recorded on the solve). */
   isDaily?: boolean;
   onExit: () => void;
@@ -56,9 +65,12 @@ interface SolvingScreenProps {
  * useGame(); this screen is presentation + the solve timer.
  */
 export function SolvingScreen({
+  puzzleId,
   initialDifficulty,
   initialGridSize,
   seed,
+  resumeEncodedState,
+  initialElapsedSeconds = 0,
   isDaily = false,
   onExit,
 }: SolvingScreenProps) {
@@ -79,6 +91,8 @@ export function SolvingScreen({
 
   const {
     gameState,
+    difficulty,
+    gridSize,
     selectedCell,
     hint,
     notesMode,
@@ -93,6 +107,7 @@ export function SolvingScreen({
     clearAll,
     removeErrors,
     handleHint,
+    clearHint,
     toggleNotes,
     getShareUrl,
     getHintedCells,
@@ -101,7 +116,12 @@ export function SolvingScreen({
     undo,
     redo,
   } = useGame(
-    { difficulty: initialDifficulty, gridSize: initialGridSize, seed },
+    {
+      difficulty: initialDifficulty,
+      gridSize: initialGridSize,
+      seed,
+      resumeEncodedState,
+    },
     hintGate,
   );
 
@@ -188,7 +208,7 @@ export function SolvingScreen({
   const [abandonOpen, setAbandonOpen] = useState(false);
   const [clearOpen, setClearOpen] = useState(false);
   const [hintMenuOpen, setHintMenuOpen] = useState(false);
-  const [elapsed, setElapsed] = useState(0);
+  const [elapsed, setElapsed] = useState(initialElapsedSeconds);
 
   // Validation is explicit — wrong entries surface in red only for a
   // few seconds after the player taps Validate, never live.
@@ -200,6 +220,10 @@ export function SolvingScreen({
   // Track whether the last validate tap found errors (set synchronously
   // in the callback so the effect only schedules timers).
   const [validateHadErrors, setValidateHadErrors] = useState(false);
+  const cellsLeft = gameState
+    ? gameState.grid.flat().filter((v) => v === 0).length
+    : 0;
+  const boardFilled = gameState !== null && cellsLeft === 0;
   const validate = useCallback(() => {
     const errorsNow = gameState
       ? gameState.errors.some((row) => row.some(Boolean))
@@ -216,6 +240,23 @@ export function SolvingScreen({
     }
     setValidateNonce((n) => n + 1);
   }, [gameState, recordValidation]);
+  const hasErrors = gameState
+    ? gameState.errors.some((row) => row.some(Boolean))
+    : false;
+
+  useEffect(() => {
+    if (!boardFilled || !hasErrors || showErrors) return;
+    const id = window.setTimeout(() => {
+      setValidateHadErrors(true);
+      setValidateOk(false);
+      setValidateFade(false);
+      setShowErrors(true);
+      recordValidation();
+      setValidateNonce((n) => n + 1);
+    }, 0);
+    return () => clearTimeout(id);
+  }, [boardFilled, hasErrors, recordValidation, showErrors]);
+
   useEffect(() => {
     if (validateNonce === 0) return;
     if (!validateHadErrors) {
@@ -233,15 +274,13 @@ export function SolvingScreen({
       }, 2800);
       return () => { clearTimeout(t1); clearTimeout(t2); };
     }
+    if (boardFilled) return;
     const id = window.setTimeout(() => setShowErrors(false), 6000);
     return () => clearTimeout(id);
-  }, [validateNonce, validateHadErrors]);
+  }, [boardFilled, validateNonce, validateHadErrors]);
 
   // True while Validate is surfacing real mistakes — the toolbar's
   // Validate control becomes "Remove" so the player can clear them.
-  const hasErrors = gameState
-    ? gameState.errors.some((row) => row.some(Boolean))
-    : false;
   const showingErrors = showErrors && hasErrors;
   const handleRemoveErrors = useCallback(() => {
     removeErrors();
@@ -254,6 +293,22 @@ export function SolvingScreen({
     const id = setInterval(() => setElapsed((e) => e + 1), 1000);
     return () => clearInterval(id);
   }, [gameState, solved, paused, abandonOpen, clearOpen]);
+
+  useEffect(() => {
+    if (!gameState) return;
+    if (solved) {
+      removeUnresolvedPuzzle(puzzleId);
+      return;
+    }
+    upsertUnresolvedPuzzle({
+      id: puzzleId,
+      gameState,
+      difficulty,
+      gridSize,
+      isDailyPuzzle: isDaily,
+      elapsedSeconds: elapsed,
+    });
+  }, [difficulty, elapsed, gameState, gridSize, isDaily, puzzleId, solved]);
 
   // Keyboard play — number entry, delete, notes, hint, arrow navigation.
   useEffect(() => {
@@ -319,9 +374,6 @@ export function SolvingScreen({
     redo,
   ]);
 
-  const cellsLeft = gameState
-    ? gameState.grid.flat().filter((v) => v === 0).length
-    : 0;
   const timeStr = `${Math.floor(elapsed / 60)}:${String(elapsed % 60).padStart(2, '0')}`;
   const title = `${DIFFICULTY_LABEL[initialDifficulty]} · ${initialGridSize === '5x5' ? '5×5' : '8×8'}`;
 
@@ -337,10 +389,7 @@ export function SolvingScreen({
   return (
     <div className="flex flex-col">
       {/* nav bar */}
-      <div
-        className="flex items-center justify-between px-1"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 6px)' }}
-      >
+      <div className="flex h-11 items-center justify-between px-1 pt-4">
         <button type="button" onClick={onExit} aria-label="Back to Home" style={navIconBtn}>
           <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.4" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
             <path d="M15 18l-6-6 6-6" />
@@ -515,6 +564,7 @@ export function SolvingScreen({
               stepIndex={chainStepIndex}
               onStep={handleChainStep}
               onJump={jumpToStep}
+              onSkip={clearHint}
               onCellRef={handleCellClick}
             />
           ) : hint && noteSteps ? (
@@ -523,6 +573,7 @@ export function SolvingScreen({
               stepIndex={chainStepIndex}
               onStep={handleChainStep}
               onJump={jumpToStep}
+              onSkip={clearHint}
               onCellRef={handleCellClick}
             />
           ) : hint ? (
@@ -535,17 +586,30 @@ export function SolvingScreen({
                 padding: 'var(--space-3)',
               }}
             >
-              <span
-                className="inline-block text-xs font-semibold"
-                style={{
-                  color: 'var(--text-on-brand)',
-                  background: 'var(--brand-600)',
-                  borderRadius: 'var(--radius-chip)',
-                  padding: '2px 10px',
-                }}
-              >
-                {TECHNIQUE_LABEL[hint.type] ?? 'Hint'}
-              </span>
+              <div className="flex items-center justify-between gap-2">
+                <span
+                  className="inline-block text-xs font-semibold"
+                  style={{
+                    color: 'var(--text-on-brand)',
+                    background: 'var(--brand-600)',
+                    borderRadius: 'var(--radius-chip)',
+                    padding: '2px 10px',
+                  }}
+                >
+                  {TECHNIQUE_LABEL[hint.type] ?? 'Hint'}
+                </span>
+                <button
+                  type="button"
+                  onClick={clearHint}
+                  className="cursor-pointer px-2 py-0.5 text-sm font-semibold"
+                  style={{
+                    borderRadius: 'var(--radius-button)',
+                    color: 'var(--brand-600)',
+                  }}
+                >
+                  Skip
+                </button>
+              </div>
               <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                 <HintText text={hint.reason} onCellRef={handleCellClick} />
               </p>
@@ -572,7 +636,10 @@ export function SolvingScreen({
       />
       <AbandonAlert
         open={abandonOpen}
-        onAbandon={onExit}
+        onAbandon={() => {
+          removeUnresolvedPuzzle(puzzleId);
+          onExit();
+        }}
         onKeepSolving={() => setAbandonOpen(false)}
       />
       <ClearPuzzleAlert

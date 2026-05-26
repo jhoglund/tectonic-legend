@@ -1,0 +1,479 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Tectonic — Typeface Treatments</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@500;600;700&family=Manrope:wght@400;500;600;700&family=Nunito+Sans:wght@500;600;700;800&family=Public+Sans:wght@400;500;600;700&family=Source+Sans+3:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --brand-50: #ecfeff;
+    --brand-100: #cffafe;
+    --brand-600: #0891b2;
+    --brand-700: #0e7490;
+    --surface: #fafafa;
+    --surface-elevated: #ffffff;
+    --border: #e5e5e5;
+    --text-primary: #0a0a0a;
+    --text-secondary: #525252;
+    --text-tertiary: #a3a3a3;
+    --text-on-brand: #ffffff;
+    --shadow-glass: 0 16px 42px rgba(8,20,24,0.12), 0 1px 0 rgba(255,255,255,0.86) inset;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #eeeeef;
+    color: var(--text-primary);
+    font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  .page {
+    max-width: 1320px;
+    margin: 0 auto;
+    padding: 32px 20px 48px;
+  }
+  header {
+    margin-bottom: 24px;
+  }
+  h1 {
+    margin: 0;
+    font-size: 30px;
+    line-height: 36px;
+    font-weight: 700;
+  }
+  .intro {
+    max-width: 820px;
+    margin: 8px 0 0;
+    color: var(--text-secondary);
+    font-size: 15px;
+    line-height: 22px;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 22px;
+  }
+  .variant {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+  .variant h2 {
+    margin: 0;
+    font: 700 15px/20px Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  .variant p {
+    margin: 0;
+    min-height: 54px;
+    color: var(--text-secondary);
+    font: 400 13px/18px Inter, ui-sans-serif, system-ui, sans-serif;
+  }
+  .phone {
+    position: relative;
+    height: 590px;
+    overflow: hidden;
+    border-radius: 34px;
+    background: var(--surface);
+    box-shadow: 0 14px 36px rgba(0,0,0,0.14);
+    font-family: var(--ui-font);
+    letter-spacing: var(--tracking, 0);
+  }
+  .content {
+    padding: 24px 18px 116px;
+  }
+  .date {
+    color: var(--text-tertiary);
+    font-size: var(--date-size, 11px);
+    font-weight: var(--date-weight, 700);
+    letter-spacing: var(--date-tracking, 0.08em);
+    text-transform: uppercase;
+  }
+  .topline {
+    display: flex;
+    align-items: end;
+    justify-content: space-between;
+    gap: 16px;
+  }
+  .title {
+    margin-top: 3px;
+    color: var(--text-primary);
+    font-family: var(--display-font, var(--ui-font));
+    font-size: var(--title-size, 30px);
+    line-height: var(--title-line, 34px);
+    font-weight: var(--title-weight, 700);
+    letter-spacing: var(--title-tracking, 0);
+  }
+  .settings {
+    display: grid;
+    width: 38px;
+    height: 38px;
+    place-items: center;
+    border: 1px solid var(--border);
+    border-radius: 999px;
+    background: var(--surface-elevated);
+    color: var(--text-secondary);
+  }
+  .card {
+    margin-top: 18px;
+    padding: 14px;
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    background: var(--surface-elevated);
+  }
+  .stage {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .chip {
+    border-radius: 999px;
+    background: var(--brand-50);
+    color: var(--brand-700);
+    padding: 4px 10px;
+    font-size: 11px;
+    font-weight: var(--chip-weight, 700);
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+  }
+  .stage-copy {
+    flex: 1;
+  }
+  .stage-copy strong {
+    display: block;
+    font-size: var(--stage-title-size, 13px);
+    line-height: 16px;
+    font-weight: var(--stage-title-weight, 700);
+  }
+  .stage-copy span {
+    color: var(--text-secondary);
+    font-size: var(--stage-copy-size, 12px);
+    line-height: 16px;
+  }
+  .track {
+    width: 52px;
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+  }
+  .daily-label {
+    color: var(--text-tertiary);
+    font-size: var(--label-size, 11px);
+    font-weight: var(--label-weight, 700);
+    letter-spacing: var(--label-tracking, 0.08em);
+    text-transform: uppercase;
+  }
+  .daily-title {
+    margin-top: 2px;
+    font-size: var(--card-title-size, 19px);
+    line-height: 24px;
+    font-weight: var(--card-title-weight, 700);
+  }
+  .mini-board {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    width: 150px;
+    margin: 16px auto 12px;
+    overflow: hidden;
+    border: 2px solid #707070;
+    border-radius: 9px;
+  }
+  .cell {
+    aspect-ratio: 1;
+    display: grid;
+    place-items: center;
+    border-right: 1px solid rgba(0,0,0,0.12);
+    border-bottom: 1px solid rgba(0,0,0,0.12);
+    font-family: var(--number-font);
+    font-size: var(--number-size, 19px);
+    font-weight: var(--number-weight, 700);
+    font-variant-numeric: tabular-nums;
+  }
+  .c1 { background: #bfe4dc; }
+  .c2 { background: #f6dbe2; }
+  .c3 { background: #c7d7ec; }
+  .c4 { background: #fff2b8; }
+  .c5 { background: #f3f1ec; }
+  .primary {
+    display: grid;
+    place-items: center;
+    height: 44px;
+    border-radius: 9px;
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    font-size: var(--button-size, 15px);
+    font-weight: var(--button-weight, 700);
+  }
+  .resume {
+    margin-top: 16px;
+    display: grid;
+    grid-template-columns: 50px 1fr 14px;
+    align-items: center;
+    gap: 12px;
+  }
+  .thumb {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    overflow: hidden;
+    border: 1px solid #707070;
+    border-radius: 5px;
+  }
+  .thumb span {
+    aspect-ratio: 1;
+    border-right: 0.5px solid rgba(0,0,0,0.12);
+    border-bottom: 0.5px solid rgba(0,0,0,0.12);
+  }
+  .resume-title {
+    font-size: 14px;
+    font-weight: var(--resume-weight, 700);
+  }
+  .resume-sub {
+    margin-top: 2px;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  .nav {
+    position: absolute;
+    left: 14px;
+    right: 14px;
+    bottom: 14px;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1fr;
+    align-items: center;
+    gap: 6px;
+    padding: 7px;
+    border: 1px solid rgba(255,255,255,0.82);
+    border-radius: 30px;
+    background: rgba(255,255,255,0.88);
+    box-shadow: var(--shadow-glass);
+    backdrop-filter: blur(20px) saturate(1.15);
+  }
+  .tab,
+  .new {
+    border: 0;
+    background: transparent;
+    font: inherit;
+    cursor: default;
+  }
+  .tab {
+    display: flex;
+    min-height: 48px;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 2px;
+    border-radius: 999px;
+    color: var(--text-secondary);
+  }
+  .tab svg {
+    width: 22px;
+    height: 22px;
+  }
+  .tab span {
+    font-size: var(--nav-size, 10px);
+    font-weight: var(--nav-weight, 800);
+    letter-spacing: var(--nav-tracking, 0.08em);
+    text-transform: uppercase;
+  }
+  .tab.active {
+    color: var(--brand-700);
+  }
+  .new {
+    min-height: 48px;
+    border-radius: 999px;
+    background: var(--brand-600);
+    color: var(--text-on-brand);
+    font-size: var(--new-size, 14px);
+    font-weight: var(--new-weight, 800);
+    box-shadow: 0 4px 16px rgba(0,0,0,0.16);
+  }
+  .inter {
+    --ui-font: Inter, ui-sans-serif, system-ui, sans-serif;
+    --display-font: Inter, ui-sans-serif, system-ui, sans-serif;
+    --number-font: "JetBrains Mono", ui-monospace, monospace;
+  }
+  .system {
+    --ui-font: -apple-system, BlinkMacSystemFont, "SF Pro Text", "Segoe UI", sans-serif;
+    --display-font: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Segoe UI", sans-serif;
+    --number-font: ui-rounded, "SF Pro Rounded", "Arial Rounded MT Bold", system-ui, sans-serif;
+    --title-size: 31px;
+    --title-tracking: -0.01em;
+    --number-size: 20px;
+  }
+  .plex {
+    --ui-font: "IBM Plex Sans", Inter, ui-sans-serif, sans-serif;
+    --display-font: "IBM Plex Sans", Inter, ui-sans-serif, sans-serif;
+    --number-font: "IBM Plex Sans", ui-sans-serif, sans-serif;
+    --title-weight: 600;
+    --card-title-weight: 600;
+    --button-weight: 600;
+    --number-weight: 600;
+  }
+  .source {
+    --ui-font: "Source Sans 3", Inter, ui-sans-serif, sans-serif;
+    --display-font: "Source Sans 3", Inter, ui-sans-serif, sans-serif;
+    --number-font: "JetBrains Mono", ui-monospace, monospace;
+    --title-size: 32px;
+    --stage-copy-size: 13px;
+    --card-title-size: 20px;
+    --nav-size: 11px;
+  }
+  .manrope {
+    --ui-font: Manrope, Inter, ui-sans-serif, sans-serif;
+    --display-font: Manrope, Inter, ui-sans-serif, sans-serif;
+    --number-font: Manrope, Inter, ui-sans-serif, sans-serif;
+    --title-weight: 800;
+    --title-tracking: -0.02em;
+    --card-title-weight: 800;
+    --number-weight: 800;
+    --button-weight: 800;
+  }
+  .public {
+    --ui-font: "Public Sans", Inter, ui-sans-serif, sans-serif;
+    --display-font: "Public Sans", Inter, ui-sans-serif, sans-serif;
+    --number-font: "JetBrains Mono", ui-monospace, monospace;
+    --title-weight: 700;
+    --label-tracking: 0.1em;
+    --nav-tracking: 0.1em;
+  }
+  .nunito {
+    --ui-font: "Nunito Sans", Inter, ui-sans-serif, sans-serif;
+    --display-font: "Nunito Sans", Inter, ui-sans-serif, sans-serif;
+    --number-font: "Nunito Sans", Inter, ui-sans-serif, sans-serif;
+    --title-weight: 800;
+    --card-title-weight: 800;
+    --stage-title-weight: 800;
+    --number-weight: 800;
+    --button-weight: 800;
+    --new-weight: 800;
+  }
+  .hybrid {
+    --ui-font: "IBM Plex Sans", Inter, ui-sans-serif, sans-serif;
+    --display-font: Manrope, Inter, ui-sans-serif, sans-serif;
+    --number-font: "JetBrains Mono", ui-monospace, monospace;
+    --title-size: 31px;
+    --title-weight: 800;
+    --title-tracking: -0.02em;
+    --label-weight: 700;
+    --card-title-weight: 700;
+    --button-weight: 700;
+  }
+</style>
+</head>
+<body>
+  <main class="page">
+    <header>
+      <h1>Typeface And Font Treatment Options</h1>
+      <p class="intro">
+        Eight options shown in the same Home composition. The question is not just “which font looks nice,”
+        but which treatment makes the app feel focused, legible, puzzle-native, and warm enough to come back to daily.
+      </p>
+    </header>
+    <section class="grid">
+      <article class="variant">
+        <h2>1. Inter + JetBrains Mono</h2>
+        <p>Current baseline. Neutral, precise, very readable. The mono board numerals make the puzzle feel technical and serious.</p>
+        <div class="phone inter">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>2. Apple System + Rounded Numerals</h2>
+        <p>Most native iOS. Softer board numbers reduce the “developer tool” feel while keeping the rest familiar.</p>
+        <div class="phone system">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>3. IBM Plex Sans</h2>
+        <p>Humanist but still rational. Slightly warmer than Inter, with excellent small text and a calm expert-tool quality.</p>
+        <div class="phone plex">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>4. Source Sans 3 + Mono Board</h2>
+        <p>Open, friendly, and high-legibility. More spacious copy; may make the product feel less premium but very approachable.</p>
+        <div class="phone source">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>5. Manrope</h2>
+        <p>Geometric and modern. Stronger personality, bolder headings, but the heavier numerals can feel a little loud.</p>
+        <div class="phone manrope">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>6. Public Sans + JetBrains Mono</h2>
+        <p>Functional and civic. Great for restrained product UI; less cozy, more “serious daily trainer.”</p>
+        <div class="phone public">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>7. Nunito Sans</h2>
+        <p>Friendliest option. Rounded, sticky, and casual; good retention energy, but risks feeling too game-like.</p>
+        <div class="phone nunito">@@PHONE@@</div>
+      </article>
+      <article class="variant">
+        <h2>8. Manrope Display + IBM Plex UI</h2>
+        <p>Hybrid recommendation candidate: expressive page titles, calm readable UI, precise mono puzzle numerals.</p>
+        <div class="phone hybrid">@@PHONE@@</div>
+      </article>
+    </section>
+  </main>
+<template id="phone-template">
+  <div class="content">
+    <div class="topline">
+      <div>
+        <div class="date">Monday, May 25</div>
+        <div class="title">Today</div>
+      </div>
+      <div class="settings">☼</div>
+    </div>
+    <div class="card stage">
+      <span class="chip">Beginner</span>
+      <div class="stage-copy">
+        <strong>0 of 3 toward Confident</strong>
+        <span>Self-solve naked singles in 3 more puzzles</span>
+      </div>
+      <div class="track"></div>
+    </div>
+    <div class="card">
+      <div class="daily-label">Daily puzzle</div>
+      <div class="daily-title">A 5×5, easy</div>
+      <div class="mini-board">
+        <div class="cell c1">3</div><div class="cell c1"></div><div class="cell c3">1</div><div class="cell c3"></div><div class="cell c3">5</div>
+        <div class="cell c1">1</div><div class="cell c1"></div><div class="cell c1">5</div><div class="cell c3">3</div><div class="cell c3"></div>
+        <div class="cell c5"></div><div class="cell c5">3</div><div class="cell c4"></div><div class="cell c4">4</div><div class="cell c2"></div>
+        <div class="cell c5">1</div><div class="cell c5"></div><div class="cell c4"></div><div class="cell c4"></div><div class="cell c2"></div>
+        <div class="cell c5">2</div><div class="cell c3">3</div><div class="cell c3"></div><div class="cell c3"></div><div class="cell c3">1</div>
+      </div>
+      <div class="primary">Play today’s puzzle</div>
+      <div class="resume">
+        <div class="thumb">
+          <span class="c2"></span><span class="c4"></span><span class="c1"></span><span class="c1"></span><span class="c3"></span>
+          <span class="c2"></span><span class="c4"></span><span class="c1"></span><span class="c5"></span><span class="c3"></span>
+          <span class="c5"></span><span class="c5"></span><span class="c4"></span><span class="c5"></span><span class="c3"></span>
+          <span class="c3"></span><span class="c3"></span><span class="c4"></span><span class="c2"></span><span class="c2"></span>
+          <span class="c3"></span><span class="c3"></span><span class="c5"></span><span class="c5"></span><span class="c2"></span>
+        </div>
+        <div>
+          <div class="resume-title">Hard · 5×5</div>
+          <div class="resume-sub">Updated 16:04 · 19 cells left</div>
+        </div>
+        <div style="color: var(--text-tertiary)">›</div>
+      </div>
+    </div>
+  </div>
+  <nav class="nav">
+    <button class="tab active">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="M3 9h18M9 3v18"/></svg>
+      <span>Today</span>
+    </button>
+    <button class="new">+ New</button>
+    <button class="tab">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 20V10M10 20V4M16 20v-7M22 20H2"/></svg>
+      <span>Stats</span>
+    </button>
+  </nav>
+</template>
+<script>
+  const template = document.getElementById('phone-template').innerHTML;
+  document.querySelectorAll('.phone').forEach((phone) => {
+    phone.innerHTML = template;
+  });
+</script>
+</body>
+</html>

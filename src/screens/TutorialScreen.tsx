@@ -1,8 +1,19 @@
 import { useMemo, useState } from 'react';
 import { Board } from '../components/Board';
+import { HintText } from '../components/HintText';
+import {
+  CompactAppBar,
+  IconButton,
+  PrimaryButton,
+  TonalCard,
+} from '../components/MaterialSurfaces';
 import type { GameState } from '../engine/types';
 import type { Hint } from '../engine/hints';
 import type { Tutorial } from '../data/tutorials';
+
+function cellRef(row: number, col: number) {
+  return `${String.fromCharCode(65 + col)}${row + 1}`;
+}
 
 interface TutorialScreenProps {
   tutorial: Tutorial;
@@ -75,6 +86,18 @@ export function TutorialScreen({
     [puzzle, grid, isClue, emptyNotes, noErrors, phase],
   );
 
+  const previewState: GameState = useMemo(
+    () => ({
+      puzzle,
+      grid: clues,
+      isClue,
+      notes: emptyNotes,
+      errors: noErrors,
+      isSolved: false,
+    }),
+    [puzzle, clues, isClue, emptyNotes, noErrors],
+  );
+
   // Highlight the active step's cell via the Board's hint channel.
   const hint: Hint | null = step
     ? { row: step.row, col: step.col, value: 0, reason: '', type: 'reveal' }
@@ -97,63 +120,85 @@ export function TutorialScreen({
     }
   }
 
-  const panel: React.CSSProperties = {
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border)',
-    borderRadius: 'var(--radius-card)',
-    padding: 'var(--space-4)',
-  };
-
   return (
-    <div className="flex flex-col">
-      {/* nav bar — the left spacer balances Skip so the title stays centred */}
-      <div
-        className="flex items-center justify-between px-4"
-        style={{ paddingTop: 'calc(env(safe-area-inset-top) + 6px)', height: 52 }}
-      >
-        <span style={{ width: 36 }} />
-        <span
-          className="text-base font-semibold"
-          style={{ color: 'var(--text-primary)' }}
-        >
-          {title}
-        </span>
-        <button
-          type="button"
-          onClick={onSkip}
-          className="cursor-pointer text-sm font-medium"
-          style={{ width: 36, textAlign: 'right', color: 'var(--brand-600)' }}
-        >
-          Skip
-        </button>
-      </div>
+    <div className="flex min-h-screen flex-col">
+      <CompactAppBar
+        title={phase === 'intro' ? 'Welcome' : title}
+        eyebrow={`Step ${index} of ${total}`}
+        left={
+          <IconButton label="Close" onClick={onSkip}>
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+              <path d="M6 6l12 12M18 6L6 18" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" />
+            </svg>
+          </IconButton>
+        }
+      />
 
       {phase === 'intro' ? (
-        <div className="flex flex-col gap-6 px-4 pt-8">
-          <p
-            className="text-xs font-semibold"
-            style={{ color: 'var(--text-tertiary)', letterSpacing: '0.06em' }}
-          >
-            TUTORIAL {index} OF {total}
-          </p>
-          <p
-            className="text-base"
-            style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
-          >
-            {intro}
-          </p>
-          <button
-            type="button"
-            onClick={() => setPhase('playing')}
-            className="cursor-pointer py-4 text-base font-semibold"
-            style={{
-              background: 'var(--brand-600)',
-              color: 'var(--text-on-brand)',
-              borderRadius: 'var(--radius-button)',
-            }}
-          >
-            Begin
-          </button>
+        <div className="flex flex-1 flex-col px-6 pb-6">
+          <div className="flex flex-1 flex-col items-center justify-center gap-6 text-center">
+            <div style={{ width: '100%', maxWidth: 280 }}>
+              <Board
+                gameState={previewState}
+                selectedCell={[steps[0].row, steps[0].col]}
+                hint={{
+                  row: steps[0].row,
+                  col: steps[0].col,
+                  value: 0,
+                  reason: '',
+                  type: 'reveal',
+                }}
+                cellOverlays={null}
+                onCellClick={() => {}}
+                showCoordinates
+              />
+            </div>
+            <div>
+              <h2
+                className="text-2xl font-semibold"
+                style={{ color: 'var(--text-primary)' }}
+              >
+                {title}
+              </h2>
+              <p
+                className="mt-3 max-w-80 text-sm"
+                style={{ color: 'var(--text-secondary)', lineHeight: 1.5 }}
+              >
+                {intro}
+              </p>
+            </div>
+          </div>
+
+          <div className="flex justify-center gap-2 py-5" aria-hidden="true">
+            {Array.from({ length: total }, (_, i) => (
+              <span
+                key={i}
+                style={{
+                  width: i + 1 === index ? 24 : 8,
+                  height: 8,
+                  borderRadius: 'var(--radius-chip)',
+                  background: i + 1 === index ? 'var(--brand-600)' : 'var(--border)',
+                }}
+              />
+            ))}
+          </div>
+
+          <div className="flex flex-col gap-3">
+            <PrimaryButton onClick={() => setPhase('playing')}>
+              Begin
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </PrimaryButton>
+            <button
+              type="button"
+              onClick={onSkip}
+              className="cursor-pointer py-2 text-sm font-medium"
+              style={{ color: 'var(--text-tertiary)' }}
+            >
+              Skip tour
+            </button>
+          </div>
         </div>
       ) : (
         <div className="flex flex-col items-center gap-4 px-4 pt-2 pb-8">
@@ -175,42 +220,45 @@ export function TutorialScreen({
             hint={hint}
             cellOverlays={null}
             onCellClick={() => {}}
+            showCoordinates
           />
 
           {phase === 'done' ? (
-            <div className="flex w-full flex-col gap-4" style={panel}>
+            <TonalCard className="w-full" accent={false}>
               <p
                 className="text-lg font-semibold"
                 style={{ color: 'var(--text-primary)' }}
               >
                 Nicely done.
               </p>
-              <p className="text-sm" style={{ color: 'var(--text-secondary)' }}>
+              <p className="mt-2 text-sm" style={{ color: 'var(--text-secondary)' }}>
                 {index < total
                   ? 'That technique is yours. One more on the next screen.'
                   : 'You have the basics. Easy puzzles are now open.'}
               </p>
-              <button
-                type="button"
-                onClick={onComplete}
-                className="cursor-pointer py-3 text-base font-semibold"
-                style={{
-                  background: 'var(--brand-600)',
-                  color: 'var(--text-on-brand)',
-                  borderRadius: 'var(--radius-button)',
-                }}
-              >
-                Continue
-              </button>
-            </div>
+              <div className="mt-4 flex justify-end">
+                <PrimaryButton onClick={onComplete}>
+                  Continue
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                    <path d="M5 12h14M13 5l7 7-7 7" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" />
+                  </svg>
+                </PrimaryButton>
+              </div>
+            </TonalCard>
           ) : (
             <>
-              <div className="w-full" style={panel}>
+              <TonalCard className="w-full" accent={false}>
                 <p
                   className="text-sm"
                   style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}
                 >
-                  {step?.explanation}
+                  {step && (
+                    <HintText
+                      text={`${cellRef(step.row, step.col)}: ${step.explanation}`}
+                      emphasizeValues
+                      onCellRef={() => {}}
+                    />
+                  )}
                 </p>
                 {wrongValue !== null && (
                   <p
@@ -220,7 +268,7 @@ export function TutorialScreen({
                     Not quite — that value breaks a rule here. Try again.
                   </p>
                 )}
-              </div>
+              </TonalCard>
 
               {/* number row */}
               <div className="flex flex-wrap justify-center gap-2">
@@ -229,18 +277,11 @@ export function TutorialScreen({
                     key={n}
                     type="button"
                     onClick={() => handleNumber(n)}
-                    className="cursor-pointer"
+                    className="solve-key"
                     style={{
                       width: 44,
                       height: 44,
-                      borderRadius: 'var(--radius-button)',
-                      background: 'var(--surface-elevated)',
-                      border: '1px solid var(--border)',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'var(--font-mono)',
-                      fontSize: '1.15rem',
-                      fontWeight: 500,
-                      fontVariantNumeric: 'tabular-nums',
+                      flex: '0 0 auto',
                     }}
                   >
                     {n}

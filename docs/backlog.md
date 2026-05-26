@@ -18,7 +18,6 @@ The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design targ
 **Done:** Phase 0 (design tokens, Vitest + 13 engine tests, 3-tab app shell) and Phase 1 (profile + progression layer with 26 tests; Home landing; difficulty picker; the iOS-native Solving screen + states; Solved screen). 39 tests, lint + build green.
 
 **Deferred slices** (carried forward):
-- Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
 - Mid-solve mastery-crossing moment — self-applied detection now feeds real data (`classifyMove` + useGame tracking, 2026-05-15), so `mastered` is reachable; the live "you just mastered X" beat during a solve is still not built.
 - Self-applied credit covers naked / hidden singles only — the engine never emits `forced-move` or `pair-elimination`, so the Master gate (forced-move mastery) stays unreachable until the hint engine grows those techniques.
 
@@ -116,6 +115,7 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
 - **I7. Floating pill nav bar.** Replace the global bottom tab bar with an iOS-native floating button bar — rounded corners (pill).
 - **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
 - **I9. Deductive hint techniques.** Give the hint engine a deductive middle tier so logic hints explain a deduction instead of narrating a backtracking search. *Done 2026-05-18* — [`specs/solving-techniques.md`](../specs/solving-techniques.md) catalogues the tiers; `src/engine/hints.ts` now runs cage domination (`findDominationHint`, the `forced-move` technique) and a naked/hidden-subset + locked-candidate elimination loop (`findDeductiveHint`, the `pair-elimination` technique) before the `findContradictionHint` fallback. Probe over 28 hard/expert solves: contradiction trials dropped to 6 of 567 hints. The generator now also grades difficulty by required technique (`gradeDifficulty`) instead of backtrack count, so a label means "needs this technique" — `progression.md` §2. **Optional follow-ups:** self-credit `pair-elimination` in `classifyMove`; flip-flop / parity-chain hints (spec §8); a clue-density pass if 8×8 medium generation (~6 s) needs trimming.
+- **I10. ✅ Auth sheet bottom clearance.** Done 2026-05-25. The account overlay now stacks above the floating bottom tab bar and constrains its height to the viewport, so the lower controls are not covered on iPhone.
 
 ---
 

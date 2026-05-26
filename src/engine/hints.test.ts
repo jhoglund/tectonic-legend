@@ -1,6 +1,6 @@
 import { describe, it, expect } from 'vitest';
 import { generatePuzzle } from './generator';
-import { findHint, classifyMove } from './hints';
+import { findHint, classifyMove, trimStepsToContradiction } from './hints';
 import type { PuzzleLayout, Group, Position } from './types';
 
 /**
@@ -224,5 +224,25 @@ describe('findHint — never suggests a wrong value', () => {
         }
       }
     }
+  });
+});
+
+describe('contradiction chains', () => {
+  it('omits forced moves that are not needed for the contradiction', () => {
+    const trimmed = trimStepsToContradiction({
+      contradiction: true,
+      contradictionDeps: [3],
+      steps: [
+        // An unrelated forced branch, like D5 / E5 in the screenshot.
+        { id: 1, row: 4, col: 3, value: 1, technique: 'naked_single', deps: [0] },
+        { id: 2, row: 4, col: 4, value: 2, technique: 'hidden_single', deps: [1] },
+        // The actual causal path to the contradiction.
+        { id: 3, row: 0, col: 1, value: 4, technique: 'hidden_single', deps: [0] },
+      ],
+      contradictionReason: 'B1 has no value left',
+      conflictCell: { row: 0, col: 1 },
+    });
+
+    expect(trimmed.map((step) => step.id)).toEqual([3]);
   });
 });
