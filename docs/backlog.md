@@ -3,7 +3,7 @@
 > Single tracker for in-progress, planned, and intent-only work. Solo project — kept lightweight.
 > Decisions live in [`decisions/`](decisions/). Open questions are at the bottom.
 
-**Last updated:** 2026-05-17
+**Last updated:** 2026-05-26
 
 ---
 
@@ -11,22 +11,94 @@
 
 Active work, in progress or paused awaiting input.
 
-### v1 implementation · 2026-05-15 — *Phases 0–1 done, Phase 2 next*
+### v1.0 submission sprint · target June 2
 
-The iOS-native prototype (variant 01 of the 2026-05-14 swarm) is the design target. Scope was triaged against the PRD on 2026-05-15 — see [ADR-0011](decisions/ADR-0011-v1-scope-triage.md). The v1 build plan below is the result.
+**Decisions resolved:**
+- ✅ **App name:** Tectonic Legend (ADR-0006, accepted 2026-05-20). Repo renamed to `tectonic-legend`.
+- ✅ **v1.0 ships free — no IAP, no ads.** Everything unlocked. Validates retention before monetization. Paywall + StoreKit land in v1.1.
+- ✅ **Apple Developer enrollment:** done. TestFlight working.
+- ✅ **Capacitor iOS:** scaffolded + building to device.
 
-**Done:** Phase 0 (design tokens, Vitest + 13 engine tests, 3-tab app shell) and Phase 1 (profile + progression layer with 26 tests; Home landing; difficulty picker; the iOS-native Solving screen + states; Solved screen). 39 tests, lint + build green.
+**Phases 0–4 substantially complete.** 84 tests green. What remains is Phase 5 — ship.
 
-**Deferred slices** (carried forward):
+**Deferred slices** (carried forward to v1.1+):
 - Active-game persistence (refresh-safe in-progress puzzle) — needs `GameState` serialization.
-- Mid-solve mastery-crossing moment — self-applied detection now feeds real data (`classifyMove` + useGame tracking, 2026-05-15), so `mastered` is reachable; the live "you just mastered X" beat during a solve is still not built.
-- Self-applied credit covers naked / hidden singles only — the engine never emits `forced-move` or `pair-elimination`, so the Master gate (forced-move mastery) stays unreachable until the hint engine grows those techniques.
+- Mid-solve mastery-crossing moment — self-applied detection feeds data, but the live "you just mastered X" beat is not built.
+- Self-applied credit covers naked/hidden singles only — forced-move and pair-elimination self-credit deferred.
 
-**Phase 2 is next.**
+---
 
-**Decisions still blocked on Jonas:**
-- App name (ADR-0006) — needed before App Store submission.
-- Lifetime pricing (ADR-0008) — the swarm flagged that $6.99 Lifetime strictly dominates $24.99/yr Annual; ADR-0008 needs a resolved price or a decision to drop Lifetime.
+### v1.0 submission — one-week sprint
+
+Seven days to App Store submission. The game is feature-complete; this sprint is about polish, assets, and submission mechanics.
+
+#### Day 1 (Mon May 26) — Decisions + prep
+
+- [x] Confirm app name: **Tectonic Legend**
+- [x] Confirm v1.0 monetization: **free, no IAP** (everything unlocked)
+- [ ] Confirm bundle ID: `com.jhoglund.tectoniclegend` (or keep `com.jhoglund.tectonic`) — must decide before creating App Store Connect record
+- [ ] Acquire domain (e.g. `tectoniclegend.app`) for privacy policy + support URLs
+
+#### Day 2 (Tue May 27) — Privacy + support pages
+
+- [ ] Publish privacy policy at `<domain>/privacy` — honest, minimal ("Data Not Collected" posture, Mimir OFF for v1.0)
+- [ ] Publish support page at `<domain>/support` — How to Play, FAQ, contact email
+- [ ] Disable/hide paywall triggers for v1.0 (everything unlocked, no premium gates)
+- [ ] Hide auth/sign-in UI for v1.0 (local-only, no Supabase in v1.0)
+- [ ] Replace stock Vite README.md (audit item R7)
+
+#### Day 3 (Wed May 28) — App icon + screenshots
+
+- [ ] Design app icon (1024×1024 PNG, no alpha, no rounded corners)
+- [ ] Generate all icon sizes via `@capacitor/assets`
+- [ ] Capture 5–6 real screenshots at 1320×2868 (iPhone 6.9"):
+  1. Hero — Home with stage chip ("Learn the logic, not the levels")
+  2. Teaching hint — Solving screen + hint menu
+  3. The journey — Stage-up card
+  4. Contradiction stepper — step-by-step walkthrough
+  5. Mastery & stats — Stats screen with mastery chips
+  6. Daily + share — Home daily puzzle card
+- [ ] Add caption text to screenshots (Open Design or screenshot generator)
+
+#### Day 4 (Thu May 29) — Device testing + polish
+
+- [ ] `npm run sync:ios` → Xcode → real device testing:
+  - Launch → tutorial → solve → daily puzzle → share → backgrounding → offline
+  - StatusBar / SafeArea / splash screen look native
+  - No white-screen on asset loading (verify `base: '/'` in Capacitor build)
+- [ ] Tutorial polish pass (item 10 — pacing, visual treatment)
+- [ ] Set version to `1.0.0`, build number `1`
+- [ ] Add `PrivacyInfo.xcprivacy` with empty `NSPrivacyCollectedDataTypes` (Mimir OFF)
+
+#### Day 5 (Fri May 30) — App Store Connect + TestFlight
+
+- [ ] Create App Store Connect record:
+  - App name: Tectonic Legend
+  - Subtitle: `Tectonic & Suguru Puzzles` (25 chars)
+  - Primary category: Games → Puzzle
+  - Secondary category: Games → Board
+  - Bundle ID: (per Day 1 decision)
+- [ ] Fill metadata:
+  - Description (draft in `docs/app-store-launch.md` §2.3)
+  - Keywords: `tectonic,suguru,logic puzzle,sudoku alternative,number puzzle,brain game,daily puzzle,cage,deduction` (96 chars)
+  - Promotional text (draft in §2.2)
+- [ ] Upload icon + screenshots
+- [ ] Complete age rating questionnaire → 4+
+- [ ] Complete App Privacy questionnaire → "Data Not Collected" (all categories)
+- [ ] Archive in Xcode 26 → upload → distribute to internal TestFlight testers (5–10)
+
+#### Day 6 (Sat May 31) — Beta feedback + fixes
+
+- [ ] Fix any crash/UX issues from TestFlight
+- [ ] Final smoke test on device
+- [ ] Write App Review Notes (draft in `docs/app-store-launch.md` §5)
+
+#### Day 7 (Sun June 1) — Submit
+
+- [ ] Set availability: NZ + CA (+ IE if desired)
+- [ ] Attach build to v1.0 release
+- [ ] Submit for review (typically 24–48 hours)
+- [ ] Celebrate 🎉
 
 ---
 
@@ -75,12 +147,14 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 
 ### Phase 4 — Monetization
 
-17. **StoreKit / RevenueCat setup** — NOT started. Blocked on Apple Developer enrolment + App Store Connect products + the resolved free/premium split. See handover.
+**Deferred to v1.1.** v1.0 ships free with everything unlocked — no IAP, no ads. Decision: 2026-05-26.
+
+17. **StoreKit / RevenueCat setup** — **v1.1.** Two SKUs: $3.99/mo + $19.99/yr (per `docs/soft-launch-plan.md` §2). Lifetime SKU dropped. Apple Developer enrollment done; wire when soft-launch retention data justifies monetization.
 17a. **◑ Subscription offers — vouchers & temporary discounts** (added 2026-05-16). Grant comped access and run time-boxed discounts.
     - **✅ Local vouchers** — `src/lib/vouchers.ts` + redeem flow in Settings: self-verifying `TEC-XXXX-XXXX` codes carrying a lifetime or N-day grant, validated offline. Premium entitlement on the profile (`isPremium`, timed-grant expiry). No Apple account, no backend. Done 2026-05-16 — see [`docs/vouchers.md`](vouchers.md). The timed (N-day) code is the local stand-in for a temporary offer.
-    - **Apple-native (deferred, needs item 17).** App Store **Offer Codes** for store-side vouchers; **Introductory & Promotional Offers** for real price discounts (free trial, win-back). App Store Connect is the console — no custom admin UI. RevenueCat, if adopted (ADR-0008), layers its own offer/entitlement tooling on top.
+    - **Apple-native (deferred to v1.1, needs item 17).** App Store **Offer Codes** for store-side vouchers; **Introductory & Promotional Offers** for real price discounts (free trial, win-back).
     - Lettered (17a) to avoid renumbering 18–24.
-18. **◑ Paywall** — built and **wired** 2026-05-16. `PaywallProvider` mounts it app-wide; `openPaywall(trigger)` records the trigger for the funnel. Two premium gates live (the two fences from `soft-launch-plan.md` §3 that exist today): contradiction-chain hints (`useGame`) and the technique-mastery histogram (`StatsScreen`). Verified end-to-end: locked stat → paywall → voucher redeem → premium → unlocked. **Remaining:** the live StoreKit purchase (Continue currently funnels to voucher redeem) needs item 17; the ads / archive / themes / 3-a-day-hint-limit gates need those features built first.
+18. **◑ Paywall** — built and **wired** 2026-05-16. `PaywallProvider` mounts it app-wide; `openPaywall(trigger)` records the trigger for the funnel. Two premium gates live: contradiction-chain hints (`useGame`) and the technique-mastery histogram (`StatsScreen`). Verified end-to-end: locked stat → paywall → voucher redeem → premium → unlocked. **For v1.0:** disable/hide all premium gates so everything is free. **For v1.1:** wire StoreKit purchase, re-enable gates, add ad SDK + interstitials.
 19. **✅ Settings (trimmed)** — How to Play + About; replaces the stub the App Store audit flagged. Theme/sound/haptics deferred (features don't exist yet). Done 2026-05-16.
 
 ### Phase 5 — Ship
@@ -90,6 +164,16 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 22. **App Store assets** — icon, screenshots, description, keywords. Prep + drafts in `docs/app-store-launch.md`; assets themselves not built.
 23. **TestFlight beta** — 10–20 testers. Pipeline documented in `docs/app-store-launch.md`; Apple-account-gated.
 24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
+
+### v1.1 — Monetization (target: 2–3 weeks post-submission)
+
+Ship once soft-launch retention data is in (Day 1 > 40%, Day 7 > 20% per PRD §10). This is the revenue update.
+
+25. **StoreKit integration** — two auto-renewable SKUs ($3.99/mo, $19.99/yr) in one subscription group. Restore Purchases + Manage Subscription in Settings. Sign Paid Applications Agreement + banking/tax in App Store Connect first.
+26. **Re-enable premium gates** — contradiction-chain hints, advanced-hint daily limit (3/day free), technique-mastery dashboard, daily archive (>7 days). Wire the existing `PaywallProvider` to StoreKit purchase flow.
+27. **Ad SDK** — tasteful interstitials between puzzles (never mid-solve). The primary conversion driver for ad-removal.
+28. **Paywall polish** — two-option layout (monthly + annual), exact price/recurrence/auto-renew disclosure, link to Apple subscription management. Compliant per Guideline 3.1.1.
+29. **Analytics production** — host Mimir publicly, set `VITE_MIMIR_*` repo variables. Update App Privacy labels to declare Product Interaction (analytics). Update `PrivacyInfo.xcprivacy`.
 
 ### Accounts — Supabase backend
 
@@ -140,16 +224,17 @@ Intent only. Not committed; included so direction stays visible. Post-v1.
 
 Deliberately unresolved. Resolve through evidence, not committee. When resolved, either become ADRs or get closed by inline answers in `PRD.md` / `specs/progression.md`.
 
-- **App name.** "Tectonic" is generic and Keesing owns its puzzle-app association. Distinctive brand + "Tectonic Puzzles" subtitle for ASO. Tracked in ADR-0006.
-- **Lifetime pricing.** $6.99 Lifetime strictly dominates $24.99/yr Annual — the swarm's paywall agent flagged it. Options: reprice Lifetime (~$39.99), hide it on the contradiction paywall, or gate it behind two declines. ADR-0008 needs the answer.
-- **Free/premium split.** Current thinking gates Hard/Expert + contradiction hints + technique-mastery stats + archive. Validate in soft launch. ADR-0007.
-- **Subscription vs one-time unlock.** Research favors subscription; test both in soft launch. ADR-0008.
-- **Tutorial skippability.** ✅ Resolved 2026-05-15 — anyone can skip, no gate. A Skip control on the Welcome screen and each tutorial jumps straight to Beginner.
-- **~~A difficulty tier above Expert ("Legend"?)~~.** ✅ Resolved 2026-05-20 — *pure status, not a difficulty tier*. Stage 5 Legend (ADR-0018) plus four Legend rungs and the daily-puzzle leaderboard (ADR-0019). The brand-named status is earned through depth across every technique, not by adding a new generator gate.
+- ~~**App name.**~~ ✅ Resolved 2026-05-20 — **Tectonic Legend** (ADR-0006). Repo renamed to `tectonic-legend`.
+- ~~**Lifetime pricing.**~~ ✅ Resolved 2026-05-26 — **dropped.** v1.0 ships free; v1.1 ships $3.99/mo + $19.99/yr only, no lifetime SKU (per `docs/soft-launch-plan.md` §2).
+- ~~**Free/premium split.**~~ ✅ Resolved 2026-05-26 for v1.0 — **everything unlocked.** v1.0 is free with no gates. v1.1 re-derives the split per `docs/soft-launch-plan.md` §3 (ad-free + contradiction hints + unlimited advanced hints + mastery dashboard + daily archive + themes; no difficulty gate per ADR-0012).
+- ~~**Subscription vs one-time unlock.**~~ ✅ Resolved 2026-05-26 — **subscription only** at soft launch ($3.99/mo + $19.99/yr). One-time unlock is a Phase 2 contingency test if IAP conversion < 2%.
+- ~~**Tutorial skippability.**~~ ✅ Resolved 2026-05-15 — anyone can skip, no gate.
+- ~~**A difficulty tier above Expert ("Legend"?).**~~ ✅ Resolved 2026-05-20 — *pure status, not a difficulty tier*. Stage 5 Legend (ADR-0018) plus four Legend rungs and the daily-puzzle leaderboard (ADR-0019).
 - **Mastery thresholds** (`specs/progression.md`). Spec'd in ADR-0018 as a depth score with the existing 8 / 3 boundary landing at depth ≈ 60 (mastered). The first-draft `SELF_TARGET = 20` / `PUZZLES_TARGET = 12` and the rung thresholds (Adept 93/12 … Mythic 99/25) are the calibration question soft-launch data resolves.
 - **Basic-hint persistence.** Should the basic-hint ring/caption persist until the player acts, or auto-clear after N seconds? (Swarm batch-1 open question.)
 - **Mastery chip layout.** The mid-solve chip shifts the keypad down ~58px. Overlay on the toolbar, shrink the technique chip, or accept the crowd? (Swarm batch-3 open question.)
 - **Hint usage in solve summary.** Does using hints turn cells yellow (mild penalty) or green (no penalty)? Affects how much players show hints in shares.
+- **Bundle ID.** `com.jhoglund.tectonic` (current) vs `com.jhoglund.tectoniclegend`. Must decide before creating the App Store Connect record — permanent once set.
 
 ---
 
