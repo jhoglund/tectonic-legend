@@ -52,7 +52,7 @@ Seven days to App Store submission. The game is feature-complete; this sprint is
 #### Day 2 (Tue May 27) — Code: v1.0 submission readiness
 
 - [ ] Disable/hide paywall triggers for v1.0 (everything unlocked, no premium gates)
-- [ ] Decide auth posture for v1.0: keep anonymous-by-default (ADR-0017) or hide auth entirely? If Supabase isn't configured for prod, ensure graceful degradation works on device.
+- [ ] **Wire Supabase for production.** Currently dev-only; needs a production project + env vars set before launch so accounts/sync work on real devices. Apply `supabase/schema.sql`, enable Anonymous sign-ins + Apple/Google providers, configure SMTP. Without this, auth degrades to local-only silently (ADR-0017) — functional but no cross-device sync.
 - [ ] Replace stock Vite README.md (audit item R7)
 - [ ] Add `PrivacyInfo.xcprivacy` with empty `NSPrivacyCollectedDataTypes` (Mimir OFF)
 - [ ] Set version to `1.0.0`, build number `1`
