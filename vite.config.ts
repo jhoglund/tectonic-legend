@@ -1,3 +1,4 @@
+import { fileURLToPath, URL } from 'node:url'
 import { defineConfig, loadEnv, type PluginOption } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
@@ -52,6 +53,13 @@ export default defineConfig(({ command, mode }) => {
     // gets the `/tectonic-legend/` prefix for Pages.
     base: command === 'serve' || mode === 'capacitor' ? '/' : '/tectonic-legend/',
     plugins: [react(), tailwindcss(), mimirPlugin],
+    resolve: {
+      alias: {
+        // Matches the @/* -> ./src/* path from @hoglund/config's tsconfig base
+        // so the alias resolves at build/serve time, not only at typecheck.
+        '@': fileURLToPath(new URL('./src', import.meta.url)),
+      },
+    },
     server: {
       host: '127.0.0.1',
       port: 7576,

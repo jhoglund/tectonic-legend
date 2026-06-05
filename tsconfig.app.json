@@ -1,28 +1,21 @@
 {
+  "extends": "@hoglund/config/tsconfig.base.json",
   "compilerOptions": {
     "tsBuildInfoFile": "./node_modules/.tmp/tsconfig.app.tsbuildinfo",
     "target": "ES2023",
     "useDefineForClassFields": true,
     "lib": ["ES2023", "DOM", "DOM.Iterable"],
-    "module": "ESNext",
     "types": ["vite/client"],
-    "skipLibCheck": true,
 
-    /* Bundler mode */
-    "moduleResolution": "bundler",
+    /* Bundler mode (Tectonic-specific extras on top of the base) */
     "allowImportingTsExtensions": true,
     "verbatimModuleSyntax": true,
-    "moduleDetection": "force",
-    "noEmit": true,
-    "jsx": "react-jsx",
-
-    /* Linting */
-    "strict": true,
-    "noUnusedLocals": true,
-    "noUnusedParameters": true,
     "erasableSyntaxOnly": true,
-    "noFallthroughCasesInSwitch": true,
-    "noUncheckedSideEffectImports": true
+    "noEmit": true,
+
+    /* The base sets baseUrl ".", but extends resolves it relative to the base
+       file in node_modules; re-declare it locally so @/* maps into this repo. */
+    "baseUrl": "."
   },
   "include": ["src"]
 }

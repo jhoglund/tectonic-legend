@@ -5,13 +5,15 @@
   "type": "module",
   "scripts": {
     "dev": "vite --port 7576 --strictPort",
-    "build": "tsc -b && vite build",
-    "build:ios": "tsc -b && vite build --mode capacitor",
+    "build": "npm run typecheck && vite build",
+    "build:ios": "npm run typecheck && vite build --mode capacitor",
     "sync:ios": "npm run build:ios && cap sync ios",
-    "lint": "eslint .",
+    "lint": "biome lint .",
+    "typecheck": "tsc -b",
     "preview": "vite preview",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "format": "biome format --write ."
   },
   "dependencies": {
     "@capacitor/cli": "^8.3.4",
@@ -19,24 +21,20 @@
     "@capacitor/ios": "^8.3.4",
     "@capacitor/status-bar": "^8.0.2",
     "@supabase/supabase-js": "^2.105.4",
-    "react": "^19.2.4",
-    "react-dom": "^19.2.4"
+    "react": "~19.2.0",
+    "react-dom": "~19.2.0"
   },
   "devDependencies": {
-    "@eslint/js": "^9.39.4",
+    "@biomejs/biome": "~2.4.16",
+    "@hoglund/config": "github:jhoglund/config#v0.1.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
     "@types/react-dom": "^19.2.3",
     "@vitejs/plugin-react": "^6.0.1",
-    "eslint": "^9.39.4",
-    "eslint-plugin-react-hooks": "^7.0.1",
-    "eslint-plugin-react-refresh": "^0.5.2",
-    "globals": "^17.4.0",
-    "tailwindcss": "^4.2.2",
-    "typescript": "~5.9.3",
-    "typescript-eslint": "^8.57.0",
-    "vite": "^8.0.1",
+    "tailwindcss": "~4.2.0",
+    "typescript": "~5.9.0",
+    "vite": "~8.0.0",
     "vitest": "^4.1.6"
   }
 }
