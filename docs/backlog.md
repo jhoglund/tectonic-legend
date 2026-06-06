@@ -3,7 +3,7 @@
 > Single tracker for in-progress, planned, and intent-only work. Solo project — kept lightweight.
 > Decisions live in [`decisions/`](decisions/). Open questions are at the bottom.
 
-**Last updated:** 2026-05-17
+**Last updated:** 2026-05-27
 
 ---
 
@@ -89,6 +89,7 @@ Added 2026-05-15 from Jonas's review of the rebuilt Solving screen. v1 scope; sl
 22. **App Store assets** — icon, screenshots, description, keywords. Prep + drafts in `docs/app-store-launch.md`; assets themselves not built.
 23. **TestFlight beta** — 10–20 testers. Pipeline documented in `docs/app-store-launch.md`; Apple-account-gated.
 24. **Soft launch — NZ + CA (+ IE recommended)** (`docs/soft-launch-plan.md`). Validate retention + IAP conversion before paid acquisition. Targets in `PRD.md` §10.
+25. **Register brand domains** — *decided 2026-05-27, not yet purchased.* Secure **`tectoniclegend.com`** + **`tectoniclegend.app`** — both confirmed available (RDAP + whois), ~$10–11/yr and ~$14/yr at-cost. Registrar: **Cloudflare Registrar** (true at-cost, requires DNS on Cloudflare) or Porkbun / Namecheap; the Hey Ginger project used GoDaddy. **`.game` deliberately skipped** — premium TLD at ~$300/yr *each* (`tectoniclegend.game`, `tectonic.game`); `.games` (plural, ~$10–30/yr) is the cheap fallback if a "game" TLD is ever wanted. Note: `.app` is on the HSTS preload list (HTTPS-only — fine for the current Pages/TLS deploy). Jonas does the checkout (no automated purchases). Relates to ADR-0006 (brand) and the Privacy-Policy URL that A4 / App Store submission will require.
 
 ### Accounts — Supabase backend
 
