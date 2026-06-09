@@ -21,11 +21,29 @@ jobs:
   build:
     runs-on: ubuntu-latest
     steps:
+      # persist-credentials: false so checkout does not leave a github.com auth
+      # header (GITHUB_TOKEN) that overrides CONFIG_REPO_TOKEN during npm ci and
+      # 404s the private @hoglund/config fetch. This build job does not push git,
+      # so dropping the persisted credential is safe. See radar ADR 0021.
       - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
       - uses: actions/setup-node@v4
         with:
           node-version: 22
           cache: npm
+      # @hoglund/config is a private github: dep that npm resolves over SSH; the
+      # runner has no SSH key. Rewrite github.com git URLs to token HTTPS so npm ci
+      # can read it. CONFIG_REPO_TOKEN is a per-repo read-only Actions secret (a
+      # fine-grained PAT with contents:read on jhoglund/config). The --add is
+      # required: insteadOf is multi-valued and a plain second line would replace
+      # the ssh:// rule the lockfile needs. See radar ADR 0021.
+      - name: Authenticate github.com git dependencies
+        env:
+          CONFIG_REPO_TOKEN: ${{ secrets.CONFIG_REPO_TOKEN }}
+        run: |
+          git config --global url."https://x-access-token:${CONFIG_REPO_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
+          git config --global --add url."https://x-access-token:${CONFIG_REPO_TOKEN}@github.com/".insteadOf "git@github.com:"
       - run: npm ci
       - run: npm run build
         env:
