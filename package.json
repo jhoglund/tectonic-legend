@@ -26,7 +26,7 @@
   },
   "devDependencies": {
     "@biomejs/biome": "~2.4.16",
-    "@hoglund/config": "github:jhoglund/config#v0.1.1",
+    "@hoglund/config": "github:hybris-fed/config#v0.1.1",
     "@tailwindcss/vite": "^4.2.2",
     "@types/node": "^24.12.0",
     "@types/react": "^19.2.14",
