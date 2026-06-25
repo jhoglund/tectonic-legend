@@ -1,0 +1,5 @@
+# Gitignored files the Claude Code desktop app copies into each new worktree (ADR 0041).
+# These are NOT in git, so a fresh worktree would otherwise start without them and crash
+# at runtime (or target the wrong environment). Gitignore syntax, paths from repo root.
+# See ~/dev/radar/tools/session-safeguards/README.md.
+.env.local
