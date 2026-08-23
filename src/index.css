@@ -144,6 +144,16 @@
   --glass-blur: 20px;
   --glass-saturation: 1.15;
 
+  /* --- Layers ------------------------------------------------
+     One scale for everything that stacks, so two surfaces can never
+     collide on the same value again. A modal must outrank the nav:
+     the four bottom sheets sat at 50, tied with the nav, and lost the
+     tie on DOM order, which put the nav on top of an open sheet and
+     made PauseSheet's Abandon button unclickable. */
+  --z-status: 40;
+  --z-nav: 50;
+  --z-overlay: 60;
+
   /* --- Motion (categorical, not arbitrary) -------------------- */
   --motion-fast: 120ms ease-out;
   --motion-base: 200ms ease-out;

@@ -164,12 +164,14 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
 - **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
 - **I9. Deductive hint techniques.** Give the hint engine a deductive middle tier so logic hints explain a deduction instead of narrating a backtracking search. *Done 2026-05-18* — [`specs/solving-techniques.md`](../specs/solving-techniques.md) catalogues the tiers; `src/engine/hints.ts` now runs cage domination (`findDominationHint`, the `forced-move` technique) and a naked/hidden-subset + locked-candidate elimination loop (`findDeductiveHint`, the `pair-elimination` technique) before the `findContradictionHint` fallback. Probe over 28 hard/expert solves: contradiction trials dropped to 6 of 567 hints. The generator now also grades difficulty by required technique (`gradeDifficulty`) instead of backtrack count, so a label means "needs this technique" — `progression.md` §2. **Optional follow-ups:** flip-flop / parity-chain hints (spec §8); a clue-density pass if 8×8 medium generation (~6 s) needs trimming. *(Self-crediting `pair-elimination` in `classifyMove` is done, see `src/engine/hints.ts`; it credits the common case and is honest about the limit where the deductive loop pins a different cell first.)*
 - **I10. ✅ Auth sheet bottom clearance.** Done 2026-05-25. The account overlay now stacks above the floating bottom tab bar and constrains its height to the viewport, so the lower controls are not covered on iPhone.
-- **I11. PauseSheet bottom clearance.** *Found 2026-08-23.* The **Abandon puzzle**
-  button renders inside the viewport (y 742-796 at 375x812) but sits underneath the
-  floating bottom tab bar, so it cannot be clicked. Pause is then a dead end for the
-  mouse: the only way out is Resume. Exactly the bug I10 fixed for the auth sheet, so
-  the same fix applies. Check the other bottom sheets (HintMenu, DifficultyPicker,
-  RedeemCodeSheet) for the same clearance while in there.
+- **I11. ✅ Overlay layering above the nav.** Fixed 2026-08-23. PauseSheet's **Abandon
+  puzzle** button rendered inside the viewport (y 742-796 at 375x812) but was covered by
+  the floating nav, so Pause was a dead end for the mouse. Cause was a z-index tie: the
+  four bottom sheets were hardcoded to `50`, the same as `TabBar`, and the nav renders
+  later in the document so it won the tie. Replaced the scattered numbers with a
+  documented scale (`--z-status` 40 / `--z-nav` 50 / `--z-overlay` 60, `specs/design-tokens.md`
+  §9b) and moved every modal onto `--z-overlay`. Verified all four sheets: no covered
+  controls, and Pause to Abandon to the confirm alert works end to end.
 - **I12. Real grid semantics for the board.** *Found 2026-08-23.* `Cell` is a `<div>`
   with an `onClick` and no role; keyboard play works only through SolvingScreen's
   window `keydown` handler. Two a11y lint rules are suppressed there with that reason.

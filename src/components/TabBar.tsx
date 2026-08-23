@@ -45,7 +45,8 @@ const TABS: { id: Tab; label: string; icon: ReactNode }[] = [
 export function TabBar({ active, onChange, onNewPuzzle }: TabBarProps) {
   return (
     <nav
-      className="bottom-nav-shell fixed left-0 right-0 z-50 pointer-events-none"
+      className="bottom-nav-shell fixed left-0 right-0 pointer-events-none"
+      style={{ zIndex: 'var(--z-nav)' }}
       aria-label="Primary"
     >
       <div className="mx-auto max-w-[430px] px-3">

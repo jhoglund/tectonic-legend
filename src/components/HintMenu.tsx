@@ -42,7 +42,7 @@ export function HintMenu({ open, onClose, onPick }: HintMenuProps) {
         if (e.target === e.currentTarget) onClose();
       }}
       className="fixed inset-0 flex items-end justify-center"
-      style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }}
+      style={{ background: 'rgba(0,0,0,0.4)', zIndex: 'var(--z-overlay)' }}
     >
       <div
         role="dialog"

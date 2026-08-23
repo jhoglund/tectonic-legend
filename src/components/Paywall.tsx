@@ -81,7 +81,7 @@ export function Paywall({
       className="fixed inset-0 flex flex-col"
       style={{
         background: 'var(--surface)',
-        zIndex: 60,
+        zIndex: 'var(--z-overlay)',
         maxWidth: '430px',
         margin: '0 auto',
         paddingTop: 'calc(env(safe-area-inset-top) + var(--space-2))',

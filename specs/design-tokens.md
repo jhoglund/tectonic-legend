@@ -2,7 +2,7 @@
 
 > Canonical visual values. Source of truth for both `src/index.css` and any Open Design brief.
 
-**Last updated:** 2026-05-15
+**Last updated:** 2026-08-23
 
 When changing a token:
 1. Update the value in `src/index.css` (both light and dark mode).
@@ -191,6 +191,23 @@ Used only for floating navigation chrome. Keep it constrained so the puzzle surf
 | `glass-border` | `rgba(255,255,255,0.82)` | `rgba(255,255,255,0.12)` |
 | `glass-blur` | `20px` | `36px` |
 | `glass-saturation` | `1.15` | `1.4` |
+
+## 9b. Layers
+
+One scale for everything that stacks. Use the token, never a bare number: the
+bottom sheets and the nav were both hardcoded to `50`, and because the nav renders
+later in the document it won the tie and painted over an open sheet. That made
+PauseSheet's **Abandon puzzle** button visible but unclickable (backlog I11).
+
+| Token | Value | Usage |
+|-------|-------|-------|
+| `z-status` | `40` | The status-bar safe-area strip at the top of the app |
+| `z-nav` | `50` | The floating liquid-glass global nav (`TabBar`) |
+| `z-overlay` | `60` | Anything modal: bottom sheets, alerts, the paywall |
+
+**The rule: a modal outranks the nav.** An overlay with a dimming backdrop must
+cover the nav, not sit under it. If a new surface needs to stack, give it a token
+here rather than picking a number at the call site.
 
 ## 10. Motion
 

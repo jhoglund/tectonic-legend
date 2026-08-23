@@ -19,7 +19,7 @@ export function AbandonAlert({ open, onAbandon, onKeepSolving }: AbandonAlertPro
         if (e.target === e.currentTarget) onKeepSolving();
       }}
       className="fixed inset-0 flex items-center justify-center px-8"
-      style={{ background: 'rgba(0,0,0,0.4)', zIndex: 60 }}
+      style={{ background: 'rgba(0,0,0,0.4)', zIndex: 'var(--z-overlay)' }}
     >
       <div
         role="dialog"

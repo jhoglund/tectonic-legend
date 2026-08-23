@@ -45,7 +45,10 @@ function AppShell() {
 
   return (
     <div style={{ background: 'var(--surface)', minHeight: '100dvh' }}>
-      <div className="fixed top-0 left-0 right-0 z-40 pointer-events-none status-safe-area" />
+      <div
+        className="fixed top-0 left-0 right-0 pointer-events-none status-safe-area"
+        style={{ zIndex: 'var(--z-status)' }}
+      />
       {/* Phone-width column, centred via margin auto. Not a flex child —
           flex items default to min-width:auto and would refuse to cap. */}
       <div
