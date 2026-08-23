@@ -25,7 +25,6 @@
       : document.querySelector('#root') || document.body;
     if (!root) throw new Error('extract-screen: root not found');
 
-    const rootRect = root.getBoundingClientRect();
     // Collect in raw viewport coordinates; we crop to the content bounds at the
     // end so the frame is tight around the app (the root often spans the whole
     // viewport with the real UI centered in a narrow column).
@@ -118,8 +117,7 @@
     const tw = document.createTreeWalker(root, NodeFilter.SHOW_TEXT, {
       acceptNode: (n) => (n.nodeValue.trim() ? NodeFilter.FILTER_ACCEPT : NodeFilter.FILTER_REJECT),
     });
-    let tn;
-    while ((tn = tw.nextNode())) {
+    for (let tn = tw.nextNode(); tn; tn = tw.nextNode()) {
       const parent = tn.parentElement;
       if (!parent || hidden(getComputedStyle(parent))) continue;
       const pcs = getComputedStyle(parent);
@@ -135,7 +133,7 @@
         str: tn.nodeValue.trim(),
         color: toRGBA(pcs.color),
         fontSize: Math.round(parseFloat(pcs.fontSize)),
-        weight: parseInt(pcs.fontWeight) || 400,
+        weight: parseInt(pcs.fontWeight, 10) || 400,
         family: pcs.fontFamily.split(',')[0].replace(/['"]/g, ''),
       });
     }
@@ -144,7 +142,7 @@
     // of the viewport) are the page/root background — drop them (the frame's own
     // fill stands in) and exclude them from the bounds so the frame hugs the UI.
     const vw = window.innerWidth, vh = window.innerHeight;
-    const fullBleed = (n) => n.t === 'rect' && !n.stroke && !(n.shadows && n.shadows.length) && n.rect[2] >= vw * 0.95 && n.rect[3] >= vh * 0.9;
+    const fullBleed = (n) => n.t === 'rect' && !n.stroke && !n.shadows?.length && n.rect[2] >= vw * 0.95 && n.rect[3] >= vh * 0.9;
     const kept = nodes.filter((n) => !fullBleed(n));
     const fg = kept.filter((n) => n.t === 'text' || n.t === 'svg' || !(n.rect[2] >= vw * 0.95));
     const bounds = (fg.length ? fg : kept).reduce(

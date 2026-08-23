@@ -286,6 +286,12 @@ export function Cell({
             : {};
 
   return (
+    // The board is keyboard-played through SolvingScreen's window keydown
+    // handler (arrows move the selection, digits enter values), so per-cell key
+    // handlers would double-fire. Full grid/gridcell semantics with roving
+    // tabindex is the real fix and is tracked separately.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard handled board-level, see above
+    // biome-ignore lint/a11y/noStaticElementInteractions: keyboard handled board-level, see above
     <div
       className={`relative flex cursor-pointer select-none items-center justify-center
         ${cageClass} ${stateBgClass} ${dimClass} ${selectedTint ? 'cell-selected' : ''}`}

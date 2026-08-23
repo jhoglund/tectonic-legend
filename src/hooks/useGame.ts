@@ -113,6 +113,10 @@ export function useGame(
     return true;
   }, [loadEncodedState]);
 
+  // Mount-only bootstrap. Listing initial / loadFromUrl / startNewGame as deps
+  // would restart the game whenever the caller passes a new `initial` object,
+  // which is the opposite of what this effect is for.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-only, see above
   useEffect(() => {
     // Mount bootstrap, deferred to a macrotask so it doesn't call
     // setState synchronously within the effect (which would cascade an
@@ -128,8 +132,6 @@ export function useGame(
       }
     }, 0);
     return () => clearTimeout(t);
-    // Mount-only: loadFromUrl / startNewGame are intentionally not deps.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   const handleCellClick = useCallback(

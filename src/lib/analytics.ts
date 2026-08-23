@@ -30,7 +30,8 @@ function track(name: string, props: Record<string, unknown> = {}): void {
   if (window.mimir) {
     window.mimir.track(name, props);
   } else {
-    (window.mimirq ||= []).push(['track', name, props]);
+    window.mimirq ||= [];
+    window.mimirq.push(['track', name, props]);
   }
 }
 

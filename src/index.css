@@ -381,9 +381,13 @@
   *,
   *::before,
   *::after {
+    /* biome-ignore-start lint/complexity/noImportantStyles: a reduced-motion
+       kill switch has to beat every animation declaration in the sheet, which
+       is exactly what !important is for. */
     animation-duration: 0.01ms !important;
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
+    /* biome-ignore-end lint/complexity/noImportantStyles: end kill switch */
   }
 }
 
@@ -418,6 +422,9 @@ input:focus-visible {
 
 .bottom-nav-shell {
   bottom: 0.75rem;
+  /* biome-ignore lint/suspicious/noDuplicateProperties: deliberate progressive
+     enhancement. The plain value is the fallback for engines that do not parse
+     env(); those that do take the safe-area line below. */
   bottom: calc(0.75rem + env(safe-area-inset-bottom, 0px));
 }
 

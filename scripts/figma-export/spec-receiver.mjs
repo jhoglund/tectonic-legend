@@ -1,5 +1,5 @@
-import http from 'http';
-import fs from 'fs';
+import http from 'node:http';
+import fs from 'node:fs';
 http.createServer((req, res) => {
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'POST,OPTIONS');
@@ -8,7 +8,7 @@ http.createServer((req, res) => {
   if (req.method === 'POST') {
     let b = '';
     req.on('data', (c) => (b += c));
-    req.on('end', () => { fs.writeFileSync('/tmp/figma-spec.json', b); res.writeHead(200); res.end('ok ' + b.length); });
+    req.on('end', () => { fs.writeFileSync('/tmp/figma-spec.json', b); res.writeHead(200); res.end(`ok ${b.length}`); });
     return;
   }
   // GET → return the stored spec (for the Figma builder to fetch)

@@ -1109,7 +1109,6 @@ function buildNakedSingleReason(
     );
     if (blockingNeighbor) {
       eliminatedBy.push(`${v} is in an adjacent cell`);
-      continue;
     }
   }
 

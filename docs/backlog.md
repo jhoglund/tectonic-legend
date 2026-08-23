@@ -39,13 +39,13 @@ gone entirely: project deleted, one-way, nothing to fall back to.
 - **Tutorial polish pass** before soft launch. Content, pacing and visual treatment
   are all first-draft.
 
-**Known debt: `npm run lint` fails.** 58 errors in `src/` alone (45
-`noNonNullAssertion`, 30 a11y, 16 `useExhaustiveDependencies`), more under
-`prototypes/`. This is fallout from adopting the stricter `@hoglund/config` biome rules
-on 2026-06-05 against code written before them, not a regression in behaviour. CI never
-caught it because [`deploy.yml`](../.github/workflows/deploy.yml) runs `build` but not
-`lint`. Fix the code or relax the inherited rules, then gate CI on it. CLAUDE.md
-requires lint to pass before any change lands, so the next real edit trips over this.
+**Lint is green again** (fixed 2026-08-23). It had rotted to 59 errors after the
+stricter `@hoglund/config` biome rules landed on 2026-06-05 against code written before
+them. `prototypes/` is now out of lint scope (throwaway design captures, not product
+code), `noNonNullAssertion` is off (the engine is built on `Map.get()` over keys
+guaranteed by construction, where `?.` would silently swallow an invariant break), and
+the rest were fixed or suppressed with a written reason. CI now runs `lint` and `test`
+before `build`, so it cannot rot silently again.
 
 **Decisions still blocked on Jonas:**
 - **Apple Developer enrolment.** Gates StoreKit (item 17), TestFlight at scale (23)
@@ -164,6 +164,18 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
 - **I8. Account page.** Add an avatar to Settings; possibly transform the Settings page into an Account page with subscription management, history, and settings. Relates to Settings (item 19) and the Accounts work.
 - **I9. Deductive hint techniques.** Give the hint engine a deductive middle tier so logic hints explain a deduction instead of narrating a backtracking search. *Done 2026-05-18* — [`specs/solving-techniques.md`](../specs/solving-techniques.md) catalogues the tiers; `src/engine/hints.ts` now runs cage domination (`findDominationHint`, the `forced-move` technique) and a naked/hidden-subset + locked-candidate elimination loop (`findDeductiveHint`, the `pair-elimination` technique) before the `findContradictionHint` fallback. Probe over 28 hard/expert solves: contradiction trials dropped to 6 of 567 hints. The generator now also grades difficulty by required technique (`gradeDifficulty`) instead of backtrack count, so a label means "needs this technique" — `progression.md` §2. **Optional follow-ups:** flip-flop / parity-chain hints (spec §8); a clue-density pass if 8×8 medium generation (~6 s) needs trimming. *(Self-crediting `pair-elimination` in `classifyMove` is done, see `src/engine/hints.ts`; it credits the common case and is honest about the limit where the deductive loop pins a different cell first.)*
 - **I10. ✅ Auth sheet bottom clearance.** Done 2026-05-25. The account overlay now stacks above the floating bottom tab bar and constrains its height to the viewport, so the lower controls are not covered on iPhone.
+- **I11. PauseSheet bottom clearance.** *Found 2026-08-23.* The **Abandon puzzle**
+  button renders inside the viewport (y 742-796 at 375x812) but sits underneath the
+  floating bottom tab bar, so it cannot be clicked. Pause is then a dead end for the
+  mouse: the only way out is Resume. Exactly the bug I10 fixed for the auth sheet, so
+  the same fix applies. Check the other bottom sheets (HintMenu, DifficultyPicker,
+  RedeemCodeSheet) for the same clearance while in there.
+- **I12. Real grid semantics for the board.** *Found 2026-08-23.* `Cell` is a `<div>`
+  with an `onClick` and no role; keyboard play works only through SolvingScreen's
+  window `keydown` handler. Two a11y lint rules are suppressed there with that reason.
+  The honest fix is `role="grid"` / `role="row"` / `role="gridcell"` with a roving
+  tabindex, which makes the board reachable and announced properly. Worth doing before
+  public launch; it is a Board + Cell refactor, not a patch.
 
 ---
 

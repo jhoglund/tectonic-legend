@@ -324,7 +324,7 @@ export function SolvingScreen({
 
       if (!selectedCell) return;
 
-      const num = parseInt(e.key);
+      const num = parseInt(e.key, 10);
       if (num >= 1 && num <= maxNumber) {
         handleNumberInput(num);
         return;

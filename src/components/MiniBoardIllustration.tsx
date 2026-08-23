@@ -41,6 +41,7 @@ export function MiniBoardIllustration() {
             const cageBreakBottom = r < 3;
             return (
               <div
+                // biome-ignore lint/suspicious/noArrayIndexKey: static illustration grid, row:col is the cell identity
                 key={`${r}:${c}`}
                 className="grid place-items-center"
                 style={{

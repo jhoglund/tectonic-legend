@@ -1,3 +1,5 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
+
 interface AbandonAlertProps {
   open: boolean;
   onAbandon: () => void;
@@ -6,16 +8,23 @@ interface AbandonAlertProps {
 
 /** iOS-style confirmation alert for abandoning the current puzzle. */
 export function AbandonAlert({ open, onAbandon, onKeepSolving }: AbandonAlertProps) {
+  useEscapeKey(onKeepSolving, open);
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={onKeepSolving}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onKeepSolving();
+      }}
       className="fixed inset-0 flex items-center justify-center px-8"
       style={{ background: 'rgba(0,0,0,0.4)', zIndex: 60 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Abandon this puzzle?"
         className="flex flex-col"
         style={{
           width: '100%',

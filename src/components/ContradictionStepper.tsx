@@ -116,6 +116,7 @@ export function ContradictionStepper({
       <div className="mt-3 flex gap-1.5">
         {chain.map((step, i) => (
           <button
+            // biome-ignore lint/suspicious/noArrayIndexKey: step dots, position is the step number
             key={i}
             type="button"
             onClick={() => onJump(i)}

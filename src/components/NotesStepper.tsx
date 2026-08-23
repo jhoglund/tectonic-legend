@@ -109,6 +109,7 @@ export function NotesStepper({
       <div className="mt-3 flex gap-1.5">
         {steps.map((_, i) => (
           <button
+            // biome-ignore lint/suspicious/noArrayIndexKey: step dots, position is the step number
             key={i}
             type="button"
             onClick={() => onJump(i)}

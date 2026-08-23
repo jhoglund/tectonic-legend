@@ -251,6 +251,7 @@ export function Board({
         }}
       >
         {Array.from({ length: cols }, (_, c) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed grid axis, the column index is the identity
           <span key={c} style={labelStyle}>
             {columnLetter(c)}
           </span>
@@ -269,6 +270,7 @@ export function Board({
         }}
       >
         {Array.from({ length: rows }, (_, r) => (
+          // biome-ignore lint/suspicious/noArrayIndexKey: fixed grid axis, the row index is the identity
           <span key={r} style={labelStyle}>
             {r + 1}
           </span>

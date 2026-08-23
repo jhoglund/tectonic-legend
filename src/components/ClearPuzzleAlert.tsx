@@ -1,3 +1,5 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
+
 interface ClearPuzzleAlertProps {
   open: boolean;
   onClear: () => void;
@@ -7,16 +9,23 @@ interface ClearPuzzleAlertProps {
 /** iOS-style confirmation alert for wiping every player entry and note
  *  from the current puzzle. The puzzle itself stays open. */
 export function ClearPuzzleAlert({ open, onClear, onCancel }: ClearPuzzleAlertProps) {
+  useEscapeKey(onCancel, open);
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={onCancel}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onCancel();
+      }}
       className="fixed inset-0 flex items-center justify-center px-8"
       style={{ background: 'rgba(0,0,0,0.4)', zIndex: 60 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Clear this puzzle?"
         className="flex flex-col"
         style={{
           width: '100%',

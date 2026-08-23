@@ -36,6 +36,7 @@ export function HintText({
         if (IS_VALUE.test(part) && emphasizeValues) {
           return (
             <strong
+              // biome-ignore lint/suspicious/noArrayIndexKey: segments of one split string, position is the identity
               key={i}
               style={{
                 color: 'var(--text-primary)',
@@ -47,11 +48,13 @@ export function HintText({
             </strong>
           );
         }
+        // biome-ignore lint/suspicious/noArrayIndexKey: segments of one split string, position is the identity
         if (!IS_CELL_REF.test(part)) return <span key={i}>{part}</span>;
         const col = part.charCodeAt(0) - 65;
         const row = Number(part[1]) - 1;
         return (
           <button
+            // biome-ignore lint/suspicious/noArrayIndexKey: segments of one split string, position is the identity
             key={i}
             type="button"
             onClick={() => onCellRef(row, col)}

@@ -330,6 +330,7 @@ export function StatsScreen() {
             <div className="grid flex-1 gap-1" style={{ gridTemplateColumns: 'repeat(14, 1fr)' }}>
               {playedDays.map((played, i) => (
                 <span
+                  // biome-ignore lint/suspicious/noArrayIndexKey: fixed 14-day strip, position is the day
                   key={i}
                   style={{
                     aspectRatio: '1',

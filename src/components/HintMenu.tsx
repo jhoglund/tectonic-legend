@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import type { HintMode } from '../engine/types';
 
 const HINT_MODES: { mode: HintMode; label: string; description: string }[] = [
@@ -30,16 +31,23 @@ interface HintMenuProps {
  * control (Validate), not a hint mode.
  */
 export function HintMenu({ open, onClose, onPick }: HintMenuProps) {
+  useEscapeKey(onClose, open);
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={onClose}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
       className="fixed inset-0 flex items-end justify-center"
       style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Hint options"
         className="flex w-full flex-col"
         style={{
           maxWidth: '430px',

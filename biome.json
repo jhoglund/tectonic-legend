@@ -1,3 +1,14 @@
 {
-  "extends": ["@hoglund/config/biome"]
+  "$schema": "https://biomejs.dev/schemas/2.4.16/schema.json",
+  "extends": ["@hoglund/config/biome"],
+  "files": {
+    "includes": ["!**/prototypes"]
+  },
+  "linter": {
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "off"
+      }
+    }
+  }
 }

@@ -172,6 +172,7 @@ export function TutorialScreen({
           <div className="flex justify-center gap-2 py-5" aria-hidden="true">
             {Array.from({ length: total }, (_, i) => (
               <span
+                // biome-ignore lint/suspicious/noArrayIndexKey: page-indicator dots, position is the page
                 key={i}
                 style={{
                   width: i + 1 === index ? 24 : 8,

@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useState } from 'react';
 import type { Difficulty, GridSize } from '../engine/types';
 import {
@@ -60,16 +61,23 @@ export function DifficultyPicker({
   onStart,
 }: DifficultyPickerProps) {
   const [size, setSize] = useState<GridSize>('5x5');
+  useEscapeKey(onClose, open);
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={onClose}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
       className="fixed inset-0 flex items-end justify-center"
       style={{ background: 'var(--overlay, rgba(0,0,0,0.4))', zIndex: 50 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Choose a puzzle"
         className="flex w-full flex-col"
         style={{
           maxWidth: '430px',

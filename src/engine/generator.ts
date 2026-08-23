@@ -14,7 +14,7 @@ let rng: () => number = Math.random;
 /** mulberry32 — a small, fast, deterministic PRNG. */
 function mulberry32(seed: number): () => number {
   let a = seed >>> 0;
-  return function () {
+  return () => {
     a = (a + 0x6d2b79f5) | 0;
     let t = Math.imul(a ^ (a >>> 15), 1 | a);
     t = (t + Math.imul(t ^ (t >>> 7), 61 | t)) ^ t;
@@ -180,7 +180,7 @@ export function generatePuzzle(
     const minGroupSize = isLarge ? 3 : 2;
     const timeLimit = difficulty === 'expert' ? 30000 : isLarge ? 30000 : 5000;
     const deadline = Date.now() + timeLimit;
-    for (let attempt = 0; Date.now() < deadline; attempt++) {
+    while (Date.now() < deadline) {
       const layout = generateLayout(rows, cols, maxGroupSize, minGroupSize);
 
       if (layout.groups.some(g => g.cells.length > maxGroupSize || g.cells.length < minGroupSize)) continue;

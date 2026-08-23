@@ -372,8 +372,12 @@ export function HomeLanding({
             </p>
           </div>
           <div
+            role="progressbar"
             style={stageProgressTrack}
             aria-label={`${stageProgress.nextLabel} progress`}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(stageProgressPct * 100)}
           >
             <span
               style={{

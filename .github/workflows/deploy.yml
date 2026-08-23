@@ -45,6 +45,10 @@ jobs:
           git config --global url."https://x-access-token:${CONFIG_REPO_TOKEN}@github.com/".insteadOf "ssh://git@github.com/"
           git config --global --add url."https://x-access-token:${CONFIG_REPO_TOKEN}@github.com/".insteadOf "git@github.com:"
       - run: npm ci
+      # Gate on lint and tests, not just the build. Lint silently rotted to 59
+      # errors between June and August 2026 because nothing in CI ran it.
+      - run: npm run lint
+      - run: npm test
       - run: npm run build
         env:
           # Mimir analytics — optional. When these repository

@@ -75,7 +75,7 @@ async function buildScreen(figma, spec) {
         node.strokeWeight = n.strokeWidth || 1;
         node.strokeAlign = 'INSIDE';
       }
-      if (n.shadows && n.shadows.length) node.effects = effects(n.shadows);
+      if (n.shadows?.length) node.effects = effects(n.shadows);
       if (n.opacity != null && n.opacity < 1) node.opacity = n.opacity;
     } else if (n.t === 'text') {
       const t = figma.createText();

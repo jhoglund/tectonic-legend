@@ -122,6 +122,10 @@ export function SolvedScreen({
   // Record the finished solve into the profile exactly once. The ref
   // guard keeps it idempotent under StrictMode's double-invoke.
   const recorded = useRef(false);
+  // Mount-once. The solve inputs are captured at the moment the puzzle was
+  // finished and never change; the ref guard above keeps it idempotent under
+  // StrictMode's double-invoke.
+  // biome-ignore lint/correctness/useExhaustiveDependencies: mount-once, see above
   useEffect(() => {
     if (recorded.current) return;
     recorded.current = true;
@@ -158,8 +162,6 @@ export function SolvedScreen({
       hintCount: sum(techniquesUsed),
       selfAppliedCount: sum(selfAppliedMoves),
     });
-    // Mount-once: inputs are captured at solve time and don't change.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
   async function handleShare() {

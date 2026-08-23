@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 interface PauseSheetProps {
   open: boolean;
   onResume: () => void;
@@ -6,16 +7,23 @@ interface PauseSheetProps {
 
 /** Pause overlay — a bottom sheet with Resume / Abandon. */
 export function PauseSheet({ open, onResume, onAbandon }: PauseSheetProps) {
+  useEscapeKey(onResume, open);
   if (!open) return null;
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={onResume}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onResume();
+      }}
       className="fixed inset-0 flex items-end justify-center"
       style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Paused"
         className="flex w-full flex-col"
         style={{
           maxWidth: '430px',

@@ -1,3 +1,4 @@
+import { useEscapeKey } from '../hooks/useEscapeKey';
 import { useState } from 'react';
 import { useProfile } from '../lib/profileContext';
 import { analytics } from '../lib/analytics';
@@ -21,6 +22,7 @@ export function RedeemCodeSheet({ open, onClose }: RedeemCodeSheetProps) {
   const [code, setCode] = useState('');
   const [feedback, setFeedback] = useState<Feedback | null>(null);
 
+  useEscapeKey(handleClose, open);
   if (!open) return null;
 
   const redeemed = feedback?.tone === 'success';
@@ -54,13 +56,19 @@ export function RedeemCodeSheet({ open, onClose }: RedeemCodeSheetProps) {
   }
 
   return (
+    // biome-ignore lint/a11y/noStaticElementInteractions: backdrop is a mouse affordance; the keyboard path is Escape via useEscapeKey
     <div
-      onClick={handleClose}
+      role="presentation"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) handleClose();
+      }}
       className="fixed inset-0 flex items-end justify-center"
       style={{ background: 'rgba(0,0,0,0.4)', zIndex: 50 }}
     >
       <div
-        onClick={(e) => e.stopPropagation()}
+        role="dialog"
+        aria-modal="true"
+        aria-label="Redeem a code"
         className="flex w-full flex-col"
         style={{
           maxWidth: '430px',
