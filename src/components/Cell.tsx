@@ -26,6 +26,16 @@ interface CellProps {
   colorIndex: number;
   borders: CellBorders;
   onClick: () => void;
+  /** Grid semantics. Only the playable board sets these; preview boards
+   *  render as a picture and expose no cells (see `Board`'s `interactive`). */
+  gridCell?: {
+    /** `data-cell` target so `Board` can move focus with the selection. */
+    id: string;
+    /** Roving tabindex: 0 on the selected cell, -1 on every other. */
+    tabIndex: number;
+    /** Spoken description, e.g. "B3, given 4" or "A1, empty". */
+    label: string;
+  } | null;
 }
 
 /** Box-shadow colour for each contradiction-chain highlight. Semantic
@@ -163,6 +173,7 @@ export function Cell({
   colorIndex,
   borders,
   onClick,
+  gridCell = null,
 }: CellProps) {
   // Cage fill comes from the design tokens via the `.cage-N` class.
   const cageClass = `cage-${(colorIndex % 5) + 1}`;
@@ -286,13 +297,24 @@ export function Cell({
             : {};
 
   return (
-    // The board is keyboard-played through SolvingScreen's window keydown
-    // handler (arrows move the selection, digits enter values), so per-cell key
-    // handlers would double-fire. Full grid/gridcell semantics with roving
-    // tabindex is the real fix and is tracked separately.
-    // biome-ignore lint/a11y/useKeyWithClickEvents: keyboard handled board-level, see above
-    // biome-ignore lint/a11y/noStaticElementInteractions: keyboard handled board-level, see above
+    // Keys are handled once, by SolvingScreen's window keydown listener
+    // (arrows move the selection, digits enter values). A per-cell key handler
+    // would double-fire, so the cell stays click-only and `Board` keeps DOM
+    // focus on the selected cell instead.
+    // biome-ignore lint/a11y/useKeyWithClickEvents: keys handled board-level, see above
+    // biome-ignore lint/a11y/noStaticElementInteractions: gets role=gridcell on the playable board; preview boards are role=img and expose no cells
     <div
+      {...(gridCell
+        ? {
+            role: 'gridcell',
+            'data-cell': gridCell.id,
+            tabIndex: gridCell.tabIndex,
+            'aria-label': gridCell.label,
+            'aria-selected': isSelected,
+            'aria-readonly': isClue || undefined,
+            'aria-invalid': isError || undefined,
+          }
+        : {})}
       className={`relative flex cursor-pointer select-none items-center justify-center
         ${cageClass} ${stateBgClass} ${dimClass} ${selectedTint ? 'cell-selected' : ''}`}
       style={{

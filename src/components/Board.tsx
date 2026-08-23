@@ -1,4 +1,4 @@
-import { useMemo, type CSSProperties } from 'react';
+import { useEffect, useMemo, useRef, type CSSProperties } from 'react';
 import type { GameState, PuzzleLayout } from '../engine/types';
 import { posKey } from '../engine/types';
 import type { Hint, HintNotes } from '../engine/hints';
@@ -102,6 +102,28 @@ interface BoardProps {
   hintNotes?: HintNotes | null;
   /** Compact previews keep cage/grid lines proportional at thumbnail size. */
   compact?: boolean;
+  /** Expose real grid semantics: `role="grid"` with focusable cells and a
+   *  roving tabindex, so the board can be reached and read by a screen reader.
+   *  Only the playable board sets this. Every other `Board` is a thumbnail or a
+   *  guided illustration, and announces itself as a single picture instead of
+   *  spilling one node per cell. */
+  interactive?: boolean;
+}
+
+/** What a screen reader says when the selection lands on a cell. */
+function cellLabel(
+  r: number,
+  c: number,
+  value: number,
+  isClue: boolean,
+  notes: Set<number>,
+): string {
+  const at = `${columnLetter(c)}${r + 1}`;
+  if (value !== 0) return `${at}, ${isClue ? 'given ' : ''}${value}`;
+  if (notes.size > 0) {
+    return `${at}, empty, notes ${[...notes].sort((a, b) => a - b).join(' ')}`;
+  }
+  return `${at}, empty`;
 }
 
 export function Board({
@@ -114,10 +136,28 @@ export function Board({
   showCoordinates = false,
   hintNotes = null,
   compact = false,
+  interactive = false,
 }: BoardProps) {
   const { puzzle, grid, isClue, notes } = gameState;
   const { layout } = puzzle;
   const { rows, cols, groups, cellToGroup } = layout;
+
+  const gridRef = useRef<HTMLDivElement>(null);
+
+  // Keep DOM focus on the selected cell, but only once focus is already inside
+  // the board. Without the guard, mounting the screen (or clicking the keypad)
+  // would yank focus onto the grid; with it, arrow-key play moves focus so a
+  // screen reader announces each cell as the selection lands on it.
+  useEffect(() => {
+    if (!interactive || !selectedCell) return;
+    const root = gridRef.current;
+    if (!root?.contains(document.activeElement)) return;
+    root
+      .querySelector<HTMLElement>(
+        `[data-cell="${selectedCell[0]}-${selectedCell[1]}"]`,
+      )
+      ?.focus();
+  }, [interactive, selectedCell]);
 
   const groupColors = useMemo(() => colorGroups(layout), [layout]);
   const boardStyle: CSSProperties & Record<string, string> = {
@@ -165,13 +205,39 @@ export function Board({
   // outer frame is drawn by the edge cells themselves (cellBorders),
   // not as a container border — so a selected edge cell's ring can
   // replace it cleanly. The radius still clips the corner cells.
+  // `role="row"` is required between a grid and its cells, but the cells must
+  // stay direct children of the CSS grid to keep the single-track layout, so
+  // the row wrappers use `display: contents` and add structure without a box.
+  const rowWrapper = (r: number, children: React.ReactNode) =>
+    interactive ? (
+      // A grid row is structure, not a stop: focus lives on the cells via the
+      // roving tabindex, and <tr> cannot be used outside a table (nor carry
+      // display:contents, which is what keeps the CSS grid intact).
+      // biome-ignore lint/a11y/useFocusableInteractive: rows are not focus stops, see above
+      // biome-ignore lint/a11y/useSemanticElements: <tr> is invalid here, see above
+      <div key={`row-${r}`} role="row" style={{ display: 'contents' }}>
+        {children}
+      </div>
+    ) : (
+      children
+    );
+
   const boardGrid = (
     <div
+      ref={gridRef}
       className="grid"
       style={boardStyle}
+      {...(interactive
+        ? {
+            role: 'grid',
+            'aria-label': `Puzzle board, ${rows} by ${cols}`,
+            'aria-rowcount': rows,
+            'aria-colcount': cols,
+          }
+        : { role: 'img', 'aria-label': `Puzzle board preview, ${rows} by ${cols}` })}
     >
       {Array.from({ length: rows }, (_, r) =>
-        Array.from({ length: cols }, (_, c) => {
+        rowWrapper(r, Array.from({ length: cols }, (_, c) => {
           const groupId = cellToGroup.get(posKey(r, c))!;
           const groupSize = groups[groupId].cells.length;
           const borders = computeBorders(r, c, layout);
@@ -213,10 +279,30 @@ export function Board({
               colorIndex={groupColors[groupId]}
               borders={borders}
               onClick={() => onCellClick(r, c)}
+              gridCell={
+                interactive
+                  ? {
+                      id: `${r}-${c}`,
+                      // Roving tabindex: one stop for the whole grid. With no
+                      // selection yet, A1 is the way in.
+                      tabIndex:
+                        isSelected || (selectedCell === null && r === 0 && c === 0)
+                          ? 0
+                          : -1,
+                      label: cellLabel(
+                        r,
+                        c,
+                        grid[r][c],
+                        isClue[r][c],
+                        notes[r][c],
+                      ),
+                    }
+                  : null
+              }
             />
           );
         })
-      )}
+      ))}
     </div>
   );
 

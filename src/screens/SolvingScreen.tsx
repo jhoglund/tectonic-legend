@@ -489,6 +489,7 @@ export function SolvingScreen({
             showErrors={showErrors}
             showCoordinates={hint !== null}
             hintNotes={hintNotes}
+            interactive
           />
 
           {/* number keypad */}

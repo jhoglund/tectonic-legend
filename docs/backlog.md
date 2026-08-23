@@ -172,12 +172,17 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
   documented scale (`--z-status` 40 / `--z-nav` 50 / `--z-overlay` 60, `specs/design-tokens.md`
   §9b) and moved every modal onto `--z-overlay`. Verified all four sheets: no covered
   controls, and Pause to Abandon to the confirm alert works end to end.
-- **I12. Real grid semantics for the board.** *Found 2026-08-23.* `Cell` is a `<div>`
-  with an `onClick` and no role; keyboard play works only through SolvingScreen's
-  window `keydown` handler. Two a11y lint rules are suppressed there with that reason.
-  The honest fix is `role="grid"` / `role="row"` / `role="gridcell"` with a roving
-  tabindex, which makes the board reachable and announced properly. Worth doing before
-  public launch; it is a Board + Cell refactor, not a patch.
+- **I12. ✅ Real grid semantics for the board.** Done 2026-08-23. The playable board is
+  now an ARIA grid: `role="grid"` / `row` / `gridcell`, a spoken label per cell
+  (`"C1, given 4"`, `"B2, empty, notes 1 3"`), `aria-selected`, `aria-readonly` on clues,
+  `aria-invalid` on wrong entries, and a roving tabindex so the whole 25-cell board is a
+  single tab stop with focus following the selection. Preview boards (Home thumbnails,
+  tutorial illustrations, the unresolved list) announce as one `role="img"` instead of 25
+  empty cells, via a new `interactive` prop that only `SolvingScreen` sets. Design and
+  its two constraints are in [`ARCHITECTURE.md`](../ARCHITECTURE.md) §4. Verified against
+  the live accessibility tree: grid to row to gridcell with correct labels, Tab in and
+  out is one stop, arrows move focus and selection together, and nothing steals focus on
+  mount.
 
 ---
 

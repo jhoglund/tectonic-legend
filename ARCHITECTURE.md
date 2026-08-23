@@ -2,7 +2,7 @@
 
 > *How* it's built. The *what* (player-facing) lives in [`PRD.md`](PRD.md).
 
-**Last updated:** 2026-07-04
+**Last updated:** 2026-08-23
 
 ---
 
@@ -70,6 +70,31 @@ Tutorial puzzles bypass this calibration — they are hand-curated JSON fixtures
 - `difficulty: Difficulty`, `gridSize: GridSize`
 - `selectedCell`, `hint`, `hintMode`, `notesMode`
 - `isGenerating` — true while the worker is producing a new puzzle
+
+### Board accessibility (`Board.tsx` / `Cell.tsx`)
+
+The playable board is a real ARIA grid, and only the playable one. `Board` takes an
+`interactive` flag:
+
+- **`interactive`** (set by `SolvingScreen` alone): `role="grid"` on the container,
+  `role="row"` wrappers, and `role="gridcell"` on every cell with a spoken label
+  (`"C1, given 4"`, `"B2, empty, notes 1 3"`), plus `aria-selected`, `aria-readonly`
+  on clues and `aria-invalid` on wrong entries.
+- **Everything else** (Home thumbnails, tutorial illustrations, the unresolved list):
+  `role="img"` with one summarising label, so a thumbnail is one node rather than 25
+  empty cells.
+
+Two constraints shape the implementation. The row wrappers use `display: contents`,
+because a grid needs rows between the container and the cells while the cells must stay
+direct children of the CSS grid to keep the single-track layout. And keys are handled
+once, by `SolvingScreen`'s window `keydown` listener; the cells carry no key handlers,
+which would double-fire.
+
+Focus uses a **roving tabindex**: the selected cell is the grid's only tab stop, so the
+whole board is one stop, and `Board` moves DOM focus to follow the selection but only
+when focus is already inside the board. Without that guard, mounting the screen would
+yank focus onto the grid; with it, arrow-key play moves focus so each cell is announced
+as the selection lands on it.
 
 ### Persistence
 
