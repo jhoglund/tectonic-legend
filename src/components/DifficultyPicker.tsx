@@ -11,7 +11,9 @@ const DIFFICULTIES: { id: Difficulty; label: string; blurb: string }[] = [
   { id: 'easy', label: 'Easy', blurb: 'Naked singles' },
   { id: 'medium', label: 'Medium', blurb: 'Hidden singles' },
   { id: 'hard', label: 'Hard', blurb: 'Forced moves' },
-  { id: 'expert', label: 'Expert', blurb: 'Contradiction chains' },
+  // Expert no longer means "you may have to guess" (ADR-0021): it is the
+  // advanced deductive tier, groups of cells read across cage lines.
+  { id: 'expert', label: 'Expert', blurb: 'Group eliminations' },
 ];
 
 /**

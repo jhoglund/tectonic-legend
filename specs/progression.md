@@ -2,7 +2,7 @@
 
 > The single source of truth for difficulty progression, technique mastery, unlocks, tutorial structure, and stats. This is the differentiator. Every other product surface bends around it.
 
-**Last updated:** 2026-05-14
+**Last updated:** 2026-08-23
 **Source for decisions:** [ADR-0001](../docs/decisions/ADR-0001-difficulty-progression-as-differentiator.md)
 
 ---
@@ -35,13 +35,17 @@ The generator gates puzzles by **the minimum-strength technique required to solv
 | Difficulty | Minimum solvable technique |
 |------------|----------------------------|
 | Easy | Naked singles only |
-| Medium | Up to hidden singles |
-| Hard | Up to forced moves / pair eliminations (logic only, no guessing) |
-| Expert | Requires contradiction chains |
+| Medium | Adds hidden singles |
+| Hard | Adds forced moves (cage domination) |
+| Expert | Adds subset / locked-candidate / cross-cage group elimination |
 
-Critical invariant: **an Easy puzzle is never solvable only by guessing.** Every puzzle in every difficulty has a deterministic logic path. The generator rejects any candidate that fails this check.
+Critical invariant, now true of **every** tier and not just Easy: **no puzzle is ever solvable only by guessing.** Every puzzle in every difficulty has a deterministic logic path, and the generator rejects any candidate that fails this check.
 
-**As built (2026-05-18).** Difficulty is graded by the hardest technique the hint engine needs to solve the puzzle — `gradeDifficulty` in `src/engine/hints.ts` — which is what this table always intended. Easy = naked singles only; Medium = also needs hidden singles; Hard = needs deductive technique (cage domination, subsets, or locked candidates — logic only, no guessing); Expert = needs contradiction reasoning, or sits beyond the engine's deductive reach. The generator carves a candidate to a per-tier clue density, then accepts it only if it grades to the requested tier. This replaced an interim backtrack-count proxy (in place 2026-05-15 → 2026-05-18, while the solver knew only naked/hidden singles): a label now means "requires this technique", not "stumped a weak solver". See [`solving-techniques.md`](solving-techniques.md). A tier above Expert (Legend) is intended to gate on demonstrated mastery of every technique — see the backlog.
+**As built (2026-08-23, [ADR-0021](../docs/decisions/ADR-0021-expert-is-deductive-not-search.md)).** Difficulty is graded by the hardest technique the hint engine needs, via `gradeDifficulty` in `src/engine/hints.ts`. **Every tier is deductive.** A puzzle that needs a contradiction trial, or that defeats the engine, is not graded at all: `gradeDifficulty` returns `null` and the generator discards it and carves another. About 6% of maximally-carved boards are discarded this way.
+
+This corrected the previous rule, in place 2026-05-18 to 2026-08-23, under which Expert *was defined as* "needs contradiction reasoning". That made Expert a warning rather than a promise, and it contradicted the product premise of a game that teaches you to solve: a tier whose defining property is that logic runs out teaches nothing. It became fixable once the hint engine learned to read across cage boundaries ([`solving-techniques.md`](solving-techniques.md) §6a), which moved most previously-search-requiring puzzles into deductive reach.
+
+The generator still carves a candidate to a per-tier clue density and accepts it only on an exact tier match. A label means "requires this technique", never "stumped a weak solver". The contradiction trial remains in the hint engine as the last-resort fallback for a stuck player; it is simply no longer something any puzzle requires. Raising the ceiling further should add a genuine deductive tier (flip-flop / parity chains, `solving-techniques.md` §8), not readmit search.
 
 ---
 

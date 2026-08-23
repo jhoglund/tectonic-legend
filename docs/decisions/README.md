@@ -56,3 +56,4 @@ The decision itself. 1–3 sentences.
 | [0018](ADR-0018-legend-stage-and-mastery-depth.md) | Legend stage and mastery depth | Accepted |
 | [0019](ADR-0019-legend-tiers-and-leaderboard.md) | Legend tiers and leaderboard | Accepted |
 | [0020](ADR-0020-sync-off-supabase-cloudflare-worker.md) | Profile sync off Supabase to a Cloudflare Worker + KV | Accepted |
+| [0021](ADR-0021-expert-is-deductive-not-search.md) | Every difficulty is deductive; Expert means advanced deduction, not search | Accepted |

@@ -301,18 +301,32 @@ search", which is exactly the tier Jonas wants to play.
 *Depends on F1.* Adding the missing techniques is what creates the deductive headroom for
 Expert to mean something other than "search". Order: F1 first, then re-map the ladder.
 
-*Sub-tickets:*
-- **F3a.** Re-map the tier-to-difficulty ladder once F1 lands, so Expert means the advanced
-  deductive tiers.
-- **F3b.** Decide what happens to puzzles that genuinely need a trial: rejected at
-  generation, or a tier above Expert. Note [ADR-0019](decisions/ADR-0019-legend-tiers-and-leaderboard.md)
-  already resolved Legend as **status, not a difficulty tier**, so this must not quietly
-  reopen that.
-- **F3c.** **Write an ADR.** Changing what a difficulty label means touches
-  [`specs/progression.md`](../specs/progression.md) §2 and the mastery model, and it
-  outlives its PR. It also amends the grading decision recorded under I9.
-- **F3d.** Update `specs/progression.md` §2 and the difficulty-picker subtitles ("Forced
-  moves", "Contradiction chains") to match the new meaning.
+**✅ Done 2026-08-23** ([ADR-0021](decisions/ADR-0021-expert-is-deductive-not-search.md)).
+Every difficulty is now deductive. The ladder is re-mapped so each tier names the hardest
+technique it needs: Easy naked singles, Medium hidden singles, Hard cage domination, Expert
+subset / locked-candidate / cross-cage group elimination. A carve that needs a contradiction
+trial is **rejected at generation** (`gradeDifficulty` returns `null`) rather than labelled
+Expert. About 6% of maximally-carved boards are discarded that way.
+
+Measured after the change across both grid sizes and all four tiers: no tier fails to
+generate, and **no generated puzzle in any tier needs a contradiction hint**. 5x5 Expert
+generation got *faster*, from roughly a second to a median of 2ms, because the generator
+stopped hunting the rare 6% and started accepting the plentiful 59%.
+
+- **F3a. ✅** Ladder re-mapped (`HINT_TIER` / `TIER_DIFFICULTY`, `gradeDifficulty`).
+- **F3b. ✅** Decided by Jonas: reject search-required boards at generation. The two
+  alternatives (a fifth tier, or folding them into Expert) are recorded in ADR-0021.
+- **F3c. ✅** [ADR-0021](decisions/ADR-0021-expert-is-deductive-not-search.md).
+- **F3d. ✅** `specs/progression.md` §2, `specs/solving-techniques.md` §9, and the
+  difficulty-picker blurb ("Contradiction chains" is now "Group eliminations").
+
+**F3e. Open, and deliberately not resolved in ADR-0021.** The `contradiction-chain` mastery
+slot is now **hint-only**: no puzzle requires the technique, so depth in it can only be
+built by asking for hints. [ADR-0018](decisions/ADR-0018-legend-stage-and-mastery-depth.md)
+gates Legend on depth across *every* technique, which makes Legend effectively unreachable
+without deliberately requesting contradiction hints. Options: drop `contradiction-chain`
+from the Legend gate, keep it and accept hint-assisted Legend, or retire the slot. This is a
+progression decision, not a generator one, so it wants its own ADR.
 
 ### F4. Dark mode needs a design pass
 

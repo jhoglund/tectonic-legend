@@ -181,7 +181,9 @@ These are parity chains — powerful but hard to render as a short, legible hint
 
 The existing `findContradictionHint`: assume a candidate, propagate naked/hidden singles, and if a cell runs out of options the candidate is eliminated. Correct, but it explains a *search*, not a deduction.
 
-It stays in the engine as the final fallback for puzzles (Expert tier) that genuinely need it, but it must run **after** every deductive tier above. A puzzle that any of Tiers 1–4 can crack should never receive a contradiction hint.
+It stays in the engine as the final fallback **for a stuck player who asks**, and it must run after every deductive tier above. A puzzle that any of Tiers 1 to 4 can crack should never receive a contradiction hint.
+
+**No puzzle requires it any more.** Since [ADR-0021](../docs/decisions/ADR-0021-expert-is-deductive-not-search.md) (2026-08-23) every difficulty is deductive: a carve that needs a contradiction trial is rejected at generation rather than labelled Expert. Expert now means the advanced deductive tier (§6, §6a, §7).
 
 ---
 

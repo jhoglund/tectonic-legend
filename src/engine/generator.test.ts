@@ -1,8 +1,8 @@
 import { describe, it, expect } from 'vitest';
 import { generatePuzzle, generateLayout } from './generator';
 import { countSolutions } from './solver';
-import { gradeDifficulty } from './hints';
-import type { PuzzleLayout } from './types';
+import { gradeDifficulty, findHint } from './hints';
+import type { PuzzleLayout, Difficulty } from './types';
 
 /** A grid is a valid Tectonic solution when every cage holds exactly
  *  1..N (N = cage size) and no two of the 8 neighbours of any cell
@@ -104,5 +104,42 @@ describe('generateLayout', () => {
       }
     }
     expect(covered.size).toBe(25);
+  });
+});
+
+describe('every difficulty is deductive (ADR-0021)', () => {
+  const DIFFICULTIES: Difficulty[] = ['easy', 'medium', 'hard', 'expert'];
+
+  it('no generated puzzle in any tier needs a contradiction trial', () => {
+    for (const difficulty of DIFFICULTIES) {
+      for (let seed = 4000; seed < 4004; seed++) {
+        const puzzle = generatePuzzle(5, 5, difficulty, seed);
+        const grid = puzzle.clues.map((row) => [...row]);
+        const used = new Set<string>();
+
+        for (let step = 0; step < 400; step++) {
+          const hint = findHint(grid, puzzle.layout);
+          // A stall would mean the puzzle is not deductively solvable.
+          expect(hint, `${difficulty} seed ${seed} stalled`).toBeTruthy();
+          if (!hint || hint.value === 0) break;
+          used.add(hint.type);
+          grid[hint.row][hint.col] = hint.value;
+          if (grid.every((row) => row.every((v) => v !== 0))) break;
+        }
+
+        expect(grid, `${difficulty} seed ${seed}`).toEqual(puzzle.solution);
+        expect([...used], `${difficulty} seed ${seed}`).not.toContain('contradiction');
+      }
+    }
+  });
+
+  it('grades a search-required puzzle as null rather than Expert', () => {
+    // The rejection path itself: gradeDifficulty must refuse to label a
+    // puzzle it cannot crack deductively, so the generator discards it.
+    // An empty grid with no clues has many solutions and defeats the
+    // deductive walk, which is the cheapest way to reach that branch.
+    const { layout } = generatePuzzle(5, 5, 'easy', 4100);
+    const noClues = Array.from({ length: 5 }, () => Array(5).fill(0));
+    expect(gradeDifficulty(layout, noClues)).toBeNull();
   });
 });

@@ -1389,24 +1389,36 @@ const HINT_TIER: Record<Hint['type'], number> = {
   naked_single: 1,
   hidden_single: 2,
   domination: 3,
-  pair_elimination: 3,
-  contradiction: 4,
-  candidates: 4,
-  reveal: 4,
-  check: 4,
+  pair_elimination: 4,
+  // Tier 5 has no difficulty label on purpose: a puzzle that needs a
+  // search is not graded, it is rejected (ADR-0021).
+  contradiction: 5,
+  // Player-requested hint modes, never returned by the logic search that
+  // gradeDifficulty walks. Mapped above the ladder so a stray one is
+  // rejected rather than silently graded.
+  candidates: 5,
+  reveal: 5,
+  check: 5,
 };
 
-/** Tier (1–4) → difficulty label; index 0 is an unused placeholder. */
+/** Tier (1-4) → difficulty label; index 0 is an unused placeholder.
+ *  Tier 5 is deliberately absent: see `gradeDifficulty`. */
 const TIER_DIFFICULTY: Difficulty[] = ['easy', 'easy', 'medium', 'hard', 'expert'];
 
 /**
- * Grade a puzzle by the hardest technique the hint engine needs to
- * solve it — progression.md §2, the original intent of that table.
- * Easy = naked singles only; Medium adds hidden singles; Hard adds
- * deductive technique (cage domination, subsets, locked candidates);
- * Expert needs contradiction reasoning. A puzzle the engine cannot
- * finish deductively is graded Expert — it sits at the ceiling of what
- * the engine can teach.
+ * Grade a puzzle by the hardest technique the hint engine needs to solve
+ * it (progression.md §2). Every tier is deductive:
+ *
+ *   Easy    naked singles only
+ *   Medium  adds hidden singles
+ *   Hard    adds cage domination (the forced move)
+ *   Expert  adds subset / locked-candidate / cross-cage group elimination
+ *
+ * Returns `null` when the puzzle needs a contradiction trial or defeats
+ * the engine entirely. That is not a difficulty, it is a rejection: the
+ * generator discards the candidate and carves another. Expert means
+ * "needs the advanced deductive tier", never "you will have to guess"
+ * (ADR-0021).
  *
  * The generator calls this instead of counting backtracks, so a
  * difficulty label means "needs this technique", not "stumped a weak
@@ -1415,7 +1427,7 @@ const TIER_DIFFICULTY: Difficulty[] = ['easy', 'easy', 'medium', 'hard', 'expert
 export function gradeDifficulty(
   layout: PuzzleLayout,
   clues: number[][],
-): Difficulty {
+): Difficulty | null {
   const { rows, cols } = layout;
   const grid = clues.map((row) => [...row]);
   let remaining = 0;
@@ -1428,12 +1440,12 @@ export function gradeDifficulty(
   let hardest = 1;
   while (remaining > 0) {
     const hint = findHint(grid, layout);
-    if (!hint || hint.value === 0) {
-      hardest = 4; // engine stalled — beyond its deductive + trial tiers
-      break;
-    }
+    // The engine ran out of ideas: not gradeable, so not shippable.
+    if (!hint || hint.value === 0) return null;
     hardest = Math.max(hardest, HINT_TIER[hint.type]);
-    if (hardest === 4) break; // Expert confirmed — no need to finish
+    // Needed a contradiction trial. Every difficulty is deductive now,
+    // so this puzzle has no tier and the caller must discard it.
+    if (hardest >= 5) return null;
     grid[hint.row][hint.col] = hint.value;
     remaining--;
   }
