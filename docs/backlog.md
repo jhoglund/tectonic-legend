@@ -320,13 +320,24 @@ stopped hunting the rare 6% and started accepting the plentiful 59%.
 - **F3d. ✅** `specs/progression.md` §2, `specs/solving-techniques.md` §9, and the
   difficulty-picker blurb ("Contradiction chains" is now "Group eliminations").
 
-**F3e. Open, and deliberately not resolved in ADR-0021.** The `contradiction-chain` mastery
-slot is now **hint-only**: no puzzle requires the technique, so depth in it can only be
-built by asking for hints. [ADR-0018](decisions/ADR-0018-legend-stage-and-mastery-depth.md)
-gates Legend on depth across *every* technique, which makes Legend effectively unreachable
-without deliberately requesting contradiction hints. Options: drop `contradiction-chain`
-from the Legend gate, keep it and accept hint-assisted Legend, or retire the slot. This is a
-progression decision, not a generator one, so it wants its own ADR.
+**F3e. ✅ Done 2026-08-23** ([ADR-0022](decisions/ADR-0022-legend-gate-drops-contradiction-chain.md)).
+Investigating this turned up a **latent bug older than F3**: `contradiction-chain` was
+never earnable at all. `classifyMove` has no `contradiction` return value, so its
+`selfAppliedCount` is 0 for every player, and `puzzlesContaining` only increments when
+`selfApplied > 0`. That zeroes both heavy terms of the depth score (40 + 30 of 100),
+capping the chip at depth 30 against a `legend` threshold of 90. Because ADR-0018 gated
+stage 5 on **all five** techniques, **Legend was unreachable by anyone from the day it
+shipped**, and asking for hints never helped (hints move `usedCount`, not
+`selfAppliedCount`). ADR-0021 did not cause this; it only removed the appearance of a path.
+
+Fixed by gating on the four creditable techniques (`LEGEND_GATE_TECHNIQUES`). The
+`contradiction-chain` chip stays in the type, in Stats, on the Solved screen and behind the
+paywall; it just no longer gates the peak. Regression test added for the real-player case
+(contradiction-chain at zero, stage 4 to 5 still fires).
+
+*Worth remembering:* any technique in `TECHNIQUE_NAMES` that `classifyMove` cannot return
+is unearnable by definition. The same trap was caught once before for `pair-elimination`
+(`solving-techniques.md` §11) and nobody re-ran the check for the fifth slot.
 
 ### F4. Dark mode needs a design pass
 

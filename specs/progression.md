@@ -18,7 +18,9 @@ A player is in exactly one stage at any time. Stages are advanced by demonstrati
 | 2 | **Confident** | + Medium | `naked-single` mastered (see §3) |
 | 3 | **Advanced** | + Hard | `hidden-single` mastered |
 | 4 | **Master** | + Expert | `forced-move` mastered AND 5 Hard solves |
-| 5 | **Legend** | (no new difficulty) | Every technique at Legend depth — see [ADR-0018](../docs/decisions/ADR-0018-legend-stage-and-mastery-depth.md) |
+| 5 | **Legend** | (no new difficulty) | The four **creditable** techniques at Legend depth: naked single, hidden single, forced move, pair elimination. See [ADR-0018](../docs/decisions/ADR-0018-legend-stage-and-mastery-depth.md), narrowed by [ADR-0022](../docs/decisions/ADR-0022-legend-gate-drops-contradiction-chain.md) |
+
+> **Why four and not five ([ADR-0022](../docs/decisions/ADR-0022-legend-gate-drops-contradiction-chain.md)).** `contradiction-chain` is excluded from the gate because it is unearnable: `classifyMove` has no `contradiction` return value, so its `selfAppliedCount` is 0 for every player, which caps its depth at 30 of 100 against a `legend` threshold of 90. While it gated stage 5, **Legend was unreachable by anyone**. The chip still exists everywhere else; it just does not gate the peak. Any technique `classifyMove` cannot return is unearnable by definition, which is worth checking before adding a sixth.
 
 Stages are stored in the player profile as `stage: 0 | 1 | 2 | 3 | 4 | 5`. The transition function `nextStageFor(profile): Stage | null` is a pure function in `src/lib/progression.ts`. Stage 5 is the entry rung of the Legend climb; the higher rungs (Apprentice → Adept → Grand → Mythic Legend) and the daily-puzzle leaderboard are specified in [ADR-0019](../docs/decisions/ADR-0019-legend-tiers-and-leaderboard.md) and carried on the profile as `legendRung: 0 | 1 | 2 | 3 | 4`.
 

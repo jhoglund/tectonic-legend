@@ -8,6 +8,7 @@ import {
   availableDifficulties,
   nextStageFor,
   TECHNIQUE_NAMES,
+  LEGEND_GATE_TECHNIQUES,
   MASTERY,
   DEPTH,
   SELF_TARGET,
@@ -189,6 +190,49 @@ describe('nextStageFor', () => {
     const history: DepthSolveRecord[] = TECHNIQUE_NAMES.flatMap((t) =>
       Array.from({ length: 10 }, () => greatSolve(t)),
     );
+    expect(
+      nextStageFor({
+        stage: 4,
+        techniques,
+        tutorialsCompleted: 3,
+        hardSolveCount: 50,
+        history,
+      }),
+    ).toBe(5);
+  });
+
+  it('advances Master → Legend with contradiction-chain still at zero (ADR-0022)', () => {
+    // The real-player case. classifyMove never credits contradiction-chain,
+    // so its selfAppliedCount is stuck at 0 for everyone, capping its depth
+    // at 30 of 100 and putting `legend` (90) permanently out of reach.
+    // While it gated stage 5, Legend was unreachable by anyone. It must not
+    // gate any more.
+    const legendCounter = (t: TechniqueName): TechniqueMastery => ({
+      technique: t,
+      usedCount: 40,
+      selfAppliedCount: SELF_TARGET + 5,
+      puzzlesContaining: DEPTH.legend.puzzles + 2,
+    });
+    const techniques = Object.fromEntries(
+      TECHNIQUE_NAMES.map((t) => [
+        t,
+        t === 'contradiction-chain' ? emptyMastery(t) : legendCounter(t),
+      ]),
+    ) as Record<TechniqueName, TechniqueMastery>;
+
+    const greatSolve = (t: TechniqueName): DepthSolveRecord => ({
+      difficulty: 'hard',
+      gridSize: '5x5',
+      timeMs: 60_000,
+      hintsUsed: [],
+      techniqueTally: [{ technique: t, used: 6, selfApplied: 6 }],
+      errorsValidated: 0,
+    });
+    const history: DepthSolveRecord[] = LEGEND_GATE_TECHNIQUES.flatMap((t) =>
+      Array.from({ length: 10 }, () => greatSolve(t)),
+    );
+
+    expect(LEGEND_GATE_TECHNIQUES).not.toContain('contradiction-chain');
     expect(
       nextStageFor({
         stage: 4,

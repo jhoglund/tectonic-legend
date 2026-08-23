@@ -22,6 +22,20 @@ export const TECHNIQUE_NAMES: readonly TechniqueName[] = [
   'contradiction-chain',
 ];
 
+/**
+ * The techniques the Legend stage is gated on (ADR-0022).
+ *
+ * `contradiction-chain` is deliberately absent. It is the only technique
+ * `classifyMove` never credits, so its `selfAppliedCount` is always 0,
+ * which caps its depth at 30 of the 100 points and puts `legend` (90)
+ * permanently out of reach. Gating stage 5 on it made Legend unreachable
+ * for everyone. Since ADR-0021 no puzzle requires the technique either,
+ * so it is no longer something a player can be expected to demonstrate.
+ * The chip stays visible in Stats; it just does not gate the peak.
+ */
+export const LEGEND_GATE_TECHNIQUES: readonly TechniqueName[] =
+  TECHNIQUE_NAMES.filter((t) => t !== 'contradiction-chain');
+
 /** Player-facing technique names — for chips, stats, the solved screen. */
 export const TECHNIQUE_LABELS: Record<TechniqueName, string> = {
   'naked-single': 'Naked single',
@@ -317,8 +331,9 @@ export interface StageInput {
  * The single stage the player has earned the right to advance INTO,
  * or null if they haven't met the next threshold. Stages advance by
  * one; recordSolve() loops this to handle a multi-stage jump. Stage 5
- * (Legend) unlocks when every technique reaches the `legend` chip
- * state (ADR-0018).
+ * (Legend) unlocks when every **gating** technique reaches the `legend`
+ * chip state (ADR-0018, narrowed by ADR-0022: `contradiction-chain` is
+ * excluded, see LEGEND_GATE_TECHNIQUES).
  */
 export function nextStageFor(input: StageInput): PlayerStage | null {
   const { stage, techniques, tutorialsCompleted, hardSolveCount, history } =
@@ -336,7 +351,7 @@ export function nextStageFor(input: StageInput): PlayerStage | null {
         ? 4
         : null;
     case 4: {
-      const allLegend = TECHNIQUE_NAMES.every(
+      const allLegend = LEGEND_GATE_TECHNIQUES.every(
         (t) => masteryState(techniques[t], history ?? []) === 'legend',
       );
       return allLegend ? 5 : null;
