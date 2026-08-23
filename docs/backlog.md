@@ -220,19 +220,41 @@ them have nothing to fall back on but the trial. From the spec's own tier table 
 The spec already states the rule this violates: *a puzzle that any of Tiers 1 to 4 can
 crack should never receive a contradiction hint.*
 
+**Progress 2026-08-23:** F1c (the big one), F1a and F1f are done. F1b, F1d, F1e and the new
+F1g remain. The contradiction-fallback rate on Expert is already down about 71%.
+
 *Sub-tickets:*
-- **F1a.** Last cell in cage. Cheapest of the three and pure bookkeeping.
+- **F1a. ✅ Closed, no code needed.** `computeCandidates` already reduces the last empty
+  cell of a cage to one candidate, so **naked single** solves it. Zero solving power to
+  add. What remains is only nicer hint wording ("this cage already holds 1, 2, 3 and 5"),
+  now split out as F1g. Recorded in [`specs/solving-techniques.md`](../specs/solving-techniques.md)
+  §3a so nobody builds it twice.
 - **F1b.** Partial domination (§5), where a cell sees some filled cells of a cage.
-- **F1c.** Surface elimination-only steps, so a chain that strikes candidates without
-  pinning a cell still explains itself instead of dropping to the trial. This is the one
-  that most directly causes the symptom.
+- **F1c. ✅ Done 2026-08-23, and it was a bigger miss than described.** The real gap was
+  not just elimination-only steps: every subset technique in the engine was **cage-local**
+  (`nakedSubsetElimination` loops `for (const group of layout.groups)`), while the source
+  page's central rule is that a *group* is any set of mutually-connected cells whose
+  options equal its size, and **groups cross cage boundaries** because adjacency connects
+  cells across cage lines. That is the property the source author says unstuck the puzzles
+  his own solver could not finish. Built as `connectedGroupElimination`
+  ([`specs/solving-techniques.md`](../specs/solving-techniques.md) §6a), including the
+  partial-connection refinement. **Measured over 12 Expert boards frozen before the change
+  so both engines solved the same boards: contradiction hints 17 → 5, a 71% cut**, with
+  `pair-elimination` 21 → 47. Hard boards unchanged, they never needed it. 8x8 generation
+  time unaffected.
 - **F1d.** Flip-flop / parity chains (§8). Spec flags these as hard to render legibly;
   do them last and decide rendering first.
 - **F1e.** Re-run the I9 probe (28 hard/expert solves, contradiction trials were 6 of 567
   hints) to measure the change, and record the new number.
-- **F1f.** *Needs Jonas:* the strategy site used when the hint chain was first built. Some
-  of its techniques never made it into the engine. Capture the URL in
-  `specs/solving-techniques.md` so the catalogue has a cited source.
+- **F1f. ✅ Done 2026-08-23.** Source recovered by search, not memory: Dav Data's
+  [Solving Tectonic puzzles](https://www.davdata.nl/math/tectonicsolving.html). Confirmed
+  by its vocabulary, our §8 "flip-flop / equality" is lifted from that page. Now cited at
+  the top of [`specs/solving-techniques.md`](../specs/solving-techniques.md), cross-checked
+  against [Sander Huisman's Wolfram Community write-up](https://community.wolfram.com/groups/-/m/t/1077888).
+- **F1g.** Hint wording for the last-cell-in-cage case (split out of F1a). Say "this cage
+  already holds 1, 2, 3 and 5, so this cell is 4" instead of listing eliminations.
+  `buildNakedSingleReason`. Small, and squarely on F1's actual complaint about hint
+  quality.
 
 ### F2. One-cell groups never appear in generated grids
 

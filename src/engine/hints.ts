@@ -417,6 +417,115 @@ function hiddenSubsetElimination(
  * value confined to a set of cells within a cage, with an outside cell
  * king-adjacent to all of them — that outside cell cannot hold it.
  */
+/**
+ * Two cells are **connected** when they can never hold the same value:
+ * either they share a cage, or they are king-adjacent. This is the
+ * relation the whole group rule below is built on (solving-techniques §6a).
+ */
+function connected(
+  a: { row: number; col: number },
+  b: { row: number; col: number },
+  cellGroup: number[][],
+): boolean {
+  if (a.row === b.row && a.col === b.col) return false;
+  if (cellGroup[a.row][a.col] === cellGroup[b.row][b.col]) return true;
+  return Math.abs(a.row - b.row) <= 1 && Math.abs(a.col - b.col) <= 1;
+}
+
+/**
+ * First strike justified by a **connected group** (§6a) — the general
+ * form of the subset rule, and the one technique that reads across cage
+ * boundaries.
+ *
+ * A group is `k` pairwise-connected cells whose candidates together span
+ * exactly `k` values: those k values are used up among those k cells.
+ * Crucially the cells need not share a cage, because adjacency connects
+ * cells across cage lines. `nakedSubsetElimination` above is the special
+ * case where every member happens to sit in one cage.
+ *
+ * Two eliminations follow, and the second subsumes the first:
+ *
+ * - A cell connected to **every** member cannot hold any group value.
+ * - A cell connected to **some** members cannot hold a group value that
+ *   is absent from the members it is *not* connected to, because that
+ *   value has nowhere else in the group to live.
+ *
+ * The partial case is the generalisation; the full case is just the
+ * partial case with an empty disconnected set.
+ */
+function connectedGroupElimination(
+  grid: number[][],
+  layout: PuzzleLayout,
+  cands: Set<number>[][],
+): Elimination | null {
+  const { rows, cols, cellGroup } = layout;
+
+  const open: { row: number; col: number }[] = [];
+  for (let r = 0; r < rows; r++) {
+    for (let c = 0; c < cols; c++) {
+      if (grid[r][c] === 0 && cands[r][c].size >= 2) open.push({ row: r, col: c });
+    }
+  }
+
+  for (const k of [2, 3]) {
+    const sized = open.filter(({ row, col }) => cands[row][col].size <= k);
+    for (const combo of combinations(sized, k)) {
+      // Pairwise connected, or it is not a group.
+      let ok = true;
+      for (let i = 0; ok && i < combo.length; i++) {
+        for (let j = i + 1; j < combo.length; j++) {
+          if (!connected(combo[i], combo[j], cellGroup)) {
+            ok = false;
+            break;
+          }
+        }
+      }
+      if (!ok) continue;
+
+      const union = new Set<number>();
+      for (const { row, col } of combo) {
+        for (const v of cands[row][col]) union.add(v);
+      }
+      if (union.size !== k) continue;
+
+      // A cage-local group is already handled by nakedSubsetElimination;
+      // skipping it here keeps existing hint wording stable.
+      const spansCages = combo.some(
+        ({ row, col }) => cellGroup[row][col] !== cellGroup[combo[0].row][combo[0].col],
+      );
+      if (!spansCages) continue;
+
+      const inCombo = new Set(combo.map(({ row, col }) => `${row},${col}`));
+      for (const target of open) {
+        if (inCombo.has(`${target.row},${target.col}`)) continue;
+
+        const disconnected = combo.filter((m) => !connected(target, m, cellGroup));
+        if (disconnected.length === combo.length) continue; // sees none of them
+
+        // Values that still have a home among the members this cell cannot see.
+        const elsewhere = new Set<number>();
+        for (const { row, col } of disconnected) {
+          for (const v of cands[row][col]) elsewhere.add(v);
+        }
+
+        for (const v of union) {
+          if (elsewhere.has(v)) continue;
+          if (!cands[target.row][target.col].has(v)) continue;
+          const names = combo.map(({ row: r, col: c }) => cellLabel(r, c));
+          const vals = [...union].sort((a, b) => a - b).map(String);
+          return {
+            row: target.row,
+            col: target.col,
+            value: v,
+            detail: `Cells ${nameList(names)} see each other and can only hold ${nameList(vals)} between them.`,
+          };
+        }
+      }
+    }
+  }
+  return null;
+}
+
 function lockedCandidateElimination(
   grid: number[][],
   layout: PuzzleLayout,
@@ -523,7 +632,8 @@ function findDeductiveHint(
     const strike =
       nakedSubsetElimination(grid, layout, cands) ??
       hiddenSubsetElimination(grid, layout, cands) ??
-      lockedCandidateElimination(grid, layout, cands);
+      lockedCandidateElimination(grid, layout, cands) ??
+      connectedGroupElimination(grid, layout, cands);
     if (!strike) return null;
 
     const { row, col, value, detail } = strike;

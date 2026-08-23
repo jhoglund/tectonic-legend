@@ -2,7 +2,14 @@
 
 > The catalogue of deductive techniques the hint engine should use, ordered from cheap-and-human to last-resort. The guiding rule: **a logic hint should explain a deduction, not narrate a trial-and-error search.**
 
-**Last updated:** 2026-05-18
+**Last updated:** 2026-08-23
+**Source:** the technique names and the group rule come from Dav Data's
+[Solving Tectonic puzzles](https://www.davdata.nl/math/tectonicsolving.html), the page this
+catalogue was originally built from. Its terms *flip-flop*, *equality* and *group* are kept
+here deliberately so the two can be read side by side. Cross-checked against
+[Sander Huisman's Wolfram Community write-up](https://community.wolfram.com/groups/-/m/t/1077888),
+which covers the same ground in solver terms (neighbour elimination, hidden singles,
+pointing pairs, naked pairs, backtracking).
 **Related:** [`ARCHITECTURE.md`](../ARCHITECTURE.md) (hint chain), [`progression.md`](progression.md) (technique mastery)
 
 ---
@@ -36,14 +43,28 @@ Hints are searched top-down; the first technique that fires wins.
 |------|-----------|---------------------|-------|
 | 1 | Naked single | candidates | One candidate left in a cell. *(built)* |
 | 1 | Hidden single | candidates | A value with one possible cell in its cage. *(built)* |
-| 1 | Last cell in cage | filled | Cage with one empty cell → the missing value. |
+| 1 | Last cell in cage | filled | Cage with one empty cell → the missing value. *(no separate code: `computeCandidates` already reduces that cell to a single candidate, so **naked single** solves it. Only the hint wording differs, see §3a.)* |
 | 2 | **Cage domination** | **no** | §4 — pure geometry, available from move zero. |
 | 2 | Partial domination | filled | §5 — a cell sees some filled cells of a cage. |
-| 3 | Naked subset (pair/triple) | candidates | §6 |
-| 3 | Hidden subset (pair/triple) | candidates | §6 |
-| 4 | Locked candidates ("sibling pairs") | candidates | §7 |
+| 3 | Naked subset (pair/triple) | candidates | §6, *within one cage.* *(built)* |
+| 3 | Hidden subset (pair/triple) | candidates | §6 *(built)* |
+| 3 | **Connected group (cross-cage)** | candidates | §6a, the general form; reads across cage lines. *(built 2026-08-23)* |
+| 4 | Locked candidates ("sibling pairs") | candidates | §7 *(built)* |
 | 5 | Flip-flop / equality | candidates | §8 — advanced; parity chains. |
 | 6 | Contradiction trial | — | §9 — last resort. *(built)* |
+
+---
+
+### 3a. Last cell in cage is not a separate technique
+
+Worth recording so nobody builds it twice. When a cage of size `N` has `N-1` cells filled,
+`computeCandidates` strips every filled value from the one empty cell, leaving exactly one
+candidate. **Naked single already fires.** There is no solving power to add here.
+
+What *is* missing is the explanation: the player is told "only 4 fits here" via an
+elimination list, where the natural sentence is "this cage already holds 1, 2, 3 and 5, so
+this cell is 4." That is a hint-wording improvement in `buildNakedSingleReason`, not a new
+tier.
 
 ---
 
@@ -99,6 +120,42 @@ Unlike §4, partial domination needs filled cells — touching `k` *empty* cells
 - **Hidden subset.** If `k` values can only go in the same `k` cells of a cage, those cells are limited to those `k` values — remove all other candidates from them.
 
 Naked and hidden subsets are duals; in a small cage (≤ 5) one is usually easier to spot than the other.
+
+---
+
+## 6a. Connected groups, the general rule (built 2026-08-23)
+
+This is the technique the source page treats as its main insight, and the one the engine
+was missing. It is why hints used to collapse into contradiction trials.
+
+**Connected.** Two cells are *connected* when they can never hold the same value: they
+share a cage, or they are king-adjacent.
+
+**Group.** `k` cells, pairwise connected, whose candidates together span exactly `k`
+values. Those `k` values are used up among those `k` cells.
+
+**The rule.** A cell connected to every member of a group cannot hold any group value.
+
+**The refinement, which subsumes it.** A cell connected to *some* members cannot hold a
+group value that is **absent from the members it cannot see**, because that value has
+nowhere else in the group to live. The full-connection case is just this with an empty
+disconnected set.
+
+**Why it matters here and not in Sudoku.** A naked subset in Sudoku lives inside one
+house. In Tectonic, adjacency connects cells *across cage boundaries*, so a group can span
+several cages. The source page calls this out as the property it had overlooked, and the
+one that unstuck puzzles its own solver could not finish. Our `nakedSubsetElimination`
+(§6) is the special case where every member happens to share a cage.
+
+**As built.** `connectedGroupElimination` in `hints.ts`, run after the cage-local
+techniques so existing hint wording stays stable, for `k` of 2 and 3, and skipping groups
+that sit wholly inside one cage since §6 already has those. It reports under the
+`pair-elimination` mastery slot (§11).
+
+**Measured effect.** Over 12 Expert 5x5 boards, frozen before the change so both engines
+solved the *same* boards, contradiction hints fell **17 → 5**, about a 71% cut, with
+`pair-elimination` rising 21 → 47. Hard boards were unchanged (235 hints, identical mix):
+they never needed a cross-cage group. 8x8 generation time was unaffected.
 
 ---
 

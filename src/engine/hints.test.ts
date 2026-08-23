@@ -246,3 +246,45 @@ describe('contradiction chains', () => {
     expect(trimmed.map((step) => step.id)).toEqual([3]);
   });
 });
+
+describe('connected groups (cross-cage, solving-techniques §6a)', () => {
+  // The rule that reads across cage lines: k pairwise-connected cells
+  // whose candidates span exactly k values use those values up, so a
+  // cell seeing them loses them. Its hint text is distinctive, which is
+  // what lets us assert the technique actually fires rather than just
+  // that the board solved.
+  const CROSS_CAGE = 'see each other and can only hold';
+
+  it('fires on real Expert boards and never leaves one unsolved', () => {
+    let boardsWhereItFired = 0;
+    for (let seed = 1001; seed <= 1003; seed++) {
+      const puzzle = generatePuzzle(5, 5, 'expert', seed);
+      const grid = puzzle.clues.map((row) => [...row]);
+      let fired = false;
+
+      for (let step = 0; step < 300; step++) {
+        const hint = findHint(grid, puzzle.layout);
+        if (!hint || hint.value === 0) break;
+        if (hint.reason.includes(CROSS_CAGE)) fired = true;
+        grid[hint.row][hint.col] = hint.value;
+        if (grid.every((row) => row.every((v) => v !== 0))) break;
+      }
+
+      // Solved, and solved correctly.
+      expect(grid).toEqual(puzzle.solution);
+      if (fired) boardsWhereItFired++;
+    }
+    expect(boardsWhereItFired).toBeGreaterThan(0);
+  });
+
+  it('only groups a cell with cells it truly sees', () => {
+    // Two cells in different cages that are NOT king-adjacent are not
+    // connected, so they can never form a group. A 1x5 strip of 1-cell
+    // cages: every cell must be 1, but no two adjacent ones can both be
+    // 1, so nothing here is a legal group and the engine must not claim
+    // a cross-cage deduction.
+    const layout = makeLayout([[0, 1, 2, 3, 4]]);
+    const hint = findHint(empty(1, 5), layout);
+    if (hint) expect(hint.reason).not.toContain(CROSS_CAGE);
+  });
+});
