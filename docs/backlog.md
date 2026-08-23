@@ -47,6 +47,11 @@ guaranteed by construction, where `?.` would silently swallow an invariant break
 the rest were fixed or suppressed with a written reason. CI now runs `lint` and `test`
 before `build`, so it cannot rot silently again.
 
+**Play feedback from Jonas, 2026-08-23**, is in its own section below (F1 to F7).
+F1 (hint engine falls back to contradiction chains) and F3 (Expert means "the engine
+had to guess") share a root cause and gate the differentiator, so they are the two
+worth planning first.
+
 **Decisions still blocked on Jonas:**
 - **Apple Developer enrolment.** Gates StoreKit (item 17), TestFlight at scale (23)
   and the soft launch (24). The rest of Phase 5 queues behind it.
@@ -183,6 +188,160 @@ Queued 2026-05-17. Concrete improvement tasks — not yet scheduled into a phase
   the live accessibility tree: grid to row to gridcell with correct labels, Tab in and
   out is one stop, arrows move focus and selection together, and nothing steals focus on
   mount.
+
+---
+
+## Play feedback, 2026-08-23
+
+From Jonas playing the shipped build on and off over several months, mostly at Expert.
+Raised high level; the causes below were traced in the code before writing these up, so
+each item says what is actually wrong rather than restating the symptom. **F1 and F3 share
+one root cause** and should be planned together.
+
+### F1. The hint engine falls back to contradiction chains too often
+
+*Symptom:* hints too often resolve into a multi-step logic chain the player has to
+backtrack through, instead of explaining a deduction.
+
+*Cause, two parts.* First, `findDeductiveHint` only surfaces a hint when an elimination
+**immediately pins** a cell or a value. A deductive chain that legitimately strikes
+candidates without pinning anything yet produces no hint, so the search falls straight
+through to `findContradictionHint`, which narrates a trial rather than a deduction. That
+limit is admitted in [`specs/solving-techniques.md`](../specs/solving-techniques.md) §11.
+Second, three techniques the spec already catalogues are **not built**, so puzzles needing
+them have nothing to fall back on but the trial. From the spec's own tier table (§3):
+
+| Tier | Technique | State |
+|------|-----------|-------|
+| 1 | Last cell in cage | **not built** |
+| 2 | Partial domination (§5) | **not built** |
+| 5 | Flip-flop / equality, parity chains (§8) | **not built** |
+
+The spec already states the rule this violates: *a puzzle that any of Tiers 1 to 4 can
+crack should never receive a contradiction hint.*
+
+*Sub-tickets:*
+- **F1a.** Last cell in cage. Cheapest of the three and pure bookkeeping.
+- **F1b.** Partial domination (§5), where a cell sees some filled cells of a cage.
+- **F1c.** Surface elimination-only steps, so a chain that strikes candidates without
+  pinning a cell still explains itself instead of dropping to the trial. This is the one
+  that most directly causes the symptom.
+- **F1d.** Flip-flop / parity chains (§8). Spec flags these as hard to render legibly;
+  do them last and decide rendering first.
+- **F1e.** Re-run the I9 probe (28 hard/expert solves, contradiction trials were 6 of 567
+  hints) to measure the change, and record the new number.
+- **F1f.** *Needs Jonas:* the strategy site used when the hint chain was first built. Some
+  of its techniques never made it into the engine. Capture the URL in
+  `specs/solving-techniques.md` so the catalogue has a cited source.
+
+### F2. One-cell groups never appear in generated grids
+
+*Symptom:* at Expert the grid only ever contains groups of 2 to 5 cells; single-cell
+groups never occur.
+
+*Cause: excluded by construction, in three places.* `generateLayout` defaults to
+`minGroupSize = 2` ([generator.ts:32](../src/engine/generator.ts:32)); `generatePuzzle`
+sets `minGroupSize = isLarge ? 3 : 2` ([generator.ts:180](../src/engine/generator.ts:180));
+undersized groups are merged away ([generator.ts:92](../src/engine/generator.ts:92)) and
+any surviving layout below the floor is rejected ([generator.ts:186](../src/engine/generator.ts:186)).
+Note the 8x8 case also excludes **two**-cell groups.
+
+*Jonas's recollection of an old adjacency bug is right, and it is a real constraint, not a
+fluke.* A group of size N holds 1..N, so a one-cell group can only hold **1**. Two one-cell
+groups that touch, orthogonally or diagonally, would both need to be 1 and break the
+no-touching rule, making the puzzle unsolvable. So this is not simply lowering the floor to
+1: it needs a placement rule that no two one-cell groups are ever adjacent, diagonals
+included. Lowering `minGroupSize` without that rule reintroduces the original bug.
+
+*Sub-tickets:*
+- **F2a.** Allow size-1 groups in `generateLayout` behind a no-adjacent-singletons
+  constraint (8-neighbourhood).
+- **F2b.** Decide whether 8x8 keeps its floor of 3 or also drops, and why.
+- **F2c.** Generator test asserting that a layout never contains two touching one-cell
+  groups, so the old bug cannot come back silently.
+- **F2d.** Check the difficulty effect: a forced 1 is a free clue, so densities may need a
+  pass ([`specs/solving-techniques.md`](../specs/solving-techniques.md) open questions).
+
+### F3. Expert is graded as "the engine had to guess", not "needs advanced strategy"
+
+*Symptom:* Expert puzzles are too often solvable only by backtracking. Expert should be
+solvable with advanced deductive strategies.
+
+*Cause: this is the current definition, not a bug.* `gradeDifficulty` walks the puzzle with
+`findHint` and records the hardest tier used. `HINT_TIER` maps `contradiction` to 4,
+`TIER_DIFFICULTY[4]` is `expert`, and an engine stall also sets tier 4
+([hints.ts:1278-1331](../src/engine/hints.ts:1278)). The doc comment says it outright:
+*"Expert needs contradiction reasoning. A puzzle the engine cannot finish deductively is
+graded Expert."* Everything the deductive tiers can crack (domination, subsets, locked
+candidates) is tier 3 and grades as **hard**. There is no tier meaning "hard deduction, no
+search", which is exactly the tier Jonas wants to play.
+
+*Depends on F1.* Adding the missing techniques is what creates the deductive headroom for
+Expert to mean something other than "search". Order: F1 first, then re-map the ladder.
+
+*Sub-tickets:*
+- **F3a.** Re-map the tier-to-difficulty ladder once F1 lands, so Expert means the advanced
+  deductive tiers.
+- **F3b.** Decide what happens to puzzles that genuinely need a trial: rejected at
+  generation, or a tier above Expert. Note [ADR-0019](decisions/ADR-0019-legend-tiers-and-leaderboard.md)
+  already resolved Legend as **status, not a difficulty tier**, so this must not quietly
+  reopen that.
+- **F3c.** **Write an ADR.** Changing what a difficulty label means touches
+  [`specs/progression.md`](../specs/progression.md) §2 and the mastery model, and it
+  outlives its PR. It also amends the grading decision recorded under I9.
+- **F3d.** Update `specs/progression.md` §2 and the difficulty-picker subtitles ("Forced
+  moves", "Contradiction chains") to match the new meaning.
+
+### F4. Dark mode needs a design pass
+
+Dark mode is **already built and shipping**: a full dark token set drives every surface
+through `@media (prefers-color-scheme: dark)` in [`src/index.css`](../src/index.css), and it
+follows the OS setting with nothing in the Capacitor config forcing light. Verified
+rendering correctly on 2026-08-23 (dark cages, player and note ink, glass nav).
+
+So this is not a build ticket. Jonas had not realised it shipped, and on looking at it wants
+the dark palette refined. Scope: a design pass against
+[`specs/design-tokens.md`](../specs/design-tokens.md), judged during a long Expert solve
+rather than on a screenshot, since eye comfort over time is the actual test.
+
+*Not in scope here:* an in-app System / Light / Dark toggle. The profile carries an unused
+`settings.theme` field ready for it, but Jonas did not ask for one. Raise separately if
+wanted.
+
+### F5. Pre-filled cells should not be selectable
+
+`handleCellClick` sets the selection with no clue check
+([useGame.ts](../src/hooks/useGame.ts)), so clue cells select like any other even though
+nothing can be entered in them.
+
+*Decide as part of the ticket:* whether arrow-key navigation should also skip clues, or
+only tapping. Skipping in both is more consistent, but it makes the board's keyboard
+traversal non-uniform. This also touches the new grid semantics (I12): a non-selectable cell
+should stay in the ARIA grid and keep `aria-readonly`, not vanish from it.
+
+### F6. Multi-select cells
+
+Select several cells at once, mainly to write the same note across them.
+
+Not a small change. `useGame` models the selection as `selectedCell: [number, number] | null`
+and the whole render path assumes a single cell, so this touches the selection model, note
+entry, the keypad, undo/redo grouping (one undo step for a multi-cell note, not N), the
+selection-ring rendering, and the ARIA grid, which would need `aria-multiselectable` and
+per-cell `aria-selected`. Worth a design sketch before code: how selection starts (drag?
+long-press? a mode toggle?) is a UX decision, not an implementation detail.
+
+### F7. No way to clear a single cell on iOS
+
+Stronger than "change the default": there is currently **no touch path to clear one cell**.
+The toolbar's Clear opens `ClearPuzzleAlert` and wipes every entry and note in the puzzle
+([SolvingScreen.tsx:539](../src/screens/SolvingScreen.tsx:539)). Single-cell clear
+(`handleClear`) is bound only to Backspace and Delete on a physical keyboard, which no phone
+player has. The keypad's delete key was removed in S2 when Undo and Redo took its place, and
+clear-cell lost its only touch affordance then.
+
+*Fix:* make Clear act on the selected cell, and move clear-whole-puzzle behind a longer
+gesture or into the pause sheet. Keep the confirm alert for the destructive whole-puzzle
+action only; clearing one cell is undoable and needs no confirmation.
 
 ---
 
