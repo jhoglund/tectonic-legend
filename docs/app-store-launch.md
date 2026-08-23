@@ -3,45 +3,62 @@
 > Concrete submission checklist and guide for getting **Tectonic** (working title)
 > onto the Apple App Store. Pairs with [`docs/backlog.md`](backlog.md) Phase 5.
 >
-> **Status:** Pre-submission. The iOS shell is not yet scaffolded; the paywall is
-> not built. This document is the plan, not a record of completed work.
+> **Status:** Pre-submission, but much further along than the first draft assumed.
+> The iOS shell is scaffolded and **build 7 is on TestFlight**; the paywall is built
+> and wired. What remains is Apple-account work, assets, and the privacy artifacts.
+> Sections 3 onward are still plan, not record.
 >
-> **Last updated:** 2026-05-16
+> **Last updated:** 2026-08-23
 
-This guide is built from the App Store skills under
-[`.claude/skills/`](../.claude/skills/) — in particular `apple-appstore-reviewer`,
-`app-store-review`, `release-spec`, `app-store-screenshots`,
-`app-store-deployment`, and the ASO skill. Read those for depth; this is the
-project-specific application of them.
+This guide is built from the App Store skills listed in §8. They used to live in this
+repo under `.claude/skills/`; they were moved to `~/.claude/skills/` on 2026-06-05
+(commit `6f5b8f5`) and are now available in every project, so the in-repo path no longer
+exists. Read them for depth; this document is the project-specific application of them.
 
 ---
 
 ## 0. Where the app stands today (audit baseline)
 
-What a reviewer-mindset pass of the repo found, so the rest of the document has
-context:
+*Re-audited 2026-08-23. The original 2026-05-16 baseline described a web-only app with
+no backend and no native shell; all of that has since changed, so the whole section was
+rewritten. Where a claim below contradicts an older paragraph further down this
+document, this section wins.*
 
-- **Platform:** Web SPA only — Vite 8 + React 19 + TypeScript. No `ios/`
-  directory, no `capacitor.config.*`. The Capacitor wrap is **not scaffolded**
-  ([`ARCHITECTURE.md`](../ARCHITECTURE.md) §6, backlog item 21).
-- **No backend, no accounts, no auth, no cross-device sync** — local-only state
-  in `localStorage`, share via URL hash. This is good for review: no login wall,
-  no demo account needed.
+- **Platform:** Vite 8 + React 19 + TypeScript, wrapped by **Capacitor 8** (SPM-based,
+  no CocoaPods). `ios/App/App.xcodeproj` exists, bundle id
+  **`com.jhoglund.tectonic`**, marketing version **1.0**, build **7**. Build 7 is
+  uploaded to TestFlight and runs on Jonas's phone. Web also deploys to GitHub Pages on
+  every push to `main`.
+- **Backend:** a **Cloudflare Worker + KV** (`tectonic-sync`) syncing one player-profile
+  blob ([ADR-0020](decisions/ADR-0020-sync-off-supabase-cloudflare-worker.md),
+  [`docs/backend-sync.md`](backend-sync.md)). **This changes the privacy story, see
+  §1.** Supabase, and the account/auth layer that briefly existed on it, are gone.
+- **Accounts / auth:** none, and none surfaced. Identity is stubbed to one fixed local
+  user; there is no sign-in screen, no login wall, and no demo account for a reviewer to
+  need. Good for review, but *not* the same as "data never leaves the device".
 - **Analytics:** Mimir, wired but dormant. The SDK `<script>` is injected by
-  `vite.config.ts` *only* when `VITE_MIMIR_*` env vars are all set. In a
-  production build with those unset, the app ships with **zero analytics and no
-  third-party scripts**. When set, it collects anonymous usage data only (see §1).
-- **Monetization:** Paywall + StoreKit/RevenueCat are **Phase 4, not built**
-  (backlog items 17–18). `PRD.md` §6 describes the free/premium split; ADR-0007
-  and ADR-0008 are still `Proposed`.
-- **Placeholder content still in the repo** (rejection risk — see §5):
-  - `README.md` is the stock Vite template.
-  - `src/screens/SettingsScreen.tsx` is a one-paragraph stub — no Restore
-    Purchase, no How to Play, no About, no privacy link.
-  - *(Resolved 2026-05-21)* App name is `Tectonic Legend` (ADR-0006);
-    `<title>` and the in-app wordmark were aligned in the rename PR.
-- **Tests:** 39 passing (engine + progression). No crash-handling review done
-  for the native shell yet (it does not exist yet).
+  `vite.config.ts` *only* when `VITE_MIMIR_*` are all set. Unset in production today, so
+  the shipped build carries zero analytics and no third-party scripts.
+- **Monetization:** the paywall is **built and wired** (`PaywallProvider` mounts it
+  app-wide). Two gates are live: contradiction-chain hints and the technique-mastery
+  histogram. **StoreKit is not wired**: Continue currently funnels to the local voucher
+  redeem flow ([`docs/vouchers.md`](vouchers.md)), which needs no Apple account. Real IAP
+  is backlog item 17, blocked on Apple Developer enrolment.
+  - **Guideline 3.1.1 note:** premium features are gated and the only unlock path is a
+    voucher code, not an in-app purchase. That is acceptable *because* nothing is sold
+    in-app today. The moment StoreKit lands, the description and the gating must agree.
+- **Settings:** How to Play + About. The one-paragraph stub the first audit flagged as a
+  guideline-2.1 dead end is gone.
+- **Placeholder content:** `README.md` is project-specific, not the stock Vite template.
+  The app name is **Tectonic Legend** ([ADR-0006](decisions/ADR-0006-app-name.md),
+  Accepted); `<title>` and the in-app wordmark match.
+- **Tests:** **85 passing** across 8 files (engine + progression + vouchers + sync).
+  `npm run typecheck` and `npm run build` are clean.
+- **Lint is currently failing** (58 errors in `src/`, more in `prototypes/`) after the
+  house biome config tightened in June. Not a submission blocker, but see
+  [`docs/backlog.md`](backlog.md) Now.
+- **Not yet created:** `ios/App/App/PrivacyInfo.xcprivacy`. §1.2 below is still a
+  template, not a checked-in file.
 
 ---
 
@@ -59,13 +76,43 @@ your behaviour" rejections just as under-declaring does.
 | Pageviews + click/form autocapture | Same — Mimir SDK default | Mimir README "Autocapture" |
 | `anonymous_id`, `session_id` (client-generated UUIDs) | Same | Not tied to a person |
 | User-agent, language, viewport, device platform, app version | Same | Standard SDK context |
-| Player profile, stats, settings, in-progress game | Always | **Stays on-device** in `localStorage`. Never leaves the device. Not "collected" in App Store terms. |
+| Player profile, stats, settings, in-progress game | Always | Local-first in `localStorage`, **and mirrored off-device** to the Cloudflare Worker + KV when `VITE_SYNC_URL` / `VITE_SYNC_SECRET` are set in the build. **They are set in the shipped iOS build**, so this data does leave the device. See the note below. |
 
 **Not collected, ever:** name, email, contacts, photos, location, IP-based
 geolocation (Mimir does not store raw IPs), canvas/WebGL/font fingerprinting,
 cross-site identifiers, advertising identifiers. The app does **not** call
 `mimir.identify()`, so no `user_id` / "User ID" data type applies. Source:
 Mimir README "Privacy posture" and "App Store nutrition labels" note.
+
+### 1.1a Profile sync changes the answer (added 2026-08-23)
+
+The original draft of this document declared that **all** gameplay data stays on the
+device. Since [ADR-0020](decisions/ADR-0020-sync-off-supabase-cloudflare-worker.md) that
+is no longer true, and the declaration has to change with it.
+
+What actually leaves the device: the `PlayerProfile` blob: stage, technique-mastery
+counters, solve history and times, streaks, settings, premium entitlement. It is `PUT`
+to `https://tectonic-sync.jhoglund.workers.dev/profile` and stored under a single KV key.
+
+What does **not** leave: nothing else. There is no name, no email, no account, no device
+identifier in the blob. The Worker sees the bearer token and the blob, nothing more.
+
+**How to declare it.** The honest App Store data type is **Other Data** (or **Usage
+Data → Other Usage Data**), **not linked to identity**, **not used for tracking**,
+purpose **App Functionality**. It is not "User Content" (nothing authored) and not
+"Identifiers" (nothing identifying). Because the profile is stored under one fixed key
+with no per-user identity, there is genuinely nothing tying it to a person.
+
+**The simpler option, worth considering.** Sync is env-gated and fully graceful. Building
+the submission IPA with `VITE_SYNC_URL` / `VITE_SYNC_SECRET` **unset** makes the app
+local-only again and restores the "Data Not Collected" story end to end. Jonas loses
+cross-device sync for his own play. Given that sync exists to serve exactly one user
+today, shipping the store build without it is a defensible simplification, so **decide
+this before the first submission**, because the labels must match the binary.
+
+**Also affected:** ADR-0020 ships the bearer secret inside the client bundle. That is
+fine for a single-user blob, but anyone who unpacks the IPA can read and overwrite the
+profile. Not a review blocker; worth knowing before the app is public.
 
 **Decision point for Jonas:** ship v1 with Mimir **on** or **off** in production.
 
@@ -146,13 +193,22 @@ Notes:
   matches Mimir's "Usage Data — Product Interaction" (confirmed by Mimir's own
   README note). It is **not linked** to identity and **not used for tracking** —
   the UUIDs are anonymous and never joined to a real person.
-- Capacitor's own SDK and common plugins (`@capacitor/app`,
-  `@capacitor/preferences`, `@capacitor/status-bar`, `@capacitor/splash-screen`)
-  ship their own privacy manifests. After `npx cap add ios`, run a build and let
-  Xcode's privacy report aggregate them — then reconcile your top-level manifest
-  with what it shows. Do not hand-guess the Required-Reason list; verify it.
-- If Mimir is **off** for v1, `NSPrivacyCollectedDataTypes` is an empty array and
-  `NSPrivacyTracking` stays `false` — the simplest possible manifest.
+- Capacitor's own SDK and plugins ship their own privacy manifests. The iOS project
+  now exists, so this is verifiable rather than hypothetical: build it and let Xcode's
+  privacy report aggregate them, then reconcile the top-level manifest with what it
+  shows. Do not hand-guess the Required-Reason list. The current plugin set is
+  `@capacitor/core`, `@capacitor/ios` and `@capacitor/status-bar`.
+- **Profile sync adds a collected data type, not a Required-Reason API** (§1.1a). A
+  plain `fetch()` to the Worker needs no `NSPrivacyAccessedAPITypes` entry, but with
+  sync enabled the manifest needs an `NSPrivacyCollectedDataTypeOtherDataTypes` entry,
+  not linked, not tracking, purpose App Functionality.
+- `NSPrivacyTracking` stays `false` and `NSPrivacyTrackingDomains` stays empty either
+  way. The Worker is first-party and does no cross-app linking.
+- With Mimir **off and sync off**, `NSPrivacyCollectedDataTypes` is an empty array,
+  the simplest possible manifest, and still available if the submission build drops
+  sync (§1.1a).
+- **This file does not exist yet.** `ios/App/App/PrivacyInfo.xcprivacy` must be created
+  and added to the app target's resources before submission.
 
 ### 1.3 App Store Connect privacy "nutrition labels"
 
@@ -166,13 +222,17 @@ In App Store Connect → App Privacy, answer the questionnaire to match §1.1.
 | — Linked to the user's identity? | **No** |
 | — Used for tracking? | **No** |
 | — Purpose | **Analytics** |
+| Other Data, collected? | **Yes**, if the build has sync enabled (§1.1a). Not linked, not tracking, purpose App Functionality |
 | All other categories (Contact Info, Health, Financial, Location, Identifiers, Browsing, Diagnostics, etc.) | **Not Collected** |
 
 Diagnostics/Crash Data: only declare it if you add a crash SDK (none today —
 Apple's own Xcode Organizer crash collection does not need a label).
 
-**With Mimir off:** every category is **Data Not Collected**. This is the
-current honest answer until Mimir is publicly hosted.
+**With Mimir off:** every analytics category is **Data Not Collected**. This is the
+current honest answer until Mimir is publicly hosted. **But it only reaches "Data Not
+Collected" across the board if profile sync is also disabled in the submission build**
+(§1.1a). With sync on and Mimir off, the single declaration is Other Data / App
+Functionality.
 
 ### 1.4 Privacy policy URL (required regardless)
 
@@ -183,9 +243,12 @@ not `localhost`).
 - Host it on the brand domain once the name is picked (ADR-0006), e.g.
   `https://<brand>.app/privacy`.
 - Content must state: whether usage analytics is collected and via what
-  (self-hosted Mimir, anonymous, no third parties); that all gameplay/profile
-  data stays on-device; that no personal data, location, or contacts are taken;
-  that there is no account and nothing to delete server-side; a contact email.
+  (self-hosted Mimir, anonymous, no third parties); **where gameplay/profile data
+  lives**: on-device, plus the Cloudflare Worker + KV mirror if the shipped build has
+  sync enabled (§1.1a); that no personal data, location, or contacts are taken; that
+  there is no account; and a contact email. **Do not claim "nothing leaves your
+  device" unless the submitted build genuinely has sync off**. That exact sentence was
+  in this document's first draft and is now false for the TestFlight build.
 - A short, plain-English page is fine — match the policy to the genuinely thin
   data practice. Do not paste a generic boilerplate that claims data practices
   the app does not have; mismatches get flagged under Guideline 5.1.
@@ -250,7 +313,7 @@ PLAYS YOUR WAY
 - A fresh daily puzzle every day.
 - Share a spoiler-free, colour-coded solve summary.
 - Light and dark themes. Built mobile-first.
-- No account, no sign-in. Your progress lives on your device.
+- No account, no sign-in required.
 
 <BRAND> Premium unlocks Hard and Expert difficulty, unlimited advanced
 hints, contradiction-chain hints, the technique-mastery stats, and the
@@ -595,8 +658,8 @@ Condensed from the `release-spec` skill, scoped to this project.
 
 ## 8. Skills reference
 
-The reusable skills behind this guide, under
-[`.claude/skills/`](../.claude/skills/):
+The reusable skills behind this guide. They are installed globally under
+`~/.claude/skills/`, not in this repo, so invoke them by name from any session:
 
 | Skill | Use it for |
 |-------|-----------|

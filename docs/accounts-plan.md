@@ -1,5 +1,25 @@
 # Accounts — build plan
 
+> **SUPERSEDED. Historical record only. Do not build from this document.**
+>
+> Everything below describes a Supabase accounts backend that was built, shipped, and
+> then **removed in full** on 2026-07-04 by
+> [ADR-0020](decisions/ADR-0020-sync-off-supabase-cloudflare-worker.md). The Supabase
+> project is deleted, `@supabase/supabase-js` is gone, `supabase/schema.sql` is gone,
+> and there is no auth layer: identity is stubbed to one fixed local user.
+>
+> Profile sync now runs on a **Cloudflare Worker + KV**. For the live state and the
+> runbook read [`docs/backend-sync.md`](backend-sync.md); for the reasoning read
+> ADR-0020.
+>
+> The one part still worth reading is **§4, the sync model**, which is last-write-wins on the
+> whole blob by `updatedAt`. That design survived the migration intact and is what
+> `src/lib/profileSync.ts` still implements today. §9's launch-timing recommendation
+> also still reads true.
+>
+> Kept rather than deleted because it is the only place the accounts data model and its
+> RLS reasoning are written down, which matters if Tectonic ever goes multi-user.
+
 The engineering plan behind [ADR-0013](decisions/ADR-0013-supabase-as-the-backend.md):
 player accounts on **Supabase**, so progress survives uninstall and
 follows the player across devices.

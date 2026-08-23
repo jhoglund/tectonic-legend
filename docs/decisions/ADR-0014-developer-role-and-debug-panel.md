@@ -2,6 +2,14 @@
 
 **Date:** 2026-05-18
 **Status:** Accepted
+
+> **Partly inert since 2026-07-04.** The account-backed elevation path below (the
+> `DEVELOPER_EMAILS` allowlist checked on sign-in) depends on an authenticated email
+> address. [ADR-0020](ADR-0020-sync-off-supabase-cloudflare-worker.md) removed auth
+> entirely (the stubbed local user has no email), so that path never fires. **The
+> 7-tap Version-row unlock is the only live way to reach the developer panel.** The
+> allowlist code is harmless but dead; treat the "harden the unlock before public
+> launch" note as the one that still matters.
 **Source:** [docs/backlog.md](../backlog.md) — improvement item I5
 
 ## Context

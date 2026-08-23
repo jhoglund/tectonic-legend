@@ -2,6 +2,17 @@
 
 **Date:** 2026-05-20
 **Status:** Accepted (spec only; implementation deferred until ADR-0018 ships)
+
+> **Backend premise superseded, 2026-07-04.** This ADR's §2 leaderboard assumes the
+> Supabase backend of ADR-0013 (a `daily_puzzle_times` table, RLS scoped to
+> `auth.uid()`, an Edge Function for the daily floor) and the auth providers of
+> ADR-0017. Both are gone.
+> [ADR-0020](ADR-0020-sync-off-supabase-cloudflare-worker.md) replaced them with a
+> single-user Cloudflare Worker + KV and no auth at all. **A leaderboard needs real
+> multi-user identity, which no longer exists**, so §2 cannot be built as written and
+> the sequencing note at the end of Consequences is void. §1 (the four Legend rungs) is
+> client-side and unaffected. Whoever picks the leaderboard up must first decide how
+> identity comes back, which would supersede ADR-0020 in turn.
 **Source:** Extends [ADR-0018](ADR-0018-legend-stage-and-mastery-depth.md) — Legend stage + mastery depth. References [ADR-0013](ADR-0013-supabase-as-the-backend.md) (Supabase backend) and [ADR-0017](ADR-0017-anonymous-by-default-auth.md) (anonymous-by-default).
 
 ## Context
