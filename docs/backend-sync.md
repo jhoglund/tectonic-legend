@@ -135,6 +135,16 @@ so client and Worker match. A mismatch shows up as `401` from the Worker.
   `/Users/jonashoglund/work/hybris-fed/hybris/CREDENTIALS.md`, the federation's credential
   store. The issuer id is an account identifier, not a secret; the `.p8` is the secret half
   and lives at `~/.appstoreconnect/private_keys/`.
+- **Build processes fine but never appears in TestFlight.** Check
+  `buildBetaDetail.internalBuildState`: `MISSING_EXPORT_COMPLIANCE` means Apple is waiting
+  on the encryption question. `ITSAppUsesNonExemptEncryption = false` is now in
+  `Info.plist`, so new builds answer it automatically. The app qualifies for the exemption
+  because it uses only OS-provided HTTPS (`crypto.randomUUID()` generates ids, it does not
+  encrypt). To clear an already-uploaded build, PATCH `usesNonExemptEncryption: false` onto
+  `/v1/builds/{id}`. Internal groups receive builds automatically once this clears, so do
+  not try to assign a build to one: the API rejects it with
+  `Cannot add internal group to a build`.
+
 - **`Missing required icon file ... 120x120 / 152x152 / 167x167`.** The app icon is a
   source asset and is now committed. If it ever goes missing again the build still
   *succeeds*, silently, producing an iconless app that only fails at upload. Note also
