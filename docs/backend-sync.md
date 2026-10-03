@@ -123,15 +123,23 @@ so client and Worker match. A mismatch shows up as `401` from the Worker.
   `DEVELOPMENT_TEAM = S4UF72BD94` in both build configurations, so the CLI path above now
   works unattended.
 - **`Failed to Use Accounts: App Store Connect access for "S4UF72BD94" is required`.** The
-  cached Xcode account expires. Only Jonas can restore it (Xcode -> Settings -> Accounts,
-  password + 2FA). The `.p8` API key at
-  `~/.appstoreconnect/private_keys/AuthKey_T74H52U428.p8` is the unattended alternative,
-  but it needs its **issuer id**, a UUID that is deliberately not stored anywhere (see
-  `hybris/CREDENTIALS.md`). Recording that issuer id once would make uploads scriptable and
-  remove this interruption for good: App Store Connect -> Users and Access -> Integrations
-  -> App Store Connect API.
-- An upload can fail `CONTRACT_NOT_VALID` if an App Store Connect agreement needs
-  re-accepting (App Store Connect -> Business).
+  cached Xcode account expires, so **do not use `destination=upload` as the primary path**.
+  Upload with the API key instead, which needs no interactive sign-in:
+
+  ```bash
+  xcrun altool --upload-app -f <ipa> -t ios \
+    --apiKey T74H52U428 --apiIssuer 88e1de5f-a151-4e8b-a2e5-cc711d842ed4
+  ```
+
+  Key id, issuer id and team id are recorded in
+  `/Users/jonashoglund/work/hybris-fed/hybris/CREDENTIALS.md`, the federation's credential
+  store. The issuer id is an account identifier, not a secret; the `.p8` is the secret half
+  and lives at `~/.appstoreconnect/private_keys/`.
+- **`FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED`** (altool reports it as
+  `CONTRACT_NOT_VALID`, or unhelpfully as `Unable to find Apple ID for Bundle ID ...` and
+  `No applications found`, because an unsigned agreement hides every app from the API). An
+  Apple agreement needs accepting at https://appstoreconnect.apple.com/business. Only Jonas
+  can do this. Hit on 2026-10-03.
 
 ## If Tectonic ever goes multi-user
 
