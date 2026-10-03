@@ -7,7 +7,7 @@
 > own build/deploy detail is [`sync-worker/README.md`](../sync-worker/README.md).
 > This doc ties those together and does not duplicate them.
 
-**Last updated:** 2026-07-04
+**Last updated:** 2026-10-03
 
 ## TL;DR
 
@@ -95,15 +95,43 @@ so client and Worker match. A mismatch shows up as `401` from the Worker.
 
 **Ship a new iOS build**
 
+**TestFlight builds expire 90 days after upload.** Build 7 went up 2026-07-04 and expired
+2026-10-02, which is what triggers a renewal.
+
 1. Bump `CURRENT_PROJECT_VERSION` (two spots in
    [`ios/App/App.xcodeproj/project.pbxproj`](../ios/App/App.xcodeproj/project.pbxproj)).
 2. `npm run sync:ios`.
-3. Archive the **`.xcodeproj`** (not a workspace, the project is SPM-based), export with
-   [`ios/ExportOptions.plist`](../ios/ExportOptions.plist), then re-export with
-   `destination=upload`. The upload uses the cached Xcode account, so no App Store
-   Connect issuer id is needed.
-4. Gotcha: an upload can fail `CONTRACT_NOT_VALID` if an App Store Connect agreement needs
-   re-accepting (App Store Connect -> Business).
+3. Archive the **`.xcodeproj`** (not a workspace, the project is SPM-based):
+
+   ```bash
+   xcodebuild -project ios/App/App.xcodeproj -scheme App -configuration Release \
+     -destination 'generic/platform=iOS' -archivePath /tmp/Tectonic.xcarchive archive
+   ```
+
+4. Export the IPA with [`ios/ExportOptions.plist`](../ios/ExportOptions.plist)
+   (`-exportArchive ... -allowProvisioningUpdates`), then re-export with a copy of that
+   plist whose `destination` is `upload`.
+5. Verify before archiving, since both are silent failures: the built bundle should
+   contain the sync Worker host, and must **not** contain `mimir.test` (the local
+   analytics host never belongs in a device build).
+
+**Gotchas, both hit on 2026-10-03:**
+
+- **`Signing for "App" requires a development team`.** The project had `CODE_SIGN_STYLE =
+  Automatic` but no `DEVELOPMENT_TEAM`, so archiving worked from the Xcode GUI (which
+  supplies the team interactively) and failed from the CLI. Fixed by setting
+  `DEVELOPMENT_TEAM = S4UF72BD94` in both build configurations, so the CLI path above now
+  works unattended.
+- **`Failed to Use Accounts: App Store Connect access for "S4UF72BD94" is required`.** The
+  cached Xcode account expires. Only Jonas can restore it (Xcode -> Settings -> Accounts,
+  password + 2FA). The `.p8` API key at
+  `~/.appstoreconnect/private_keys/AuthKey_T74H52U428.p8` is the unattended alternative,
+  but it needs its **issuer id**, a UUID that is deliberately not stored anywhere (see
+  `hybris/CREDENTIALS.md`). Recording that issuer id once would make uploads scriptable and
+  remove this interruption for good: App Store Connect -> Users and Access -> Integrations
+  -> App Store Connect API.
+- An upload can fail `CONTRACT_NOT_VALID` if an App Store Connect agreement needs
+  re-accepting (App Store Connect -> Business).
 
 ## If Tectonic ever goes multi-user
 
