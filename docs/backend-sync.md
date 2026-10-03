@@ -135,11 +135,26 @@ so client and Worker match. A mismatch shows up as `401` from the Worker.
   `/Users/jonashoglund/work/hybris-fed/hybris/CREDENTIALS.md`, the federation's credential
   store. The issuer id is an account identifier, not a secret; the `.p8` is the secret half
   and lives at `~/.appstoreconnect/private_keys/`.
+- **`Missing required icon file ... 120x120 / 152x152 / 167x167`.** The app icon is a
+  source asset and is now committed. If it ever goes missing again the build still
+  *succeeds*, silently, producing an iconless app that only fails at upload. Note also
+  that a lone universal 1024x1024 entry is **not** enough: `actool` ignores sized entries
+  beside it and never emits 167x167, which iPad requires. The catalogue therefore carries
+  every size explicitly. Check the compiled catalogue, not the loose files in the bundle,
+  since most sizes live inside `Assets.car`:
+
+  ```bash
+  xcrun assetutil --info <App.app>/Assets.car | grep -c 167
+  ```
+
 - **`FORBIDDEN.REQUIRED_AGREEMENTS_MISSING_OR_EXPIRED`** (altool reports it as
   `CONTRACT_NOT_VALID`, or unhelpfully as `Unable to find Apple ID for Bundle ID ...` and
   `No applications found`, because an unsigned agreement hides every app from the API). An
-  Apple agreement needs accepting at https://appstoreconnect.apple.com/business. Only Jonas
-  can do this. Hit on 2026-10-03.
+  Apple agreement needs accepting at https://appstoreconnect.apple.com/business (the
+  **Free Apps Agreement**; Paid Apps is not needed for TestFlight on a free app). Only
+  Jonas can accept it. Hit on 2026-10-03. Expect a lag: the REST API cleared about three
+  minutes before the upload pipeline did, so retry rather than assuming a second
+  agreement is outstanding.
 
 ## If Tectonic ever goes multi-user
 
