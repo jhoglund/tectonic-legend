@@ -408,6 +408,38 @@ body {
   color: var(--text-primary);
 }
 
+/* --- Native feel: nothing is selectable by default ----------------
+   This is a game, not a document. In a WKWebView a long press, or a tap
+   that drifts a few pixels, starts a text selection: the blue highlight
+   appears, the magnifier pops up, and the "Copy / Look Up" callout
+   covers the board. Reported from the device 2026-10-03.
+
+   `select-none` was only ever on Cell and TabBar, so every other
+   surface, the keypad most of all, was selectable. Disable it once at
+   the root rather than per component, which is what let it drift.
+
+   Both the prefixed and unprefixed properties are needed: WebKit on iOS
+   still reads `-webkit-user-select`. */
+html,
+body {
+  -webkit-user-select: none;
+  user-select: none;
+  /* Kills the long-press callout bubble and the selection magnifier. */
+  -webkit-touch-callout: none;
+}
+
+/* Text entry must stay selectable, or editing the field breaks: no
+   caret placement, no pick-a-word, no paste target. Today that is the
+   voucher field in RedeemCodeSheet; the rule is written for any input
+   so the next one does not have to remember. */
+input,
+textarea,
+[contenteditable="true"] {
+  -webkit-user-select: text;
+  user-select: text;
+  -webkit-touch-callout: default;
+}
+
 button:focus-visible,
 input:focus-visible {
   outline: 2px solid var(--brand-600);
